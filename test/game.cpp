@@ -1,7 +1,7 @@
 #include <iostream>
 #include "game.h"
 
-void log(std::string message) {
-	std::cout << message << std::endl;
+void log(char *string) {
+	std::cout << string << std::endl;
 }
 
