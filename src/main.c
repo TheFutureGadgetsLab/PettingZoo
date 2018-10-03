@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int rescale_window(sfRenderWindow *window, sfEvent event);
+
 int main(int argc, char **argv)
 {
 	sfVideoMode mode = {800, 600, 32};
@@ -18,6 +20,12 @@ int main(int argc, char **argv)
 	sfTime time;
 	sfFont *font;
 	sfText *text;
+    sfClock *clock;
+    sfClock *frame_clock;
+
+    // Create the clocks
+    clock = sfClock_create();
+    frame_clock = sfClock_create();
 
 	char framerate_txt[32];
    
@@ -45,8 +53,6 @@ int main(int argc, char **argv)
 	sfSprite_setTexture(sprite, texture, sfTrue);
    
     // Start the game loop
-    sfClock *clock = sfClock_create();
-    sfClock *frame_clock = sfClock_create();
     while (sfRenderWindow_isOpen(window))
     {
         // Process events
@@ -56,6 +62,8 @@ int main(int argc, char **argv)
             if (event.type == sfEvtClosed) {
                 printf("Exiting\n");
                 sfRenderWindow_close(window);
+            } else if (event.type == sfEvtResized) {
+                rescale_window(window, event);
             } else if (event.type == sfEvtKeyPressed) {
                 if (event.key.code == sfKeyUp) {
                     printf("Up\n");
@@ -103,12 +111,29 @@ int main(int argc, char **argv)
     }
 
     // Cleanup resources
-    //sfMusic_destroy(music);
     sfText_destroy(text);
     sfFont_destroy(font);
     sfSprite_destroy(sprite);
     sfTexture_destroy(texture);
     sfRenderWindow_destroy(window);
+    sfClock_destroy(clock);
+    sfClock_destroy(frame_clock);
     
+    return 0;
+}
+
+int rescale_window(sfRenderWindow *window, sfEvent event)
+{
+    sfVector2f win_size = {event.size.width, event.size.height};
+    sfVector2f win_center = {event.size.width / 2.0, event.size.height / 2.0};
+    
+    sfView *tmp = sfView_copy(sfRenderWindow_getView(window));
+    sfView_setSize(tmp, win_size);
+    sfView_setCenter(tmp, win_center);
+    sfRenderWindow_setView(window, tmp);
+
+    // Prevent memory leak
+    sfView_destroy(tmp);
+
     return 0;
 }
