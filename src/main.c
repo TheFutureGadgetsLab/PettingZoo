@@ -9,11 +9,11 @@
 
 int main(int argc, char **argv)
 {
-    sfVideoMode mode = {800, 600, 32};
+    sfVideoMode mode = {800, 800, 32};
     sfRenderWindow* window;
     sfTexture* texture;
     sfSprite* sprite;
-    sfVector2f moveby = {0.1, 0};
+    sfVector2f moveby = {0, 0};
     sfEvent event;
     sfTime time;
     sfFont *font;
@@ -21,14 +21,15 @@ int main(int argc, char **argv)
 
     char framerate_txt[32];
    
-    /* Create the main window */
+    // Create the main window
     window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
     if (!window)
         return -1;
 
+    // Vsync 
     sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
 
-    /* Load a sprite to display */
+    // Load a sprite to display
     texture = sfTexture_createFromFile("../assets/cute_image.jpg", NULL);
     if (!texture)
         return -1;
@@ -43,46 +44,68 @@ int main(int argc, char **argv)
     sprite = sfSprite_create();
     sfSprite_setTexture(sprite, texture, sfTrue);
    
-    /* Start the game loop */
+    // Start the game loop
     sfClock *clock = sfClock_create();
     sfClock *frame_clock = sfClock_create();
     while (sfRenderWindow_isOpen(window))
     {
-        /* Process events */
+        // Process events
         while (sfRenderWindow_pollEvent(window, &event))
         {
-            /* Close window : exit */
-            if (event.type == sfEvtClosed)
+            // Close window
+            if (event.type == sfEvtClosed) {
+                printf("Exiting\n");
                 sfRenderWindow_close(window);
+            } else if (event.type == sfEvtKeyPressed) {
+                if (event.key.code == sfKeyUp) {
+                    printf("Up\n");
+                    moveby.y = -1.5; 
+                } else if (event.key.code == sfKeyDown) {
+                    printf("Down\n");
+                    moveby.y = 1.5; 
+                } else if (event.key.code == sfKeyLeft) {
+                    printf("Left\n");
+                    moveby.x = -1.5; 
+                }  else if (event.key.code == sfKeyRight) {
+                    printf("Right\n");
+                    moveby.x = 1.5; 
+                }
+            } else if (event.type == sfEvtKeyReleased) {
+                if (event.key.code == sfKeyUp || event.key.code == sfKeyDown) {
+                    moveby.y = 0;
+                } else if (event.key.code == sfKeyLeft || event.key.code == sfKeyRight) {
+                    moveby.x = 0; 
+                }
+            }
         }
 
-        /* Clear the screen */
+        // Clear the screen
         sfRenderWindow_clear(window, sfBlack);
 
         // Get framerate
         sfTime frametime = sfClock_getElapsedTime(frame_clock);
-        sfClock_restart(frame_clock);
         sprintf(framerate_txt, "%.0lf", 1.0 / sfTime_asSeconds(frametime));
         sfText_setString(text, framerate_txt);
 
-
-        /* Draw the sprite */
-        time = sfClock_getElapsedTime(clock);
-        moveby.x = sinf(sfTime_asSeconds(time) * 4.0) * 2.0;
+        // Draw the sprite
+        // time = sfClock_getElapsedTime(clock);
         sfSprite_move(sprite, moveby);
         sfRenderWindow_drawSprite(window, sprite, NULL);
 
-        /* Draw the text */
+        // Draw the text 
         sfRenderWindow_drawText(window, text, NULL);
         
-        /* Update the window */
+        // Restart frame clock
+        sfClock_restart(frame_clock);
+
+        // Update the window
         sfRenderWindow_display(window);
     }
 
-    /* Cleanup resources */
+    // Cleanup resources
     //sfMusic_destroy(music);
-    //sfText_destroy(text);
-    //sfFont_destroy(font);
+    sfText_destroy(text);
+    sfFont_destroy(font);
     sfSprite_destroy(sprite);
     sfTexture_destroy(texture);
     sfRenderWindow_destroy(window);
