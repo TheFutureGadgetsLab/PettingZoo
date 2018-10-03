@@ -9,17 +9,17 @@
 
 int main(int argc, char **argv)
 {
-    sfVideoMode mode = {800, 800, 32};
-    sfRenderWindow* window;
-    sfTexture* texture;
-    sfSprite* sprite;
-    sfVector2f moveby = {0, 0};
-    sfEvent event;
-    sfTime time;
-    sfFont *font;
-    sfText *text;
+	sfVideoMode mode = {800, 600, 32};
+	sfRenderWindow* window;
+	sfTexture* texture;
+	sfSprite* sprite;
+	sfVector2f moveby = {0.1, 0};
+	sfEvent event;
+	sfTime time;
+	sfFont *font;
+	sfText *text;
 
-    char framerate_txt[32];
+	char framerate_txt[32];
    
     // Create the main window
     window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
@@ -34,15 +34,15 @@ int main(int argc, char **argv)
     if (!texture)
         return -1;
 
-    // Framerate text
-    font = sfFont_createFromFile("../assets/Rajdhani-Regular.ttf");
-    if (!font)
-        return EXIT_FAILURE;
-    text = sfText_create();
-    sfText_setFont(text, font);
-    sfText_setCharacterSize(text, 50);
-    sprite = sfSprite_create();
-    sfSprite_setTexture(sprite, texture, sfTrue);
+	// Framerate text
+	font = sfFont_createFromFile("../assets/Vera.ttf");
+	if (!font)
+		return EXIT_FAILURE;
+	text = sfText_create();
+	sfText_setFont(text, font);
+	sfText_setCharacterSize(text, 50);
+	sprite = sfSprite_create();
+	sfSprite_setTexture(sprite, texture, sfTrue);
    
     // Start the game loop
     sfClock *clock = sfClock_create();
