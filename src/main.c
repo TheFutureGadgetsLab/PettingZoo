@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	sfRenderWindow* window;
 	sfTexture* texture;
 	sfSprite* sprite;
-	sfVector2f moveby = {0.1, 0};
+	sfVector2f moveby = {0.0, 0};
 	sfEvent event;
 	sfTime time;
 	sfFont *font;
