@@ -1,6 +1,3 @@
 .vscode
 *.exe
-CMakeFiles
-CMakeCache.txt
 build
-a.out
