@@ -9,83 +9,81 @@
 
 int main(int argc, char **argv)
 {
-    sfVideoMode mode = {800, 600, 32};
-    sfRenderWindow* window;
-    sfTexture* texture;
-    sfSprite* sprite;
-    sfVector2f moveby = {0.1, 0};
-    sfEvent event;
-    sfTime time;
-    sfFont *font;
-    sfText *text;
+	sfVideoMode mode = {800, 600, 32};
+	sfRenderWindow* window;
+	sfTexture* texture;
+	sfSprite* sprite;
+	sfVector2f moveby = {0.1, 0};
+	sfEvent event;
+	sfTime time;
+	sfFont *font;
+	sfText *text;
 
-    char framerate_txt[32];
+	char framerate_txt[32];
    
-    /* Create the main window */
-    window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
-    if (!window)
-        return -1;
+	/* Create the main window */
+	window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
+	if (!window)
+		return -1;
 
-    sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
+	sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
 
-    /* Load a sprite to display */
-    texture = sfTexture_createFromFile("../assets/cute_image.jpg", NULL);
-    if (!texture)
-        return -1;
+	/* Load a sprite to display */
+	texture = sfTexture_createFromFile("../assets/cute_image.jpg", NULL);
+	if (!texture)
+		return -1;
 
-    // Framerate text
-    font = sfFont_createFromFile("../assets/Rajdhani-Regular.ttf");
-    if (!font)
-        return EXIT_FAILURE;
-    text = sfText_create();
-    sfText_setFont(text, font);
-    sfText_setCharacterSize(text, 50);
-    sprite = sfSprite_create();
-    sfSprite_setTexture(sprite, texture, sfTrue);
+	// Framerate text
+	font = sfFont_createFromFile("../assets/Vera.ttf");
+	if (!font)
+		return EXIT_FAILURE;
+	text = sfText_create();
+	sfText_setFont(text, font);
+	sfText_setCharacterSize(text, 50);
+	sprite = sfSprite_create();
+	sfSprite_setTexture(sprite, texture, sfTrue);
    
-    /* Start the game loop */
-    sfClock *clock = sfClock_create();
-    sfClock *frame_clock = sfClock_create();
-    while (sfRenderWindow_isOpen(window))
-    {
-        /* Process events */
-        while (sfRenderWindow_pollEvent(window, &event))
-        {
-            /* Close window : exit */
-            if (event.type == sfEvtClosed)
-                sfRenderWindow_close(window);
-        }
+	/* Start the game loop */
+	sfClock *clock = sfClock_create();
+	sfClock *frame_clock = sfClock_create();
+	while (sfRenderWindow_isOpen(window))
+	{
+		/* Process events */
+		while (sfRenderWindow_pollEvent(window, &event))
+		{
+			/* Close window : exit */
+			if (event.type == sfEvtClosed)
+				sfRenderWindow_close(window);
+		}
 
-        /* Clear the screen */
-        sfRenderWindow_clear(window, sfBlack);
+		/* Clear the screen */
+		sfRenderWindow_clear(window, sfBlack);
 
-        // Get framerate
-        sfTime frametime = sfClock_getElapsedTime(frame_clock);
-        sfClock_restart(frame_clock);
-        sprintf(framerate_txt, "%.0lf", 1.0 / sfTime_asSeconds(frametime));
-        sfText_setString(text, framerate_txt);
+		// Get framerate
+		sfTime frametime = sfClock_getElapsedTime(frame_clock);
+		sfClock_restart(frame_clock);
+		sprintf(framerate_txt, "%.0lf", 1.0 / sfTime_asSeconds(frametime));
+		sfText_setString(text, framerate_txt);
 
 
-        /* Draw the sprite */
-        time = sfClock_getElapsedTime(clock);
-        moveby.x = sinf(sfTime_asSeconds(time) * 4.0) * 2.0;
-        sfSprite_move(sprite, moveby);
-        sfRenderWindow_drawSprite(window, sprite, NULL);
+		/* Draw the sprite */
+		time = sfClock_getElapsedTime(clock);
+		moveby.x = 200 + sinf(sfTime_asSeconds(time) * 4.0) * 200.0;
+		moveby.y = 150 + sinf(100.0 + sfTime_asSeconds(time) * 4.0) * 150.0;
+		sfSprite_setPosition(sprite, moveby);
+		sfRenderWindow_drawSprite(window, sprite, NULL);
 
-        /* Draw the text */
-        sfRenderWindow_drawText(window, text, NULL);
-        
-        /* Update the window */
-        sfRenderWindow_display(window);
-    }
+		/* Draw the text */
+		sfRenderWindow_drawText(window, text, NULL);
+		
+		/* Update the window */
+		sfRenderWindow_display(window);
+	}
 
-    /* Cleanup resources */
-    //sfMusic_destroy(music);
-    //sfText_destroy(text);
-    //sfFont_destroy(font);
-    sfSprite_destroy(sprite);
-    sfTexture_destroy(texture);
-    sfRenderWindow_destroy(window);
-    
-    return 0;
+	/* Cleanup resources */
+	sfSprite_destroy(sprite);
+	sfTexture_destroy(texture);
+	sfRenderWindow_destroy(window);
+	
+	return 0;
 }
