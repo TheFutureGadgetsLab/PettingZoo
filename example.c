@@ -3,6 +3,9 @@
 #include <SFML/Graphics/RenderWindow.h>
 #include <SFML/Window.h>
 #include <SFML/Config.h>
+#include <SFML/System/Time.h>
+#include <SFML/System/Clock.h>
+#include <math.h>
 
 int main()
 {
@@ -13,9 +16,12 @@ int main()
     sfFont* font;
     sfText* text;
     sfMusic* music;
+    sfVector2f moveby = {0.1, 0};
     sfEvent event;
     /* Create the main window */
     window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
+    //sfWindow_setVerticalSyncEnabled(window, sfTrue);
+    sfWindow_setFramerateLimit(window, 60);
     if (!window)
         return -1;
     /* Load a sprite to display */
@@ -39,6 +45,7 @@ int main()
     ///* Play the music */
     //sfMusic_play(music);
     ///* Start the game loop */
+    sfClock *clock = sfClock_create();
     while (sfRenderWindow_isOpen(window))
     {
         /* Process events */
@@ -51,6 +58,9 @@ int main()
         /* Clear the screen */
         sfRenderWindow_clear(window, sfBlack);
         /* Draw the sprite */
+        sfTime time = sfClock_getElapsedTime(clock);
+        moveby.x = sinf(sfTime_asSeconds(time) * 4.0) * 2.0;
+        sfSprite_move(sprite, moveby);
         sfRenderWindow_drawSprite(window, sprite, NULL);
         /* Draw the text */
         //sfRenderWindow_drawText(window, text, NULL);
