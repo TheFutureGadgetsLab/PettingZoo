@@ -3,7 +3,7 @@
 
 #include <SFML/Graphics.h>
 
-void game_draw_tiles(sfRenderWindow *window);
+void game_draw_tiles(sfRenderWindow *window, sfView *view);
 void game_load_assets();
 
 #endif

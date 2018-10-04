@@ -55,6 +55,7 @@ int main(int argc, char **argv)
 	game_load_assets();
 
 	// Start the game loop
+	sfView *view = sfRenderWindow_getView(window);
 	while (sfRenderWindow_isOpen(window))
 	{
 		// Process events
@@ -67,13 +68,13 @@ int main(int argc, char **argv)
 				rescale_window(window, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
-					moveby.y = -0.1;
+					moveby.y = -5;
 				} else if (event.key.code == sfKeyDown) {
-					moveby.y = 0.1; 
+					moveby.y = 5; 
 				} else if (event.key.code == sfKeyLeft) {
-					moveby.x = -0.1; 
+					moveby.x = -5; 
 				}  else if (event.key.code == sfKeyRight) {
-					moveby.x = 0.1; 
+					moveby.x = 5; 
 				}
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyUp || event.key.code == sfKeyDown) {
@@ -84,14 +85,14 @@ int main(int argc, char **argv)
 			}
 		}
 
-		sfView *view = sfRenderWindow_getView(window);
 		sfView_move(view, moveby);
+		sfRenderWindow_setView(window, view);
 
 		// Clear the screen
 		sfRenderWindow_clear(window, sfBlack);
 
 		//Draw the tiles
-		game_draw_tiles(window);
+		game_draw_tiles(window, view);
 
 		// Get framerate
 		sfTime frametime = sfClock_getElapsedTime(frame_clock);

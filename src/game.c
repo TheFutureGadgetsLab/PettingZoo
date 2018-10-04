@@ -30,14 +30,14 @@ void game_load_assets() {
 	printf("Loaded assets!\n");
 }
 
-void game_draw_tiles(sfRenderWindow *window) {
+void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 	int tile_view_x1, tile_view_y1;
 	int tile_view_x2, tile_view_y2;
 	int x, y;
 	sfVector2f pos;
 
 	//Memory leak?
-	sfIntRect vport = sfRenderWindow_getViewport(window, sfRenderWindow_getView(window));
+	sfIntRect vport = sfRenderWindow_getViewport(window, view);
 
 	tile_view_x1 = vport.left / TILE_WIDTH;
 	tile_view_x2 = (vport.left + vport.width) / TILE_WIDTH;
