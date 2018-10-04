@@ -37,6 +37,10 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 
 	//Memory leak?
 	sfIntRect vport = sfRenderWindow_getViewport(window, view);
+	sfVector2f center = sfView_getCenter(view);
+	sfVector2f size = sfView_getSize(view);
+	vport.left = center.x - (size.x / 2.0);
+	vport.top = center.y - (size.y / 2.0);
 
 	tile_view_x1 = vport.left / TILE_WIDTH;
 	tile_view_x2 = (vport.left + vport.width) / TILE_WIDTH;
@@ -44,8 +48,8 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 	tile_view_y2 = (vport.top + vport.height) / TILE_HEIGHT;
 
 	//Loop over tiles and draw them
-	for (x = tile_view_x1; x <= tile_view_x2; x++) {
-		for (y = tile_view_y1; y <= tile_view_y2; y++) {
+	for (x = tile_view_x1 - 1; x <= tile_view_x2; x++) {
+		for (y = tile_view_y1 - 1; y <= tile_view_y2; y++) {
 			pos.x = x * TILE_WIDTH;
 			pos.y = y * TILE_HEIGHT;
 			sfSprite_setPosition(sprite_tile, pos);
