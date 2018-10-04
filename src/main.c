@@ -3,7 +3,6 @@
 #include <SFML/Window.h>
 #include <SFML/Config.h>
 #include <SFML/System.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
