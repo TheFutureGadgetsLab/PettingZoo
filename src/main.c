@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	sfRenderWindow* window;
 	sfTexture* texture;
 	sfSprite* sprite;
-	sfVector2f moveby = {0.0, 0};
+	sfVector2f moveby = {0, 0};
 	sfEvent event;
 	sfTime time;
 	sfFont *font;
@@ -67,13 +67,13 @@ int main(int argc, char **argv)
 				rescale_window(window, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
-					moveby.y = -1.5; 
+					moveby.y = -0.1;
 				} else if (event.key.code == sfKeyDown) {
-					moveby.y = 1.5; 
+					moveby.y = 0.1; 
 				} else if (event.key.code == sfKeyLeft) {
-					moveby.x = -1.5; 
+					moveby.x = -0.1; 
 				}  else if (event.key.code == sfKeyRight) {
-					moveby.x = 1.5; 
+					moveby.x = 0.1; 
 				}
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyUp || event.key.code == sfKeyDown) {
@@ -83,6 +83,9 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+
+		sfView *view = sfRenderWindow_getView(window);
+		sfView_move(view, moveby);
 
 		// Clear the screen
 		sfRenderWindow_clear(window, sfBlack);
@@ -97,7 +100,7 @@ int main(int argc, char **argv)
 
 		// Draw the sprite
 		// time = sfClock_getElapsedTime(clock);
-		sfSprite_move(sprite, moveby);
+		//sfSprite_move(sprite, moveby);
 		sfRenderWindow_drawSprite(window, sprite, NULL);
 
 		// Draw the text 
