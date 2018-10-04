@@ -1,6 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-void gameloop(void);
+#include <SFML/Graphics.h>
+
+void game_draw_tiles(sfRenderWindow *window);
+void game_load_assets();
 
 #endif
