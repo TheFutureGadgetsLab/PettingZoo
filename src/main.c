@@ -59,22 +59,17 @@ int main(int argc, char **argv)
         {
             // Close window
             if (event.type == sfEvtClosed) {
-                printf("Exiting\n");
                 sfRenderWindow_close(window);
             } else if (event.type == sfEvtResized) {
                 rescale_window(window, event);
             } else if (event.type == sfEvtKeyPressed) {
                 if (event.key.code == sfKeyUp) {
-                    printf("Up\n");
                     moveby.y = -1.5; 
                 } else if (event.key.code == sfKeyDown) {
-                    printf("Down\n");
                     moveby.y = 1.5; 
                 } else if (event.key.code == sfKeyLeft) {
-                    printf("Left\n");
                     moveby.x = -1.5; 
                 }  else if (event.key.code == sfKeyRight) {
-                    printf("Right\n");
                     moveby.x = 1.5; 
                 }
             } else if (event.type == sfEvtKeyReleased) {
