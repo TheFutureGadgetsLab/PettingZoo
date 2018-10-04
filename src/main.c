@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <game.h>
 
-int rescale_window(sfRenderWindow *window, sfEvent event);
+int rescale_window(sfView *view, sfEvent event);
 
 int main(int argc, char **argv)
 {
@@ -19,8 +19,8 @@ int main(int argc, char **argv)
 	sfTime time;
 	sfFont *font;
 	sfText *text;
-	sfClock *clock;
-	sfClock *frame_clock;
+	sfClock *clock, *frame_clock;
+	sfView *view;
 
 	// Create the clocks
 	clock = sfClock_create();
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	game_load_assets();
 
 	// Start the game loop
-	sfView *view = sfRenderWindow_getView(window);
+	view = sfView_copy(sfRenderWindow_getView(window));
 	while (sfRenderWindow_isOpen(window))
 	{
 		// Process events
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 			if (event.type == sfEvtClosed) {
 				sfRenderWindow_close(window);
 			} else if (event.type == sfEvtResized) {
-				rescale_window(window, event);
+				rescale_window(view, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
 					moveby.y = -5;
@@ -122,22 +122,18 @@ int main(int argc, char **argv)
 	sfRenderWindow_destroy(window);
 	sfClock_destroy(clock);
 	sfClock_destroy(frame_clock);
+	sfView_destroy(view);
 	
 	return 0;
 }
 
-int rescale_window(sfRenderWindow *window, sfEvent event)
+int rescale_window(sfView *view, sfEvent event)
 {
 	sfVector2f win_size = {event.size.width, event.size.height};
 	sfVector2f win_center = {event.size.width / 2.0, event.size.height / 2.0};
 	
-	sfView *tmp = sfView_copy(sfRenderWindow_getView(window));
-	sfView_setSize(tmp, win_size);
-	sfView_setCenter(tmp, win_center);
-	sfRenderWindow_setView(window, tmp);
-
-	// Prevent memory leak
-	sfView_destroy(tmp);
+	sfView_setSize(view, win_size);
+	sfView_setCenter(view, win_center);
 
 	return 0;
 }

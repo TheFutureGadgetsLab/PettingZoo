@@ -27,7 +27,6 @@ void game_load_assets() {
 	tex = sfTexture_createFromFile("../assets/tile.png", NULL);
 	sprite_tile = sfSprite_create();
 	sfSprite_setTexture(sprite_tile, tex, sfTrue);
-	printf("Loaded assets!\n");
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view) {
