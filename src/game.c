@@ -1,17 +1,7 @@
 #include <SFML/Graphics.h>
 #include <stdio.h>
 #include <math.h>
-
-#define LEVEL_HEIGHT 16
-#define LEVEL_WIDTH 64
-#define LEVEL_SIZE LEVEL_HEIGHT * LEVEL_WIDTH
-#define TILE_WIDTH 64
-#define TILE_HEIGHT 64
-#define MAX_ENEMIES 32
-
-#define T_EMPTY 0
-#define T_SOLID 1
-#define T_SPIKE 2
+#include <defs.h>
 
 struct enemy {
 	int init_x;
@@ -22,10 +12,10 @@ struct enemy {
 struct game_obj {
 	unsigned char tiles[LEVEL_SIZE];
 	struct enemy *enemies[MAX_ENEMIES];
-};
+} game;
 
 sfSprite *sprite_tile;
-struct game_obj game;
+sfSprite *sprite_lamp;
 
 void game_gen_map() {
 	int x, y, val;
@@ -33,7 +23,7 @@ void game_gen_map() {
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			val = T_EMPTY;
-			if (y > 8)
+			if (y > 11)
 				val = T_SOLID;
 			game.tiles[y * LEVEL_WIDTH + x] = val;
 		}
@@ -41,10 +31,17 @@ void game_gen_map() {
 }
 
 void game_load_assets() {
-	sfTexture *tex;
-	tex = sfTexture_createFromFile("../assets/tile.png", NULL);
+	sfTexture *tile;
+	sfTexture *lamp;
+	tile = sfTexture_createFromFile("../assets/tile.png", NULL);
 	sprite_tile = sfSprite_create();
-	sfSprite_setTexture(sprite_tile, tex, sfTrue);
+	sfSprite_setTexture(sprite_tile, tile, sfTrue);
+
+	lamp = sfTexture_createFromFile("../assets/lamp.png", NULL);
+	sprite_lamp = sfSprite_create();
+	sfVector2f tmp = {2, 2};
+	sfSprite_setTexture(sprite_lamp, lamp, sfTrue);
+	sfSprite_setScale(sprite_lamp, tmp);
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view) {
@@ -53,7 +50,6 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 	int x, y;
 	sfVector2f pos;
 
-	//Memory leak?
 	sfIntRect vport = sfRenderWindow_getViewport(window, view);
 	sfVector2f center = sfView_getCenter(view);
 	sfVector2f size = sfView_getSize(view);
@@ -79,4 +75,10 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 			}
 		}
 	}
+}
+
+void game_draw_entities(sfRenderWindow *window, sfView *view) {
+	sfVector2f center = sfView_getCenter(view);
+	sfSprite_setPosition(sprite_lamp, center);
+	sfRenderWindow_drawSprite(window, sprite_lamp, NULL);
 }

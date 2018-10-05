@@ -12,22 +12,15 @@ int main(int argc, char **argv)
 {
 	sfVideoMode mode = {800, 600, 32};
 	sfRenderWindow* window;
-	sfTexture* texture;
-	sfSprite* sprite;
 	sfVector2f moveby = {0, 0};
 	sfEvent event;
 	sfTime time;
-	sfFont *font;
-	sfText *text;
-	sfClock *clock, *frame_clock;
+	sfClock *clock;
 	sfView *view;
 
-	// Create the clocks
+	// Create the clock
 	clock = sfClock_create();
-	frame_clock = sfClock_create();
 
-	char framerate_txt[32];
-	
 	// Create the main window
 	window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
 	if (!window)
@@ -35,21 +28,6 @@ int main(int argc, char **argv)
 
 	// Vsync 
 	sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
-
-	// Load a sprite to display
-	texture = sfTexture_createFromFile("../assets/cute_image.jpg", NULL);
-	if (!texture)
-		return -1;
-
-	// Framerate text
-	font = sfFont_createFromFile("../assets/Vera.ttf");
-	if (!font)
-		return EXIT_FAILURE;
-	text = sfText_create();
-	sfText_setFont(text, font);
-	sfText_setCharacterSize(text, 50);
-	sprite = sfSprite_create();
-	sfSprite_setTexture(sprite, texture, sfTrue);
 
 	//Load assets
 	game_load_assets();
@@ -78,6 +56,8 @@ int main(int argc, char **argv)
 					moveby.x = -5; 
 				}  else if (event.key.code == sfKeyRight) {
 					moveby.x = 5; 
+				} else if (event.key.code == sfKeyEscape) {
+					goto exit;
 				}
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyUp || event.key.code == sfKeyDown) {
@@ -87,50 +67,38 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+		// Get coords
+		sfVector2f center = sfView_getCenter(view);
+		sfVector2f size = sfView_getSize(view);
+		sfVector2f origin;
+		origin.x = - center.x + (size.x / 2.0);
+		origin.y = - center.y + (size.y / 2.0);
 
+		// Move view only in correct direction not working because tiles
+		// are not being drawn from 0, 0 
+		// if (-origin.y + moveby.y >= 0 && -origin.x + moveby.x >= 0) {
+		// 	sfView_move(view, moveby);
+		// }
 		sfView_move(view, moveby);
 		sfRenderWindow_setView(window, view);
 
 		// Clear the screen
 		sfRenderWindow_clear(window, sfBlack);
 
-		//Draw the tiles
+		//Draw the tiles and entities
 		game_draw_tiles(window, view);
-
-		// Get framerate
-		sfTime frametime = sfClock_getElapsedTime(frame_clock);
-		sprintf(framerate_txt, "%.0lf", 1.0 / sfTime_asSeconds(frametime));
-		sfText_setString(text, framerate_txt);
-
-		// Draw the sprite
-		// time = sfClock_getElapsedTime(clock);
-		//sfSprite_move(sprite, moveby);
-		sfRenderWindow_drawSprite(window, sprite, NULL);
-
-		// Draw the text
-		sfVector2f center = sfView_getCenter(view);
-		sfVector2f size = sfView_getSize(view);
-		sfVector2f origin;
-		origin.x = - center.x + (size.x / 2.0);
-		origin.y = - center.y + (size.y / 2.0);
-		sfText_setOrigin(text, origin);
-		sfRenderWindow_drawText(window, text, NULL);
-		
-		// Restart frame clock
-		sfClock_restart(frame_clock);
+		game_draw_entities(window, view);
 
 		// Update the window
 		sfRenderWindow_display(window);
 	}
 
+// Goto for leaving event and game loop if escape is hit, break wont work
+// because of nested loops.
+exit:
 	// Cleanup resources
-	sfText_destroy(text);
-	sfFont_destroy(font);
-	sfSprite_destroy(sprite);
-	sfTexture_destroy(texture);
 	sfRenderWindow_destroy(window);
 	sfClock_destroy(clock);
-	sfClock_destroy(frame_clock);
 	sfView_destroy(view);
 	
 	return 0;
@@ -139,10 +107,10 @@ int main(int argc, char **argv)
 int rescale_window(sfView *view, sfEvent event)
 {
 	sfVector2f win_size = {event.size.width, event.size.height};
-	//sfVector2f win_center = {event.size.width / 2.0, event.size.height / 2.0};
+	sfVector2f win_center = sfView_getCenter(view);
 	
 	sfView_setSize(view, win_size);
-	//sfView_setCenter(view, win_center);
+	sfView_setCenter(view, win_center);
 
 	return 0;
 }
