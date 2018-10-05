@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <game.h>
+#include <defs.h>
 
 int rescale_window(sfView *view, sfEvent event);
 
@@ -49,13 +50,13 @@ int main(int argc, char **argv)
 				rescale_window(view, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
-					moveby.y = -5;
+					moveby.y = -8;
 				} else if (event.key.code == sfKeyDown) {
-					moveby.y = 5; 
+					moveby.y = 8; 
 				} else if (event.key.code == sfKeyLeft) {
-					moveby.x = -5; 
+					moveby.x = -8; 
 				}  else if (event.key.code == sfKeyRight) {
-					moveby.x = 5; 
+					moveby.x = 8; 
 				} else if (event.key.code == sfKeyEscape) {
 					goto exit;
 				}
@@ -74,12 +75,12 @@ int main(int argc, char **argv)
 		origin.x = - center.x + (size.x / 2.0);
 		origin.y = - center.y + (size.y / 2.0);
 
-		// Move view only in correct direction not working because tiles
-		// are not being drawn from 0, 0 
-		// if (-origin.y + moveby.y >= 0 && -origin.x + moveby.x >= 0) {
-		// 	sfView_move(view, moveby);
-		// }
-		sfView_move(view, moveby);
+		// Move camera only in correct direction
+		if (center.y + moveby.y >= 0 && center.x + moveby.x >= 0 &&
+		    center.y + moveby.y < TILE_HEIGHT * LEVEL_HEIGHT && 
+			center.x + moveby.x < TILE_WIDTH * LEVEL_WIDTH) {
+			sfView_move(view, moveby);
+		}
 		sfRenderWindow_setView(window, view);
 
 		// Clear the screen
@@ -110,7 +111,6 @@ int rescale_window(sfView *view, sfEvent event)
 	sfVector2f win_center = sfView_getCenter(view);
 	
 	sfView_setSize(view, win_size);
-	sfView_setCenter(view, win_center);
 
 	return 0;
 }
