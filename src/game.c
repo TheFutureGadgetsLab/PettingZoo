@@ -9,18 +9,36 @@
 #define TILE_HEIGHT 64
 #define MAX_ENEMIES 32
 
+#define T_EMPTY 0
+#define T_SOLID 1
+#define T_SPIKE 2
+
 struct enemy {
 	int init_x;
 	int init_y;
 	unsigned char type;
 };
 
-struct game {
+struct game_obj {
 	unsigned char tiles[LEVEL_SIZE];
 	struct enemy *enemies[MAX_ENEMIES];
 };
 
 sfSprite *sprite_tile;
+struct game_obj game;
+
+void game_gen_map() {
+	int x, y, val;
+
+	for (x = 0; x < LEVEL_WIDTH; x++) {
+		for (y = 0; y < LEVEL_HEIGHT; y++) {
+			val = T_EMPTY;
+			if (y > 8)
+				val = 1;
+			game.tiles[y * LEVEL_WIDTH + x] = T_SOLID;
+		}
+	}
+}
 
 void game_load_assets() {
 	sfTexture *tex;
@@ -50,10 +68,14 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 	//Loop over tiles and draw them
 	for (x = tile_view_x1 - 1; x <= tile_view_x2; x++) {
 		for (y = tile_view_y1 - 1; y <= tile_view_y2; y++) {
-			pos.x = x * TILE_WIDTH;
-			pos.y = y * TILE_HEIGHT;
-			sfSprite_setPosition(sprite_tile, pos);
-			sfRenderWindow_drawSprite(window, sprite_tile, NULL);
+			if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
+				continue;
+			if (game.tiles[y * LEVEL_WIDTH + x] > 0) {
+				pos.x = x * TILE_WIDTH;
+				pos.y = y * TILE_HEIGHT;
+				sfSprite_setPosition(sprite_tile, pos);
+				sfRenderWindow_drawSprite(window, sprite_tile, NULL);
+			}
 		}
 	}
 }

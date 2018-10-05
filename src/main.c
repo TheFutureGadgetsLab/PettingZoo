@@ -54,6 +54,9 @@ int main(int argc, char **argv)
 	//Load assets
 	game_load_assets();
 
+	//Generate game
+	game_gen_map();
+
 	// Start the game loop
 	view = sfView_copy(sfRenderWindow_getView(window));
 	while (sfRenderWindow_isOpen(window))
