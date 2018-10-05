@@ -107,7 +107,13 @@ int main(int argc, char **argv)
 		//sfSprite_move(sprite, moveby);
 		sfRenderWindow_drawSprite(window, sprite, NULL);
 
-		// Draw the text 
+		// Draw the text
+		sfVector2f center = sfView_getCenter(view);
+		sfVector2f size = sfView_getSize(view);
+		sfVector2f origin;
+		origin.x = - center.x + (size.x / 2.0);
+		origin.y = - center.y + (size.y / 2.0);
+		sfText_setOrigin(text, origin);
 		sfRenderWindow_drawText(window, text, NULL);
 		
 		// Restart frame clock
@@ -133,10 +139,10 @@ int main(int argc, char **argv)
 int rescale_window(sfView *view, sfEvent event)
 {
 	sfVector2f win_size = {event.size.width, event.size.height};
-	sfVector2f win_center = {event.size.width / 2.0, event.size.height / 2.0};
+	//sfVector2f win_center = {event.size.width / 2.0, event.size.height / 2.0};
 	
 	sfView_setSize(view, win_size);
-	sfView_setCenter(view, win_center);
+	//sfView_setCenter(view, win_center);
 
 	return 0;
 }

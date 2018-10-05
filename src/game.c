@@ -34,8 +34,8 @@ void game_gen_map() {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			val = T_EMPTY;
 			if (y > 8)
-				val = 1;
-			game.tiles[y * LEVEL_WIDTH + x] = T_SOLID;
+				val = T_SOLID;
+			game.tiles[y * LEVEL_WIDTH + x] = val;
 		}
 	}
 }
@@ -67,8 +67,9 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 
 	//Loop over tiles and draw them
 	for (x = tile_view_x1 - 1; x <= tile_view_x2; x++) {
+		if (x >= 0 && x < LEVEL_WIDTH)
 		for (y = tile_view_y1 - 1; y <= tile_view_y2; y++) {
-			if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
+			if (y < 0 || y >= LEVEL_HEIGHT)
 				continue;
 			if (game.tiles[y * LEVEL_WIDTH + x] > 0) {
 				pos.x = x * TILE_WIDTH;
