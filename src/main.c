@@ -7,6 +7,8 @@
 #include <game.h>
 #include <defs.h>
 
+float zoom = 2.0;
+
 int rescale_window(sfView *view, sfEvent event);
 
 int main(int argc, char **argv)
@@ -109,6 +111,8 @@ int rescale_window(sfView *view, sfEvent event)
 {
 	sfVector2f win_size = {event.size.width, event.size.height};
 	sfVector2f win_center = sfView_getCenter(view);
+	win_size.x /= zoom;
+	win_size.y /= zoom;
 	
 	sfView_setSize(view, win_size);
 

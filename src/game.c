@@ -15,6 +15,7 @@ struct game_obj {
 } game;
 
 sfSprite *sprite_tile;
+sfSprite *sprite_dirt;
 sfSprite *sprite_lamp;
 
 void game_gen_map() {
@@ -23,25 +24,40 @@ void game_gen_map() {
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			val = T_EMPTY;
-			if (y > 11)
-				val = T_SOLID;
+			if (y == 11)
+				val = T_GRASS;
+			else if (y > 11)
+				val = T_DIRT;
 			game.tiles[y * LEVEL_WIDTH + x] = val;
 		}
 	}
 }
 
 void game_load_assets() {
-	sfTexture *tile;
-	sfTexture *lamp;
-	tile = sfTexture_createFromFile("../assets/tile.png", NULL);
-	sprite_tile = sfSprite_create();
-	sfSprite_setTexture(sprite_tile, tile, sfTrue);
+	sfTexture *tex;
 
-	lamp = sfTexture_createFromFile("../assets/lamp.png", NULL);
+	tex = sfTexture_createFromFile("../assets/grass.png", NULL);
+	sprite_tile = sfSprite_create();
+	sfSprite_setTexture(sprite_tile, tex, sfTrue);
+	sfVector2u size = sfTexture_getSize(tex);
+	sfVector2f scale = {TILE_WIDTH / size.x, TILE_HEIGHT / size.y};
+	sfSprite_setScale(sprite_tile, scale);
+
+	tex = sfTexture_createFromFile("../assets/dirt.png", NULL);
+	sprite_dirt = sfSprite_create();
+	sfSprite_setTexture(sprite_dirt, tex, sfTrue);
+	size = sfTexture_getSize(tex);
+	scale.x = TILE_WIDTH / size.x;
+	scale.y = TILE_HEIGHT / size.y;
+	sfSprite_setScale(sprite_dirt, scale);
+
+	tex = sfTexture_createFromFile("../assets/lamp.png", NULL);
 	sprite_lamp = sfSprite_create();
-	sfVector2f tmp = {2, 2};
-	sfSprite_setTexture(sprite_lamp, lamp, sfTrue);
-	sfSprite_setScale(sprite_lamp, tmp);
+	size = sfTexture_getSize(tex);
+	scale.x = TILE_WIDTH / size.x;
+	scale.y = TILE_HEIGHT / size.y;
+	sfSprite_setTexture(sprite_lamp, tex, sfTrue);
+	sfSprite_setScale(sprite_lamp, scale);
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view) {
@@ -62,16 +78,28 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view) {
 	tile_view_y2 = (vport.top + vport.height) / TILE_HEIGHT;
 
 	//Loop over tiles and draw them
+	int val;
+	sfSprite *sprite;
 	for (x = tile_view_x1 - 1; x <= tile_view_x2; x++) {
 		if (x >= 0 && x < LEVEL_WIDTH)
+		//ISSUE: this needs to incorporate zooming
 		for (y = tile_view_y1 - 1; y <= tile_view_y2; y++) {
 			if (y < 0 || y >= LEVEL_HEIGHT)
 				continue;
-			if (game.tiles[y * LEVEL_WIDTH + x] > 0) {
+			val = game.tiles[y * LEVEL_WIDTH + x];
+			if (val > 0) {
+				switch (val) {
+					case T_GRASS:
+						sprite = sprite_tile;
+						break;
+					case T_DIRT:
+						sprite = sprite_dirt;
+						break;
+				}
 				pos.x = x * TILE_WIDTH;
 				pos.y = y * TILE_HEIGHT;
-				sfSprite_setPosition(sprite_tile, pos);
-				sfRenderWindow_drawSprite(window, sprite_tile, NULL);
+				sfSprite_setPosition(sprite, pos);
+				sfRenderWindow_drawSprite(window, sprite, NULL);
 			}
 		}
 	}
