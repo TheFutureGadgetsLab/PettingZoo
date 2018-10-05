@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <game.h>
 #include <defs.h>
+#include <unistd.h>
 
 float zoom = 2.0;
 
@@ -13,6 +14,8 @@ int rescale_window(sfView *view, sfEvent event);
 
 int main(int argc, char **argv)
 {
+	int opt, draw_overlay;
+
 	sfVideoMode mode = {800, 600, 32};
 	sfRenderWindow* window;
 	sfVector2f moveby = {0, 0};
@@ -20,6 +23,20 @@ int main(int argc, char **argv)
 	sfTime time;
 	sfClock *clock;
 	sfView *view;
+	sfColor background = {230, 230, 230, 1};
+
+	draw_overlay = 0;
+	while ((opt = getopt(argc, argv, "o")) != -1) {
+		switch (opt) {
+			case 'o':
+				draw_overlay = 1;
+				break;
+			default:
+				printf("Usage: ./pettingzoo [-g] [-c]\n");
+				printf("\t-o Display overlay\n");
+				exit(EXIT_FAILURE);
+		}
+	}
 
 	// Create the clock
 	clock = sfClock_create();
@@ -33,7 +50,7 @@ int main(int argc, char **argv)
 	sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
 
 	//Load assets
-	game_load_assets();
+	game_load_assets(draw_overlay);
 
 	//Generate game
 	game_gen_map();
@@ -70,6 +87,9 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+		// Frametime
+		time = sfClock_getElapsedTime(clock);
+
 		// Get coords
 		sfVector2f center = sfView_getCenter(view);
 		sfVector2f size = sfView_getSize(view);
@@ -86,12 +106,19 @@ int main(int argc, char **argv)
 		sfRenderWindow_setView(window, view);
 
 		// Clear the screen
-		sfRenderWindow_clear(window, sfBlack);
+		sfRenderWindow_clear(window, background);
+
+		// Draw coords if needed
+		if (draw_overlay) {
+			game_draw_overlay_text(window, view, time);
+		}
 
 		//Draw the tiles and entities
-		game_draw_tiles(window, view);
+		game_draw_tiles(window, view, draw_overlay);
 		game_draw_entities(window, view);
 
+		// Restart the clock
+		sfClock_restart(clock);
 		// Update the window
 		sfRenderWindow_display(window);
 	}
