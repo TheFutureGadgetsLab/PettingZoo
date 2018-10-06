@@ -11,6 +11,5 @@
 #define T_EMPTY 0
 #define T_GRASS 1
 #define T_DIRT 2
-#define T_BRICKS 3
 
 #endif

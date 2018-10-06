@@ -1,5 +1,4 @@
 #include <SFML/Graphics.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <defs.h>
@@ -15,15 +14,16 @@ struct game_obj {
 	struct enemy *enemies[MAX_ENEMIES];
 } game;
 
-sfSprite *sprite_grass;
+sfSprite *sprite_tile;
 sfSprite *sprite_dirt;
-sfSprite *sprite_bricks;
 sfSprite *sprite_lamp;
 sfSprite *sprite_grid;
+sfText *overlay;
+sfFont *font;
+char overlay_text[32];
 
 void game_gen_map() {
 	int x, y, val;
-	srand(3);
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -32,29 +32,55 @@ void game_gen_map() {
 				val = T_GRASS;
 			else if (y > 11)
 				val = T_DIRT;
-			if (y == 12 && rand() % 8 == 0)
-				val = T_BRICKS;
 			game.tiles[y * LEVEL_WIDTH + x] = val;
 		}
 	}
 }
 
-void load_sprite(sfSprite *sprite, char *path) {
-	sfTexture *tex;
-
-	tex = sfTexture_createFromFile(path, NULL);
-	sprite = sfSprite_create();
-	sfSprite_setTexture(sprite, tex, sfTrue);
-}
-
 void game_load_assets() {
 	sfTexture *tex;
 
-	load_sprite(sprite_grass, "../assets/grass.png");
-	load_sprite(sprite_dirt, "../assets/dirt.png");
-	load_sprite(sprite_bricks, "../assets/bricks.png");
-	load_sprite(sprite_lamp, "../assets/lamp.png");
-	load_sprite(sprite_grid, "../assets/grid.png");
+	// Grass
+	tex = sfTexture_createFromFile("../assets/grass.png", NULL);
+	sprite_tile = sfSprite_create();
+	sfSprite_setTexture(sprite_tile, tex, sfTrue);
+	sfVector2u size = sfTexture_getSize(tex);
+	sfVector2f scale = {TILE_WIDTH / size.x, TILE_HEIGHT / size.y};
+	sfSprite_setScale(sprite_tile, scale);
+
+	// Dirt
+	tex = sfTexture_createFromFile("../assets/dirt.png", NULL);
+	sprite_dirt = sfSprite_create();
+	sfSprite_setTexture(sprite_dirt, tex, sfTrue);
+	size = sfTexture_getSize(tex);
+	scale.x = TILE_WIDTH / size.x;
+	scale.y = TILE_HEIGHT / size.y;
+	sfSprite_setScale(sprite_dirt, scale);
+
+	// Lamp
+	tex = sfTexture_createFromFile("../assets/lamp.png", NULL);
+	sprite_lamp = sfSprite_create();
+	sfSprite_setTexture(sprite_lamp, tex, sfTrue);
+	size = sfTexture_getSize(tex);
+	scale.x = TILE_WIDTH / size.x;
+	scale.y = TILE_HEIGHT / size.y;
+	sfSprite_setScale(sprite_lamp, scale);
+
+	// Grid
+	tex = sfTexture_createFromFile("../assets/grid.png", NULL);
+	sprite_grid = sfSprite_create();
+	sfSprite_setTexture(sprite_grid, tex, sfTrue);
+	size = sfTexture_getSize(tex);
+	scale.x = TILE_WIDTH / size.x;
+	scale.y = TILE_HEIGHT / size.y;
+	sfSprite_setScale(sprite_grid, scale);
+
+	// Text / Font
+	font = sfFont_createFromFile("../assets/Vera.ttf");
+	overlay = sfText_create();
+	sfText_setFont(overlay, font);
+	sfText_setCharacterSize(overlay, 12);
+	sfText_setColor(overlay, sfBlack);
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
@@ -87,13 +113,10 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 			if (val > 0) {
 				switch (val) {
 					case T_GRASS:
-						sprite = sprite_grass;
+						sprite = sprite_tile;
 						break;
 					case T_DIRT:
 						sprite = sprite_dirt;
-						break;
-					case T_BRICKS:
-						sprite = sprite_bricks;
 						break;
 				}
 				pos.x = x * TILE_WIDTH;
@@ -101,6 +124,7 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 				sfSprite_setPosition(sprite, pos);
 				sfRenderWindow_drawSprite(window, sprite, NULL);
 			}
+
 			if (draw_grid) {
 				pos.x = x * TILE_WIDTH;
 				pos.y = y * TILE_HEIGHT;
@@ -118,8 +142,6 @@ void game_draw_entities(sfRenderWindow *window, sfView *view) {
 }
 
 void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime) {
-	char overlay_text[64];
-	sfText *overlay = sfText_create();
 	sfVector2f lamp_pos = sfSprite_getPosition(sprite_lamp);
 	sfVector2f center = sfView_getCenter(view);
 	sfVector2f size = sfView_getSize(view);
