@@ -26,17 +26,17 @@ int main(int argc, char **argv)
 	sfColor background = {230, 230, 230, 1};
 
 	draw_overlay = 0;
-	while ((opt = getopt(argc, argv, "o")) != -1) {
-		switch (opt) {
-			case 'o':
-				draw_overlay = 1;
-				break;
-			default:
-				printf("Usage: ./pettingzoo [-g] [-c]\n");
-				printf("\t-o Display overlay\n");
-				exit(EXIT_FAILURE);
-		}
-	}
+	// while ((opt = getopt(argc, argv, "o")) != -1) {
+	// 	switch (opt) {
+	// 		case 'o':
+	// 			draw_overlay = 1;
+	// 			break;
+	// 		default:
+	// 			printf("Usage: ./pettingzoo [-g] [-c]\n");
+	// 			printf("\t-o Display overlay\n");
+	// 			exit(EXIT_FAILURE);
+	// 	}
+	// }
 
 	// Create the clock
 	clock = sfClock_create();
@@ -78,6 +78,8 @@ int main(int argc, char **argv)
 					player.right = 1;
 				} else if (event.key.code == sfKeyEscape) {
 					goto exit;
+				} else if (event.key.code == sfKeyO) {
+					draw_overlay ^= 1;
 				}
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyLeft) {
@@ -106,6 +108,9 @@ int main(int argc, char **argv)
 
 		// Clear the screen
 		sfRenderWindow_clear(window, background);
+
+		// Draw background
+		game_draw_other(window, view);
 
 		//Draw the tiles and entities
 		game_draw_tiles(window, view, draw_overlay);

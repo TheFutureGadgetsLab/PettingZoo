@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <defs.h>
+#include <time.h>
 
 struct enemy {
 	int init_x;
@@ -21,14 +22,18 @@ struct player_obj player;
 
 sfSprite *sprite_lamp;
 sfSprite *sprite_grid;
+sfSprite *sprite_bg;
 sfText *overlay;
 sfFont *font;
 int tiles_drawn;
 sfSprite *tile_sprites[16];
 
+unsigned int seed;
+
 void game_gen_map() {
 	int x, y, val;
-	srand(1234);
+	seed = 1234;
+	srand(seed);
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -43,6 +48,7 @@ void game_gen_map() {
 		}
 	}
 }
+
 sfSprite* load_sprite(sfSprite **sprite, char *path, int docenter) {
 	sfTexture *tex;
 	tex = sfTexture_createFromFile(path, NULL);
@@ -55,6 +61,7 @@ sfSprite* load_sprite(sfSprite **sprite, char *path, int docenter) {
 	}
 	return *sprite;
 }
+
 int tile_at(int x, int y) {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
 		return 0;
@@ -106,6 +113,7 @@ void game_load_assets() {
 	// Sprites
 	load_sprite(&sprite_lamp, "../assets/lamp.png", 0);
 	load_sprite(&sprite_grid, "../assets/grid.png", 0);
+	load_sprite(&sprite_bg, "../assets/bg.png", 1);
 	load_sprite(&tile_sprites[T_GRASS], "../assets/grass.png", 0);
 	load_sprite(&tile_sprites[T_DIRT], "../assets/dirt.png", 0);
 	load_sprite(&tile_sprites[T_SPIKES], "../assets/spikes.png", 0);
@@ -183,10 +191,15 @@ void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frameti
 	sfVector2f size = sfView_getSize(view);
 	sfVector2f origin = {- center.x + (size.x / 2.0), - center.y + (size.y / 2.0)};
 
-	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf\nFPS: %.0lf\nTiles Drawn: %d", 
-		lamp_pos.x, lamp_pos.y, 1.0 / sfTime_asSeconds(frametime), tiles_drawn);
+	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u", 
+		lamp_pos.x, lamp_pos.y, 1.0 / sfTime_asSeconds(frametime), tiles_drawn, seed);
 
 	sfText_setString(overlay, overlay_text);
 	sfText_setOrigin(overlay, origin);
 	sfRenderWindow_drawText(window, overlay, NULL);
+}
+
+void game_draw_other(sfRenderWindow *window, sfView *view) {
+	sfSprite_setPosition(sprite_bg, sfView_getCenter(view));
+	sfRenderWindow_drawSprite(window, sprite_bg, NULL);
 }
