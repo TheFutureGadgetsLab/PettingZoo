@@ -71,11 +71,11 @@ int tile_at(int x, int y) {
 void game_update() {
 	//Player input
 	if (player.right)
-		player.velocity.x = 6;
+		player.velocity.x = V_X;
 	if (player.left)
-		player.velocity.x = -6;
+		player.velocity.x = -V_X;
 	if (player.jump && player.canjump) {
-		player.velocity.y = -8;
+		player.velocity.y = -V_JUMP;
 		player.canjump = 0;
 	}
 
@@ -87,10 +87,10 @@ void game_update() {
 	int left_x = (player.position.x - 1) / TILE_WIDTH;
 
 	//Gravity
-	player.velocity.y += 0.5;
+	player.velocity.y += GRAVITY;
 
 	//Horizontal inertia
-	player.velocity.x /= 1.5;
+	player.velocity.x /= INTERTA;
 
 	//Collision on bottom
 	if (tile_at(tile_x, feet_y) > 0) {
@@ -144,8 +144,8 @@ void game_load_assets() {
 }
 
 void game_setup() {
-	player.position.x = 64;
-	player.position.y = 320;
+	player.position.x = SPAWN_X;
+	player.position.y = SPAWN_Y;
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
