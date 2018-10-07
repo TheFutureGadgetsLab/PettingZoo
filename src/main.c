@@ -7,6 +7,7 @@
 #include <game.h>
 #include <defs.h>
 #include <unistd.h>
+#include <math.h>
 
 float zoom = 2.0;
 
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
 					player.jump = 1;
 				} else if (event.key.code == sfKeyLeft) {
 					player.left = 1;
-				}  else if (event.key.code == sfKeyRight) {
+				} else if (event.key.code == sfKeyRight) {
 					player.right = 1;
 				} else if (event.key.code == sfKeyEscape) {
 					goto exit;
@@ -84,8 +85,10 @@ int main(int argc, char **argv)
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyLeft) {
 					player.left = 0;
-				}  else if (event.key.code == sfKeyRight) {
+				} else if (event.key.code == sfKeyRight) {
 					player.right = 0;
+				} else if (event.key.code == sfKeyUp) {
+					player.jump = 0;
 				}
 			}
 		}
@@ -142,6 +145,11 @@ int rescale_window(sfView *view, sfEvent event)
 {
 	sfVector2f win_size = {event.size.width, event.size.height};
 	sfVector2f win_center = sfView_getCenter(view);
+
+	//Auto zoom depending on window size
+	zoom = win_size.y / (LEVEL_HEIGHT * TILE_HEIGHT);
+	zoom = round(win_size.y / (LEVEL_HEIGHT * TILE_HEIGHT));
+	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;
 	
