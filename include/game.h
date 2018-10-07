@@ -17,6 +17,7 @@ struct player_obj {
 	int left;
 	int right;
 	int jump;
+	int canjump;
 };
 
 extern struct player_obj player;

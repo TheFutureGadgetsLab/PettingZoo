@@ -67,35 +67,51 @@ void game_update() {
 		player.velocity.x = 6;
 	if (player.left)
 		player.velocity.x = -6;
-	if (player.jump)
+	if (player.jump && player.canjump) {
 		player.velocity.y = -8;
-	player.jump = 0;
+		player.canjump = 0;
+	}
 
 	//Player physics
 	int tile_x = (player.position.x + 16) / TILE_WIDTH;
 	int tile_y = (player.position.y + 16) / TILE_HEIGHT;
-	int feet_y = (player.position.y + 1) / TILE_HEIGHT + 1;
+	int feet_y = (player.position.y + 33) / TILE_HEIGHT;
 	int right_x = (player.position.x + 33) / TILE_WIDTH;
 	int left_x = (player.position.x - 1) / TILE_WIDTH;
+
+	//Gravity
 	player.velocity.y += 0.5;
+
+	//Horizontal inertia
 	player.velocity.x /= 1.5;
+
+	//Collision on bottom
 	if (tile_at(tile_x, feet_y) > 0) {
 		if (player.velocity.y > 0)
 			player.velocity.y = 0;
 		player.position.y = (feet_y - 1) * TILE_HEIGHT;
+		player.canjump = 1;
 	}
+
+	//Right collision
 	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
 		if (player.velocity.x > 0)
 			player.velocity.x = 0;
 		player.position.x = (right_x - 1) * TILE_WIDTH;
 	}
+
+	//Left collision
 	if (tile_at(left_x, tile_y) || left_x <= 0) {
 		if (player.velocity.x < 0)
 			player.velocity.x = 0;
 		player.position.x = (left_x + 1) * TILE_WIDTH;
 	}
+
+	//Apply player velocity
 	player.position.x += player.velocity.x;
 	player.position.y += player.velocity.y;
+
+	//Lower bound
 	if (player.position.y > LEVEL_HEIGHT * TILE_HEIGHT) {
 		player.position.y = 0;
 		//TODO: Death
@@ -131,11 +147,13 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	int x, y;
 	sfVector2f pos;
 
+	//Get top-left of view
 	sfVector2f center = sfView_getCenter(view);
 	sfVector2f size = sfView_getSize(view);
 	view_x = center.x - (size.x / 2.0);
 	view_y = center.y - (size.y / 2.0);
 
+	//Calculate bounds for drawing tiles
 	tile_view_x1 = view_x / TILE_WIDTH;
 	tile_view_x2 = (view_x + size.x) / TILE_WIDTH;
 	tile_view_y1 = view_y / TILE_HEIGHT;
