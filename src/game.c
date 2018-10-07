@@ -21,6 +21,7 @@ sfSprite *sprite_grid;
 sfText *overlay;
 sfFont *font;
 char overlay_text[32];
+int tiles_drawn;
 
 void game_gen_map() {
 	int x, y, val;
@@ -83,30 +84,31 @@ void game_load_assets() {
 	sfText_setColor(overlay, sfBlack);
 }
 
-void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
+void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid, sfVector2f zoom) {
 	int tile_view_x1, tile_view_y1;
 	int tile_view_x2, tile_view_y2;
+	float view_x, view_y;
 	int x, y;
 	sfVector2f pos;
 
-	sfIntRect vport = sfRenderWindow_getViewport(window, view);
 	sfVector2f center = sfView_getCenter(view);
 	sfVector2f size = sfView_getSize(view);
-	vport.left = center.x - (size.x / 2.0);
-	vport.top = center.y - (size.y / 2.0);
+	view_x = center.x - (size.x / 2.0);
+	view_y = center.y - (size.y / 2.0);
 
-	tile_view_x1 = vport.left / TILE_WIDTH;
-	tile_view_x2 = (vport.left + vport.width) / TILE_WIDTH;
-	tile_view_y1 = vport.top / TILE_HEIGHT;
-	tile_view_y2 = (vport.top + vport.height) / TILE_HEIGHT;
+	tile_view_x1 = view_x / TILE_WIDTH;
+	tile_view_x2 = (view_x + size.x) / TILE_WIDTH;
+	tile_view_y1 = view_y / TILE_HEIGHT;
+	tile_view_y2 = (view_y + size.y) / TILE_HEIGHT;
 
 	//Loop over tiles and draw them
 	int val;
 	sfSprite *sprite;
-	for (x = tile_view_x1 - 1; x <= tile_view_x2; x++) {
+	tiles_drawn = 0;
+	for (x = tile_view_x1; x <= tile_view_x2; x++) {
 		if (x >= 0 && x < LEVEL_WIDTH)
 		//ISSUE: this needs to incorporate zooming
-		for (y = tile_view_y1 - 1; y <= tile_view_y2; y++) {
+		for (y = tile_view_y1; y <= tile_view_y2; y++) {
 			if (y < 0 || y >= LEVEL_HEIGHT)
 				continue;
 			val = game.tiles[y * LEVEL_WIDTH + x];
@@ -123,6 +125,7 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 				pos.y = y * TILE_HEIGHT;
 				sfSprite_setPosition(sprite, pos);
 				sfRenderWindow_drawSprite(window, sprite, NULL);
+				tiles_drawn++;
 			}
 
 			if (draw_grid) {
@@ -147,15 +150,9 @@ void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frameti
 	sfVector2f size = sfView_getSize(view);
 	sfVector2f origin = {- center.x + (size.x / 2.0), - center.y + (size.y / 2.0)};
 
-	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf", lamp_pos.x, lamp_pos.y);
+	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf\nFPS: %.0lf\nTiles Drawn: %d", 
+		lamp_pos.x, lamp_pos.y, 1.0 / sfTime_asSeconds(frametime), tiles_drawn);
 
-	sfText_setString(overlay, overlay_text);
-	sfText_setOrigin(overlay, origin);
-	sfRenderWindow_drawText(window, overlay, NULL);
-
-	origin.y -= 12;
-	
-	sprintf(overlay_text, "FPS: %.0lf", 1.0 / sfTime_asSeconds(frametime));
 	sfText_setString(overlay, overlay_text);
 	sfText_setOrigin(overlay, origin);
 	sfRenderWindow_drawText(window, overlay, NULL);
