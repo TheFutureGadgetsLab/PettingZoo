@@ -42,9 +42,10 @@ int main(int argc, char **argv)
 	clock = sfClock_create();
 
 	// Create the main window
-	window = sfRenderWindow_create(mode, "SFML window", sfResize | sfClose, NULL);
+	window = sfRenderWindow_create(mode, "Petting Zoo", sfResize | sfClose, NULL);
 	if (!window)
 		return -1;
+	sfRenderWindow_setKeyRepeatEnabled(window, sfFalse);
 
 	// Vsync 
 	sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
 
 	//Generate game
 	game_gen_map();
+	game_setup();
 
 	// Start the game loop
 	view = sfView_copy(sfRenderWindow_getView(window));
@@ -69,53 +71,50 @@ int main(int argc, char **argv)
 				rescale_window(view, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
-					moveby.y = -8;
-				} else if (event.key.code == sfKeyDown) {
-					moveby.y = 8; 
+					player.jump = 1;
 				} else if (event.key.code == sfKeyLeft) {
-					moveby.x = -8; 
+					player.left = 1;
 				}  else if (event.key.code == sfKeyRight) {
-					moveby.x = 8; 
+					player.right = 1;
 				} else if (event.key.code == sfKeyEscape) {
 					goto exit;
 				}
 			} else if (event.type == sfEvtKeyReleased) {
-				if (event.key.code == sfKeyUp || event.key.code == sfKeyDown) {
-					moveby.y = 0;
-				} else if (event.key.code == sfKeyLeft || event.key.code == sfKeyRight) {
-					moveby.x = 0; 
+				if (event.key.code == sfKeyLeft) {
+					player.left = 0;
+				}  else if (event.key.code == sfKeyRight) {
+					player.right = 0;
 				}
 			}
 		}
 		// Frametime
 		time = sfClock_getElapsedTime(clock);
 
+		game_update();
+
 		// Get coords
 		sfVector2f center = sfView_getCenter(view);
 		sfVector2f size = sfView_getSize(view);
-		sfVector2f origin;
-		origin.x = - center.x + (size.x / 2.0);
-		origin.y = - center.y + (size.y / 2.0);
+		sfVector2f viewpos;
+		viewpos.x = center.x - (size.x / 2.0);
+		viewpos.y = center.y - (size.y / 2.0);
 
-		// Move camera only in correct direction
-		if (center.y + moveby.y >= 0 && center.x + moveby.x >= 0 &&
-		    center.y + moveby.y < TILE_HEIGHT * LEVEL_HEIGHT && 
-			center.x + moveby.x < TILE_WIDTH * LEVEL_WIDTH) {
-			sfView_move(view, moveby);
-		}
+		// Move camera towards player position
+		sfVector2f moveto = {player.position.x + 16, player.position.y + 16};
+		sfView_setCenter(view, moveto);
 		sfRenderWindow_setView(window, view);
 
 		// Clear the screen
 		sfRenderWindow_clear(window, background);
 
+		//Draw the tiles and entities
+		game_draw_tiles(window, view, draw_overlay);
+		game_draw_entities(window, view);
+
 		// Draw coords if needed
 		if (draw_overlay) {
 			game_draw_overlay_text(window, view, time);
 		}
-
-		//Draw the tiles and entities
-		game_draw_tiles(window, view, draw_overlay);
-		game_draw_entities(window, view);
 
 		// Restart the clock
 		sfClock_restart(clock);

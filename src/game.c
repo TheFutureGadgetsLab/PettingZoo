@@ -1,5 +1,7 @@
 #include <SFML/Graphics.h>
+#include <game.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <defs.h>
 
@@ -14,16 +16,19 @@ struct game_obj {
 	struct enemy *enemies[MAX_ENEMIES];
 } game;
 
-sfSprite *sprite_tile;
-sfSprite *sprite_dirt;
+
+struct player_obj player;
+
 sfSprite *sprite_lamp;
 sfSprite *sprite_grid;
 sfText *overlay;
 sfFont *font;
 int tiles_drawn;
+sfSprite *tile_sprites[16];
 
 void game_gen_map() {
 	int x, y, val;
+	srand(1234);
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -32,23 +37,79 @@ void game_gen_map() {
 				val = T_GRASS;
 			else if (y > 11)
 				val = T_DIRT;
+			if (y == 10 && rand() % 8 == 0)
+				val = T_SPIKES;
 			game.tiles[y * LEVEL_WIDTH + x] = val;
 		}
 	}
 }
-void load_sprite(sfSprite **sprite, char *path) {
+sfSprite* load_sprite(sfSprite **sprite, char *path, int docenter) {
 	sfTexture *tex;
 	tex = sfTexture_createFromFile(path, NULL);
 	(*sprite) = sfSprite_create();
 	sfSprite_setTexture(*sprite, tex, sfTrue);
+	if (docenter) {
+		sfVector2u size = sfTexture_getSize(tex);
+		sfVector2f center = {size.x / 2.0, size.y / 2.0};
+		sfSprite_setOrigin(*sprite, center);
+	}
+	return *sprite;
+}
+int tile_at(int x, int y) {
+	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
+		return 0;
+	return game.tiles[y * LEVEL_WIDTH + x];
+}
+
+void game_update() {
+	//Player input
+	if (player.right)
+		player.velocity.x = 6;
+	if (player.left)
+		player.velocity.x = -6;
+	if (player.jump)
+		player.velocity.y = -8;
+	player.jump = 0;
+
+	//Player physics
+	int tile_x = (player.position.x + 16) / TILE_WIDTH;
+	int tile_y = (player.position.y + 16) / TILE_HEIGHT;
+	int feet_y = (player.position.y + 1) / TILE_HEIGHT + 1;
+	int right_x = (player.position.x + 33) / TILE_WIDTH;
+	int left_x = (player.position.x - 1) / TILE_WIDTH;
+	player.velocity.y += 0.5;
+	player.velocity.x /= 1.5;
+	if (tile_at(tile_x, feet_y) > 0) {
+		if (player.velocity.y > 0)
+			player.velocity.y = 0;
+		player.position.y = (feet_y - 1) * TILE_HEIGHT;
+	}
+	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
+		if (player.velocity.x > 0)
+			player.velocity.x = 0;
+		player.position.x = (right_x - 1) * TILE_WIDTH;
+	}
+	if (tile_at(left_x, tile_y) || left_x <= 0) {
+		if (player.velocity.x < 0)
+			player.velocity.x = 0;
+		player.position.x = (left_x + 1) * TILE_WIDTH;
+	}
+	player.position.x += player.velocity.x;
+	player.position.y += player.velocity.y;
+	if (player.position.y > LEVEL_HEIGHT * TILE_HEIGHT) {
+		player.position.y = 0;
+		//TODO: Death
+	}
 }
 
 void game_load_assets() {
 	// Sprites
-	load_sprite(&sprite_tile, "../assets/grass.png");
-	load_sprite(&sprite_dirt, "../assets/dirt.png");
-	load_sprite(&sprite_lamp, "../assets/lamp.png");
-	load_sprite(&sprite_grid, "../assets/grid.png");
+	load_sprite(&sprite_lamp, "../assets/lamp.png", 0);
+	load_sprite(&sprite_grid, "../assets/grid.png", 0);
+	load_sprite(&tile_sprites[T_GRASS], "../assets/grass.png", 0);
+	load_sprite(&tile_sprites[T_DIRT], "../assets/dirt.png", 0);
+	load_sprite(&tile_sprites[T_SPIKES], "../assets/spikes.png", 0);
+	load_sprite(&tile_sprites[T_BRICKS], "../assets/bricks.png", 0);
 
 	// Text / Font
 	font = sfFont_createFromFile("../assets/Vera.ttf");
@@ -58,7 +119,12 @@ void game_load_assets() {
 	sfText_setColor(overlay, sfBlack);
 }
 
-void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid, sfVector2f zoom) {
+void game_setup() {
+	player.position.x = 64;
+	player.position.y = 320;
+}
+
+void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	int tile_view_x1, tile_view_y1;
 	int tile_view_x2, tile_view_y2;
 	float view_x, view_y;
@@ -87,14 +153,7 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid, sfVect
 				continue;
 			val = game.tiles[y * LEVEL_WIDTH + x];
 			if (val > 0) {
-				switch (val) {
-					case T_GRASS:
-						sprite = sprite_tile;
-						break;
-					case T_DIRT:
-						sprite = sprite_dirt;
-						break;
-				}
+				sprite = tile_sprites[val];
 				pos.x = x * TILE_WIDTH;
 				pos.y = y * TILE_HEIGHT;
 				sfSprite_setPosition(sprite, pos);
@@ -113,8 +172,7 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid, sfVect
 }
 
 void game_draw_entities(sfRenderWindow *window, sfView *view) {
-	sfVector2f center = sfView_getCenter(view);
-	sfSprite_setPosition(sprite_lamp, center);
+	sfSprite_setPosition(sprite_lamp, player.position);
 	sfRenderWindow_drawSprite(window, sprite_lamp, NULL);
 }
 
