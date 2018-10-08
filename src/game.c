@@ -5,6 +5,7 @@
 #include <math.h>
 #include <defs.h>
 #include <time.h>
+#include <limits.h>
 
 struct enemy {
 	int init_x;
@@ -19,6 +20,7 @@ struct game_obj {
 
 
 struct player_obj player;
+struct view_obj game_view;
 
 sfSprite *sprite_lamp;
 sfSprite *sprite_grid;
@@ -30,21 +32,49 @@ sfSprite *tile_sprites[16];
 
 unsigned int seed;
 
+int randint(int max) {
+	return random() % max;
+}
+
+int randrange(int min, int max) {
+	return min + random() % (max - min);
+}
+
+sfBool chance(double percent) {
+	return ((double)random() / (double)RAND_MAX) < (percent / 100.0);
+}
+
+void set_tile(int x, int y, unsigned char val) {
+	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
+		return;
+	game.tiles[y * LEVEL_WIDTH + x] = val;
+}
+
 void game_gen_map() {
-	int x, y, val;
-	seed = 1234;
+	int x, y, i, w, h, ground, val;
+	seed = (unsigned)time(NULL);
 	srand(seed);
+	ground = GROUND_HEIGHT;
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
+		if (chance(7)) {
+			ground -= randrange(-3, 3);
+		}
+		if (chance(5)) {
+			h = randrange(8, ground - 2);
+			w = randrange(2, 8);
+			for (i = 0; i < w; i++) {
+				set_tile(x + i, h, T_BRICKS);
+			}
+		}
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			val = T_EMPTY;
-			if (y == 11)
+			if (y == ground)
 				val = T_GRASS;
-			else if (y > 11)
+			else if (y > ground)
 				val = T_DIRT;
-			if (y == 10 && rand() % 8 == 0)
-				val = T_SPIKES;
-			game.tiles[y * LEVEL_WIDTH + x] = val;
+			if (val)
+				set_tile(x, y, val);
 		}
 	}
 }
@@ -68,7 +98,30 @@ int tile_at(int x, int y) {
 	return game.tiles[y * LEVEL_WIDTH + x];
 }
 
-void game_update() {
+void set_view_vars(sfView *view) {
+	game_view.center = sfView_getCenter(view);
+	game_view.size = sfView_getSize(view);
+	game_view.corner.x = game_view.center.x - (game_view.size.x / 2.0);
+	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
+}
+
+void game_update(sfRenderWindow *window, sfView *view) {
+	// Move camera towards player position
+	sfVector2f moveto = {player.position.x + 16, player.position.y + 16};
+	sfView_setCenter(view, moveto);
+
+	//Set view position and view global variables
+	set_view_vars(view);
+	if (game_view.corner.x < 0)
+		game_view.center.x = game_view.size.x / 2.0;
+	if (game_view.corner.x + game_view.size.x > LEVEL_PIXEL_WIDTH)
+		game_view.center.x = LEVEL_PIXEL_WIDTH - game_view.size.x / 2.0;
+	if (game_view.corner.y + game_view.size.y > LEVEL_PIXEL_HEIGHT)
+		game_view.center.y = LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0;
+	sfView_setCenter(view, game_view.center);
+	sfRenderWindow_setView(window, view);
+	set_view_vars(view);
+
 	//Player input
 	if (player.right)
 		player.velocity.x = V_X;
@@ -119,7 +172,7 @@ void game_update() {
 	player.position.y += player.velocity.y;
 
 	//Lower bound
-	if (player.position.y > LEVEL_HEIGHT * TILE_HEIGHT) {
+	if (player.position.y > LEVEL_PIXEL_HEIGHT) {
 		player.position.y = 0;
 		//TODO: Death
 	}
@@ -144,28 +197,21 @@ void game_load_assets() {
 }
 
 void game_setup() {
-	player.position.x = SPAWN_X;
-	player.position.y = SPAWN_Y;
+	player.position.x = SPAWN_X * TILE_WIDTH;
+	player.position.y = SPAWN_Y * TILE_HEIGHT;
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	int tile_view_x1, tile_view_y1;
 	int tile_view_x2, tile_view_y2;
-	float view_x, view_y;
 	int x, y;
 	sfVector2f pos;
 
-	//Get top-left of view
-	sfVector2f center = sfView_getCenter(view);
-	sfVector2f size = sfView_getSize(view);
-	view_x = center.x - (size.x / 2.0);
-	view_y = center.y - (size.y / 2.0);
-
 	//Calculate bounds for drawing tiles
-	tile_view_x1 = view_x / TILE_WIDTH;
-	tile_view_x2 = (view_x + size.x) / TILE_WIDTH;
-	tile_view_y1 = view_y / TILE_HEIGHT;
-	tile_view_y2 = (view_y + size.y) / TILE_HEIGHT;
+	tile_view_x1 = game_view.corner.x / TILE_WIDTH;
+	tile_view_x2 = (game_view.corner.x + game_view.size.x) / TILE_WIDTH;
+	tile_view_y1 = game_view.corner.y / TILE_HEIGHT;
+	tile_view_y2 = (game_view.corner.y + game_view.size.y) / TILE_HEIGHT;
 
 	//Loop over tiles and draw them
 	int val;
@@ -205,9 +251,8 @@ void game_draw_entities(sfRenderWindow *window, sfView *view) {
 void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime) {
 	char overlay_text[4096];
 	sfVector2f lamp_pos = sfSprite_getPosition(sprite_lamp);
-	sfVector2f center = sfView_getCenter(view);
-	sfVector2f size = sfView_getSize(view);
-	sfVector2f origin = {- center.x + (size.x / 2.0), - center.y + (size.y / 2.0)};
+	sfVector2f origin = {-game_view.center.x + (game_view.size.x / 2.0),
+		-game_view.center.y + (game_view.size.y / 2.0)};
 
 	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u", 
 		lamp_pos.x, lamp_pos.y, 1.0 / sfTime_asSeconds(frametime), tiles_drawn, seed);
@@ -218,6 +263,6 @@ void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frameti
 }
 
 void game_draw_other(sfRenderWindow *window, sfView *view) {
-	sfSprite_setPosition(sprite_bg, sfView_getCenter(view));
+	sfSprite_setPosition(sprite_bg, game_view.center);
 	sfRenderWindow_drawSprite(window, sprite_bg, NULL);
 }

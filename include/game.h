@@ -4,7 +4,7 @@
 #include <SFML/Graphics.h>
 
 void game_setup();
-void game_update();
+void game_update(sfRenderWindow *window, sfView *view);
 void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid);
 void game_draw_entities(sfRenderWindow *window, sfView *view);
 void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime);
@@ -22,5 +22,13 @@ struct player_obj {
 };
 
 extern struct player_obj player;
+
+struct view_obj {
+	sfVector2f center;
+	sfVector2f corner;
+	sfVector2f size;
+};
+
+extern struct view_obj game_view;
 
 #endif

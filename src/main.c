@@ -92,40 +92,30 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		// Frametime
+		//Frametime
 		time = sfClock_getElapsedTime(clock);
 
-		game_update();
+		// Restart the clock
+		sfClock_restart(clock);
 
-		// Get coords
-		sfVector2f center = sfView_getCenter(view);
-		sfVector2f size = sfView_getSize(view);
-		sfVector2f viewpos;
-		viewpos.x = center.x - (size.x / 2.0);
-		viewpos.y = center.y - (size.y / 2.0);
+		//Update game state
+		game_update(window, view);
 
-		// Move camera towards player position
-		sfVector2f moveto = {player.position.x + 16, player.position.y + 16};
-		sfView_setCenter(view, moveto);
-		sfRenderWindow_setView(window, view);
-
-		// Clear the screen
+		//Clear the screen
 		sfRenderWindow_clear(window, background);
 
-		// Draw background
+		//Draw background
 		game_draw_other(window, view);
 
 		//Draw the tiles and entities
 		game_draw_tiles(window, view, draw_overlay);
 		game_draw_entities(window, view);
 
-		// Draw coords if needed
+		//Draw coords if needed
 		if (draw_overlay) {
 			game_draw_overlay_text(window, view, time);
 		}
 
-		// Restart the clock
-		sfClock_restart(clock);
 		// Update the window
 		sfRenderWindow_display(window);
 	}
@@ -147,8 +137,8 @@ int rescale_window(sfView *view, sfEvent event)
 	sfVector2f win_center = sfView_getCenter(view);
 
 	//Auto zoom depending on window size
-	zoom = win_size.y / (LEVEL_HEIGHT * TILE_HEIGHT);
-	zoom = round(win_size.y / (LEVEL_HEIGHT * TILE_HEIGHT));
+	zoom = win_size.y / (LEVEL_PIXEL_HEIGHT);
+	zoom = round(win_size.y / (LEVEL_PIXEL_HEIGHT));
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;
@@ -157,3 +147,4 @@ int rescale_window(sfView *view, sfEvent event)
 
 	return 0;
 }
+
