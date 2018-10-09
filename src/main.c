@@ -1,12 +1,9 @@
 #include <SFML/Audio.h>
 #include <SFML/Graphics.h>
-#include <SFML/Config.h>
-#include <SFML/System.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <game.h>
 #include <defs.h>
-#include <unistd.h>
 #include <math.h>
 
 float zoom = 2.0;
@@ -25,19 +22,7 @@ int main(int argc, char **argv)
 	sfClock *clock;
 	sfView *view;
 	sfColor background = {230, 230, 230, 1};
-
 	draw_overlay = 0;
-	// while ((opt = getopt(argc, argv, "o")) != -1) {
-	// 	switch (opt) {
-	// 		case 'o':
-	// 			draw_overlay = 1;
-	// 			break;
-	// 		default:
-	// 			printf("Usage: ./pettingzoo [-g] [-c]\n");
-	// 			printf("\t-o Display overlay\n");
-	// 			exit(EXIT_FAILURE);
-	// 	}
-	// }
 
 	// Create the clock
 	clock = sfClock_create();
@@ -55,7 +40,6 @@ int main(int argc, char **argv)
 	game_load_assets(draw_overlay);
 
 	//Generate game
-	game_gen_map();
 	game_setup();
 
 	// Start the game loop
@@ -120,8 +104,6 @@ int main(int argc, char **argv)
 		sfRenderWindow_display(window);
 	}
 
-// Goto for leaving event and game loop if escape is hit, break wont work
-// because of nested loops.
 exit:
 	// Cleanup resources
 	sfRenderWindow_destroy(window);
@@ -147,4 +129,3 @@ int rescale_window(sfView *view, sfEvent event)
 
 	return 0;
 }
-

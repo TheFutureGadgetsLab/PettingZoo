@@ -1,24 +1,13 @@
 #include <SFML/Graphics.h>
 #include <game.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include <defs.h>
 #include <time.h>
 #include <limits.h>
+#include <levelgen.h>
 
-struct enemy {
-	int init_x;
-	int init_y;
-	unsigned char type;
-};
-
-struct game_obj {
-	unsigned char tiles[LEVEL_SIZE];
-	struct enemy *enemies[MAX_ENEMIES];
-} game;
-
-
+struct game_obj game;
 struct player_obj player;
 struct view_obj game_view;
 
@@ -27,59 +16,10 @@ sfSprite *sprite_grid;
 sfSprite *sprite_bg;
 sfText *overlay;
 sfFont *font;
-int tiles_drawn;
 sfSprite *tile_sprites[16];
+int tiles_drawn;
 
-unsigned int seed;
-
-int randint(int max) {
-	return random() % max;
-}
-
-int randrange(int min, int max) {
-	return min + random() % (max - min);
-}
-
-sfBool chance(double percent) {
-	return ((double)random() / (double)RAND_MAX) < (percent / 100.0);
-}
-
-void set_tile(int x, int y, unsigned char val) {
-	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
-		return;
-	game.tiles[y * LEVEL_WIDTH + x] = val;
-}
-
-void game_gen_map() {
-	int x, y, i, w, h, ground, val;
-	seed = (unsigned)time(NULL);
-	srand(seed);
-	ground = GROUND_HEIGHT;
-
-	for (x = 0; x < LEVEL_WIDTH; x++) {
-		if (chance(7)) {
-			ground -= randrange(-3, 3);
-		}
-		if (chance(5)) {
-			h = randrange(8, ground - 2);
-			w = randrange(2, 8);
-			for (i = 0; i < w; i++) {
-				set_tile(x + i, h, T_BRICKS);
-			}
-		}
-		for (y = 0; y < LEVEL_HEIGHT; y++) {
-			val = T_EMPTY;
-			if (y == ground)
-				val = T_GRASS;
-			else if (y > ground)
-				val = T_DIRT;
-			if (val)
-				set_tile(x, y, val);
-		}
-	}
-}
-
-sfSprite* load_sprite(sfSprite **sprite, char *path, int docenter) {
+void load_sprite(sfSprite **sprite, char *path, int docenter) {
 	sfTexture *tex;
 	tex = sfTexture_createFromFile(path, NULL);
 	(*sprite) = sfSprite_create();
@@ -89,7 +29,6 @@ sfSprite* load_sprite(sfSprite **sprite, char *path, int docenter) {
 		sfVector2f center = {size.x / 2.0, size.y / 2.0};
 		sfSprite_setOrigin(*sprite, center);
 	}
-	return *sprite;
 }
 
 int tile_at(int x, int y) {
@@ -197,6 +136,7 @@ void game_load_assets() {
 }
 
 void game_setup() {
+	levelgen_gen_map(&game, &game.seed);
 	player.position.x = SPAWN_X * TILE_WIDTH;
 	player.position.y = SPAWN_Y * TILE_HEIGHT;
 }
@@ -219,7 +159,6 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	tiles_drawn = 0;
 	for (x = tile_view_x1; x <= tile_view_x2; x++) {
 		if (x >= 0 && x < LEVEL_WIDTH)
-		//ISSUE: this needs to incorporate zooming
 		for (y = tile_view_y1; y <= tile_view_y2; y++) {
 			if (y < 0 || y >= LEVEL_HEIGHT)
 				continue;
@@ -250,15 +189,14 @@ void game_draw_entities(sfRenderWindow *window, sfView *view) {
 
 void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime) {
 	char overlay_text[4096];
-	sfVector2f lamp_pos = sfSprite_getPosition(sprite_lamp);
-	sfVector2f origin = {-game_view.center.x + (game_view.size.x / 2.0),
-		-game_view.center.y + (game_view.size.y / 2.0)};
 
-	sprintf(overlay_text, "Lamp pos: %0.0lf, %0.0lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u", 
-		lamp_pos.x, lamp_pos.y, 1.0 / sfTime_asSeconds(frametime), tiles_drawn, seed);
+	sprintf(overlay_text, 
+	"Lamp pos: %.0lf, %.0lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf", 
+		player.position.x, player.position.y, 1.0 / sfTime_asSeconds(frametime), 
+		tiles_drawn, game.seed, player.velocity.x, player.velocity.y);
 
 	sfText_setString(overlay, overlay_text);
-	sfText_setOrigin(overlay, origin);
+	sfText_setPosition(overlay, game_view.corner);
 	sfRenderWindow_drawText(window, overlay, NULL);
 }
 
