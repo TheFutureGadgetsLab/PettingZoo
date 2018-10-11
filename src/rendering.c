@@ -2,6 +2,7 @@
 #include <rendering.h>
 #include <stdio.h>
 #include <defs.h>
+#include <math.h>
 #include <gamelogic.h>
 
 extern struct game_obj game;
@@ -143,10 +144,10 @@ void render_scale_window(sfView *view, sfEvent event)
 	sfVector2f win_size = {event.size.width, event.size.height};
 
 	//Auto zoom depending on window size
-	zoom = win_size.y / (LEVEL_PIXEL_HEIGHT);
+	zoom = round(win_size.y / (LEVEL_PIXEL_HEIGHT));
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
-	win_size.y = VIEW_SIZE_Y;
+	win_size.y /= zoom;
 	
 	sfView_setSize(view, win_size);
 	set_view_vars(view);
