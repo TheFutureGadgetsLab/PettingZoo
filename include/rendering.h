@@ -15,5 +15,6 @@ void render_overlay(sfRenderWindow *window, sfView *view, sfTime frametime);
 void render_other(sfRenderWindow *window, sfView *view);
 void render_handle_camera(sfRenderWindow *window, sfView *view);
 void render_load_assets();
+void render_scale_window(sfView *view, sfEvent event);
 
 #endif

@@ -1,19 +1,13 @@
-#include <SFML/Audio.h>
 #include <SFML/Graphics.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <rendering.h>
 #include <defs.h>
-#include <math.h>
 #include <gamelogic.h>
-
-float zoom = 2.0;
-
-int rescale_window(sfView *view, sfEvent event);
 
 int main(int argc, char **argv)
 {
-	int draw_overlay;
+	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
 
 	sfVideoMode mode = {800, 600, 32};
@@ -22,7 +16,6 @@ int main(int argc, char **argv)
 	sfTime time;
 	sfClock *clock;
 	sfView *view;
-	draw_overlay = 0;
 
 	// Create the clock
 	clock = sfClock_create();
@@ -72,7 +65,7 @@ int main(int argc, char **argv)
 			} else if (event.type == sfEvtClosed) {
 				sfRenderWindow_close(window);
 			} else if (event.type == sfEvtResized) {
-				rescale_window(view, event);
+				render_scale_window(view, event);
 			}
 		}
 
@@ -83,7 +76,7 @@ int main(int argc, char **argv)
 		render_handle_camera(window, view);
 
 		//Clear the screen
-		sfRenderWindow_clear(window, sfBlack);
+		sfRenderWindow_clear(window, sfWhite);
 
 		//Draw background
 		render_other(window, view);
@@ -112,22 +105,5 @@ exit:
 	sfClock_destroy(clock);
 	sfView_destroy(view);
 	
-	return 0;
-}
-
-int rescale_window(sfView *view, sfEvent event)
-{
-	sfVector2f win_size = {event.size.width, event.size.height};
-	sfVector2f win_center = sfView_getCenter(view);
-
-	//Auto zoom depending on window size
-	zoom = win_size.y / (LEVEL_PIXEL_HEIGHT);
-	zoom = round(win_size.y / (LEVEL_PIXEL_HEIGHT));
-	zoom = zoom < 1 ? 1 : zoom;
-	win_size.x /= zoom;
-	win_size.y /= zoom;
-	
-	sfView_setSize(view, win_size);
-
 	return 0;
 }

@@ -1,6 +1,7 @@
 #include <gamelogic.h>
 #include <levelgen.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 struct player_obj player;
 struct game_obj game;
@@ -29,6 +30,9 @@ void game_update(int input[BUTTON_COUNT]) {
 	int right_x = (player.position_x + 33) / TILE_WIDTH;
 	int left_x = (player.position_x - 1) / TILE_WIDTH;
 
+	player.tile_x = tile_x;
+	player.tile_y = tile_y;
+
 	//Gravity
 	player.velocity_y += GRAVITY;
 
@@ -51,7 +55,7 @@ void game_update(int input[BUTTON_COUNT]) {
 	}
 
 	//Left collision
-	if (tile_at(left_x, tile_y) || left_x <= 0) {
+	if (tile_at(left_x, tile_y) || left_x < 0) {
 		if (player.velocity_x < 0)
 			player.velocity_x = 0;
 		player.position_x = (left_x + 1) * TILE_WIDTH;

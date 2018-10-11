@@ -12,6 +12,8 @@ struct player_obj {
 	int right;
 	int jump;
 	int canjump;
+	int tile_x;
+	int tile_y;
 };
 
 struct enemy {

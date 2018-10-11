@@ -36,8 +36,8 @@ void set_view_vars(sfView *view) {
 }
 
 void render_handle_camera(sfRenderWindow *window, sfView *view) {
-	// Move camera towards player position
-	sfVector2f moveto = {player.position_x + 16, player.position_y + 16};
+	// Candidate camera location, centered on player x position
+	sfVector2f moveto = {player.position_x + 16, LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0};
 	sfView_setCenter(view, moveto);
 
 	//Set view position and view global variables
@@ -46,8 +46,7 @@ void render_handle_camera(sfRenderWindow *window, sfView *view) {
 		game_view.center.x = game_view.size.x / 2.0;
 	if (game_view.corner.x + game_view.size.x > LEVEL_PIXEL_WIDTH)
 		game_view.center.x = LEVEL_PIXEL_WIDTH - game_view.size.x / 2.0;
-	if (game_view.corner.y + game_view.size.y > LEVEL_PIXEL_HEIGHT)
-		game_view.center.y = LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0;
+
 	sfView_setCenter(view, game_view.center);
 	sfRenderWindow_setView(window, view);
 	set_view_vars(view);
@@ -122,9 +121,10 @@ void render_overlay(sfRenderWindow *window, sfView *view, sfTime frametime) {
 	char overlay_text[4096];
 
 	sprintf(overlay_text, 
-	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf", 
+	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d", 
 		player.position_x, player.position_y, 1.0 / sfTime_asSeconds(frametime), 
-		tiles_drawn, game.seed, player.velocity_x, player.velocity_y);
+		tiles_drawn, game.seed, player.velocity_x, player.velocity_y,
+		player.tile_x, player.tile_y);
 
 	sfText_setString(overlay, overlay_text);
 	sfText_setPosition(overlay, game_view.corner);
@@ -134,4 +134,20 @@ void render_overlay(sfRenderWindow *window, sfView *view, sfTime frametime) {
 void render_other(sfRenderWindow *window, sfView *view) {
 	sfSprite_setPosition(sprite_bg, game_view.center);
 	sfRenderWindow_drawSprite(window, sprite_bg, NULL);
+}
+
+void render_scale_window(sfView *view, sfEvent event)
+{
+	float zoom;
+
+	sfVector2f win_size = {event.size.width, event.size.height};
+
+	//Auto zoom depending on window size
+	zoom = win_size.y / (LEVEL_PIXEL_HEIGHT);
+	zoom = zoom < 1 ? 1 : zoom;
+	win_size.x /= zoom;
+	win_size.y = VIEW_SIZE_Y;
+	
+	sfView_setSize(view, win_size);
+	set_view_vars(view);
 }
