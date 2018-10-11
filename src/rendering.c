@@ -136,9 +136,8 @@ void render_other(sfRenderWindow *window, sfView *view) {
 	sfRenderWindow_drawSprite(window, sprite_bg, NULL);
 }
 
-void render_scale_window(sfView *view, sfEvent event)
-{
-	float zoom;
+void render_scale_window(sfView *view, sfEvent event) {
+	int zoom;
 
 	sfVector2f win_size = {event.size.width, event.size.height};
 
