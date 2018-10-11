@@ -41,7 +41,7 @@ int randint(int max) {
 }
 
 int randrange(int min, int max) {
-	return min + random() % (max - min);
+	return min + (random() % (max - min));
 }
 
 int chance(double percent) {
