@@ -1,10 +1,9 @@
-#include <rendering.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <defs.h>
 #include <time.h>
 #include <levelgen.h>
+#include <gamelogic.h>
 
 void levelgen_gen_map(struct game_obj *game, int *seed) {
 	int x, y, i, w, h, ground, val;
@@ -15,7 +14,7 @@ void levelgen_gen_map(struct game_obj *game, int *seed) {
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		if (chance(7)) {
-			ground -= randrange(-3, 3);
+			//ground -= randrange(-3, 3);
 		}
 		if (chance(5)) {
 			h = randrange(8, ground - 2);

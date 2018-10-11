@@ -5,6 +5,7 @@
 #include <rendering.h>
 #include <defs.h>
 #include <math.h>
+#include <gamelogic.h>
 
 float zoom = 2.0;
 
@@ -12,17 +13,15 @@ int rescale_window(sfView *view, sfEvent event);
 
 int main(int argc, char **argv)
 {
-	int opt, draw_overlay;
+	int draw_overlay;
 	int input[BUTTON_COUNT] = {0};
 
 	sfVideoMode mode = {800, 600, 32};
 	sfRenderWindow* window;
-	sfVector2f moveby = {0, 0};
 	sfEvent event;
 	sfTime time;
 	sfClock *clock;
 	sfView *view;
-	sfColor background = {230, 230, 230, 1};
 	draw_overlay = 0;
 
 	// Create the clock
@@ -38,7 +37,7 @@ int main(int argc, char **argv)
 	sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
 
 	//Load assets
-	game_load_assets(draw_overlay);
+	render_load_assets(draw_overlay);
 
 	//Generate game
 	game_setup();
@@ -50,12 +49,7 @@ int main(int argc, char **argv)
 		// Process events
 		while (sfRenderWindow_pollEvent(window, &event))
 		{
-			// Close window
-			if (event.type == sfEvtClosed) {
-				sfRenderWindow_close(window);
-			} else if (event.type == sfEvtResized) {
-				rescale_window(view, event);
-			} else if (event.type == sfEvtKeyPressed) {
+			if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
 					input[BUTTON_JUMP] = 1;
 				} else if (event.key.code == sfKeyLeft) {
@@ -75,34 +69,38 @@ int main(int argc, char **argv)
 				} else if (event.key.code == sfKeyUp) {
 					input[BUTTON_JUMP] = 0;
 				}
+			} else if (event.type == sfEvtClosed) {
+				sfRenderWindow_close(window);
+			} else if (event.type == sfEvtResized) {
+				rescale_window(view, event);
 			}
 		}
-		//Frametime
-		time = sfClock_getElapsedTime(clock);
-
-		// Restart the clock
-		sfClock_restart(clock);
 
 		//Update game state
-		game_update(window, view, input);
+		game_update(input);
 		
 		// Update camera
-		handle_camera(window, view);
+		render_handle_camera(window, view);
 
 		//Clear the screen
-		sfRenderWindow_clear(window, background);
+		sfRenderWindow_clear(window, sfBlack);
 
 		//Draw background
-		game_draw_other(window, view);
+		render_other(window, view);
 
 		//Draw the tiles and entities
-		game_draw_tiles(window, view, draw_overlay);
-		game_draw_entities(window, view);
+		render_tiles(window, view, draw_overlay);
+		render_entities(window, view);
 
 		//Draw coords if needed
 		if (draw_overlay) {
-			game_draw_overlay_text(window, view, time);
+			render_overlay(window, view, time);
 		}
+
+		//Frametime
+		time = sfClock_getElapsedTime(clock);
+		// Restart the clock
+		sfClock_restart(clock);
 
 		// Update the window
 		sfRenderWindow_display(window);

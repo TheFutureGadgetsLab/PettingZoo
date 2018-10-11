@@ -1,6 +1,8 @@
 #ifndef LEVELGEN_H
 #define LEVELGEN_H
 
+#include <gamelogic.h>
+
 void levelgen_gen_map(struct game_obj *game, int *seed);
 int randint(int max);
 int randrange(int min, int max);

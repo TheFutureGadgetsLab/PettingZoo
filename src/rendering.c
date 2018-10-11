@@ -1,14 +1,11 @@
 #include <SFML/Graphics.h>
 #include <rendering.h>
 #include <stdio.h>
-#include <math.h>
 #include <defs.h>
-#include <time.h>
-#include <limits.h>
-#include <levelgen.h>
+#include <gamelogic.h>
 
-struct game_obj game;
-struct player_obj player;
+extern struct game_obj game;
+extern struct player_obj player;
 struct view_obj game_view;
 
 sfSprite *sprite_lamp;
@@ -31,12 +28,6 @@ void load_sprite(sfSprite **sprite, char *path, int docenter) {
 	}
 }
 
-int tile_at(int x, int y) {
-	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
-		return 0;
-	return game.tiles[y * LEVEL_WIDTH + x];
-}
-
 void set_view_vars(sfView *view) {
 	game_view.center = sfView_getCenter(view);
 	game_view.size = sfView_getSize(view);
@@ -44,7 +35,7 @@ void set_view_vars(sfView *view) {
 	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
 }
 
-void handle_camera(sfRenderWindow *window, sfView *view) {
+void render_handle_camera(sfRenderWindow *window, sfView *view) {
 	// Move camera towards player position
 	sfVector2f moveto = {player.position_x + 16, player.position_y + 16};
 	sfView_setCenter(view, moveto);
@@ -62,64 +53,7 @@ void handle_camera(sfRenderWindow *window, sfView *view) {
 	set_view_vars(view);
 }
 
-void game_update(sfRenderWindow *window, sfView *view, int input[BUTTON_COUNT]) {
-	//Player input
-	if (input[BUTTON_RIGHT])
-		player.velocity_x = V_X;
-	if (input[BUTTON_LEFT])
-		player.velocity_x = -V_X;
-	if (input[BUTTON_JUMP] && player.canjump) {
-		player.velocity_y = -V_JUMP;
-		player.canjump = 0;
-	}
-
-	//Player physics
-	int tile_x = (player.position_x + 16) / TILE_WIDTH;
-	int tile_y = (player.position_y + 16) / TILE_HEIGHT;
-	int feet_y = (player.position_y + 33) / TILE_HEIGHT;
-	int right_x = (player.position_x + 33) / TILE_WIDTH;
-	int left_x = (player.position_x - 1) / TILE_WIDTH;
-
-	//Gravity
-	player.velocity_y += GRAVITY;
-
-	//Horizontal inertia
-	player.velocity_x /= INTERTA;
-
-	//Collision on bottom
-	if (tile_at(tile_x, feet_y) > 0) {
-		if (player.velocity_y > 0)
-			player.velocity_y = 0;
-		player.position_y = (feet_y - 1) * TILE_HEIGHT;
-		player.canjump = 1;
-	}
-
-	//Right collision
-	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
-		if (player.velocity_x > 0)
-			player.velocity_x = 0;
-		player.position_x = (right_x - 1) * TILE_WIDTH;
-	}
-
-	//Left collision
-	if (tile_at(left_x, tile_y) || left_x <= 0) {
-		if (player.velocity_x < 0)
-			player.velocity_x = 0;
-		player.position_x = (left_x + 1) * TILE_WIDTH;
-	}
-
-	//Apply player velocity
-	player.position_x += player.velocity_x;
-	player.position_y += player.velocity_y;
-
-	//Lower bound
-	if (player.position_y > LEVEL_PIXEL_HEIGHT) {
-		player.position_y = 0;
-		//TODO: Death
-	}
-}
-
-void game_load_assets() {
+void render_load_assets() {
 	// Sprites
 	load_sprite(&sprite_lamp, "../assets/lamp.png", 0);
 	load_sprite(&sprite_grid, "../assets/grid.png", 0);
@@ -137,13 +71,7 @@ void game_load_assets() {
 	sfText_setColor(overlay, sfBlack);
 }
 
-void game_setup() {
-	levelgen_gen_map(&game, &game.seed);
-	player.position_x = SPAWN_X * TILE_WIDTH;
-	player.position_y = SPAWN_Y * TILE_HEIGHT;
-}
-
-void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
+void render_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	int tile_view_x1, tile_view_y1;
 	int tile_view_x2, tile_view_y2;
 	int x, y;
@@ -184,13 +112,13 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 	}
 }
 
-void game_draw_entities(sfRenderWindow *window, sfView *view) {
+void render_entities(sfRenderWindow *window, sfView *view) {
 	sfVector2f pos = {player.position_x, player.position_y};
 	sfSprite_setPosition(sprite_lamp, pos);
 	sfRenderWindow_drawSprite(window, sprite_lamp, NULL);
 }
 
-void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime) {
+void render_overlay(sfRenderWindow *window, sfView *view, sfTime frametime) {
 	char overlay_text[4096];
 
 	sprintf(overlay_text, 
@@ -203,7 +131,7 @@ void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frameti
 	sfRenderWindow_drawText(window, overlay, NULL);
 }
 
-void game_draw_other(sfRenderWindow *window, sfView *view) {
+void render_other(sfRenderWindow *window, sfView *view) {
 	sfSprite_setPosition(sprite_bg, game_view.center);
 	sfRenderWindow_drawSprite(window, sprite_bg, NULL);
 }
