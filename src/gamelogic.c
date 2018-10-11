@@ -2,6 +2,7 @@
 #include <levelgen.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 struct player_obj player;
 struct game_obj game;
@@ -24,11 +25,11 @@ void game_update(int input[BUTTON_COUNT]) {
 	}
 
 	//Player physics
-	int tile_x = (player.position_x + 16) / TILE_WIDTH;
-	int tile_y = (player.position_y + 16) / TILE_HEIGHT;
-	int feet_y = (player.position_y + 33) / TILE_HEIGHT;
-	int right_x = (player.position_x + 33) / TILE_WIDTH;
-	int left_x = (player.position_x - 1) / TILE_WIDTH;
+	int tile_x = floor((player.position_x + 16) / TILE_WIDTH);
+	int tile_y = floor((player.position_y + 16) / TILE_HEIGHT);
+	int feet_y = floor((player.position_y + 33) / TILE_HEIGHT);
+	int right_x = floor((player.position_x + 33) / TILE_WIDTH);
+	int left_x = floor((player.position_x - 1) / TILE_WIDTH);
 
 	player.tile_x = tile_x;
 	player.tile_y = tile_y;
