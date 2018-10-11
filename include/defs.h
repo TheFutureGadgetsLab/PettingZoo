@@ -1,6 +1,12 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
+// Button parameters
+#define BUTTON_COUNT 3
+#define BUTTON_LEFT 0
+#define BUTTON_RIGHT 1
+#define BUTTON_JUMP 2
+
 // Level parameters
 #define LEVEL_HEIGHT 16
 #define LEVEL_WIDTH 128

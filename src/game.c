@@ -44,7 +44,7 @@ void set_view_vars(sfView *view) {
 	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
 }
 
-void game_update(sfRenderWindow *window, sfView *view) {
+void game_update(sfRenderWindow *window, sfView *view, int input[BUTTON_COUNT]) {
 	// Move camera towards player position
 	sfVector2f moveto = {player.position.x + 16, player.position.y + 16};
 	sfView_setCenter(view, moveto);
@@ -62,11 +62,11 @@ void game_update(sfRenderWindow *window, sfView *view) {
 	set_view_vars(view);
 
 	//Player input
-	if (player.right)
+	if (input[BUTTON_RIGHT])
 		player.velocity.x = V_X;
-	if (player.left)
+	if (input[BUTTON_LEFT])
 		player.velocity.x = -V_X;
-	if (player.jump && player.canjump) {
+	if (input[BUTTON_JUMP] && player.canjump) {
 		player.velocity.y = -V_JUMP;
 		player.canjump = 0;
 	}

@@ -13,6 +13,7 @@ int rescale_window(sfView *view, sfEvent event);
 int main(int argc, char **argv)
 {
 	int opt, draw_overlay;
+	int input[BUTTON_COUNT] = {0};
 
 	sfVideoMode mode = {800, 600, 32};
 	sfRenderWindow* window;
@@ -56,11 +57,11 @@ int main(int argc, char **argv)
 				rescale_window(view, event);
 			} else if (event.type == sfEvtKeyPressed) {
 				if (event.key.code == sfKeyUp) {
-					player.jump = 1;
+					input[BUTTON_JUMP] = 1;
 				} else if (event.key.code == sfKeyLeft) {
-					player.left = 1;
+					input[BUTTON_LEFT] = 1;
 				} else if (event.key.code == sfKeyRight) {
-					player.right = 1;
+					input[BUTTON_RIGHT] = 1;
 				} else if (event.key.code == sfKeyEscape) {
 					goto exit;
 				} else if (event.key.code == sfKeyO) {
@@ -68,11 +69,11 @@ int main(int argc, char **argv)
 				}
 			} else if (event.type == sfEvtKeyReleased) {
 				if (event.key.code == sfKeyLeft) {
-					player.left = 0;
+					input[BUTTON_LEFT] = 0;
 				} else if (event.key.code == sfKeyRight) {
-					player.right = 0;
+					input[BUTTON_RIGHT] = 0;
 				} else if (event.key.code == sfKeyUp) {
-					player.jump = 0;
+					input[BUTTON_JUMP] = 0;
 				}
 			}
 		}
@@ -83,7 +84,7 @@ int main(int argc, char **argv)
 		sfClock_restart(clock);
 
 		//Update game state
-		game_update(window, view);
+		game_update(window, view, input);
 
 		//Clear the screen
 		sfRenderWindow_clear(window, background);
