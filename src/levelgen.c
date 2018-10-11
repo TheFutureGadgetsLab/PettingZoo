@@ -1,4 +1,4 @@
-#include <game.h>
+#include <rendering.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

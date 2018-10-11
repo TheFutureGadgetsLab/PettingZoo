@@ -10,11 +10,14 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid);
 void game_draw_entities(sfRenderWindow *window, sfView *view);
 void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frametime);
 void game_draw_other(sfRenderWindow *window, sfView *view);
+void handle_camera(sfRenderWindow *window, sfView *view);
 void game_load_assets();
 
 struct player_obj {
-	sfVector2f position;
-	sfVector2f velocity;
+	float position_x;
+	float position_y;
+	float velocity_x;
+	float velocity_y;
 	int left;
 	int right;
 	int jump;

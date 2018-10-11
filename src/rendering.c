@@ -1,5 +1,5 @@
 #include <SFML/Graphics.h>
-#include <game.h>
+#include <rendering.h>
 #include <stdio.h>
 #include <math.h>
 #include <defs.h>
@@ -44,9 +44,9 @@ void set_view_vars(sfView *view) {
 	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
 }
 
-void game_update(sfRenderWindow *window, sfView *view, int input[BUTTON_COUNT]) {
+void handle_camera(sfRenderWindow *window, sfView *view) {
 	// Move camera towards player position
-	sfVector2f moveto = {player.position.x + 16, player.position.y + 16};
+	sfVector2f moveto = {player.position_x + 16, player.position_y + 16};
 	sfView_setCenter(view, moveto);
 
 	//Set view position and view global variables
@@ -60,59 +60,61 @@ void game_update(sfRenderWindow *window, sfView *view, int input[BUTTON_COUNT]) 
 	sfView_setCenter(view, game_view.center);
 	sfRenderWindow_setView(window, view);
 	set_view_vars(view);
+}
 
+void game_update(sfRenderWindow *window, sfView *view, int input[BUTTON_COUNT]) {
 	//Player input
 	if (input[BUTTON_RIGHT])
-		player.velocity.x = V_X;
+		player.velocity_x = V_X;
 	if (input[BUTTON_LEFT])
-		player.velocity.x = -V_X;
+		player.velocity_x = -V_X;
 	if (input[BUTTON_JUMP] && player.canjump) {
-		player.velocity.y = -V_JUMP;
+		player.velocity_y = -V_JUMP;
 		player.canjump = 0;
 	}
 
 	//Player physics
-	int tile_x = (player.position.x + 16) / TILE_WIDTH;
-	int tile_y = (player.position.y + 16) / TILE_HEIGHT;
-	int feet_y = (player.position.y + 33) / TILE_HEIGHT;
-	int right_x = (player.position.x + 33) / TILE_WIDTH;
-	int left_x = (player.position.x - 1) / TILE_WIDTH;
+	int tile_x = (player.position_x + 16) / TILE_WIDTH;
+	int tile_y = (player.position_y + 16) / TILE_HEIGHT;
+	int feet_y = (player.position_y + 33) / TILE_HEIGHT;
+	int right_x = (player.position_x + 33) / TILE_WIDTH;
+	int left_x = (player.position_x - 1) / TILE_WIDTH;
 
 	//Gravity
-	player.velocity.y += GRAVITY;
+	player.velocity_y += GRAVITY;
 
 	//Horizontal inertia
-	player.velocity.x /= INTERTA;
+	player.velocity_x /= INTERTA;
 
 	//Collision on bottom
 	if (tile_at(tile_x, feet_y) > 0) {
-		if (player.velocity.y > 0)
-			player.velocity.y = 0;
-		player.position.y = (feet_y - 1) * TILE_HEIGHT;
+		if (player.velocity_y > 0)
+			player.velocity_y = 0;
+		player.position_y = (feet_y - 1) * TILE_HEIGHT;
 		player.canjump = 1;
 	}
 
 	//Right collision
 	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
-		if (player.velocity.x > 0)
-			player.velocity.x = 0;
-		player.position.x = (right_x - 1) * TILE_WIDTH;
+		if (player.velocity_x > 0)
+			player.velocity_x = 0;
+		player.position_x = (right_x - 1) * TILE_WIDTH;
 	}
 
 	//Left collision
 	if (tile_at(left_x, tile_y) || left_x <= 0) {
-		if (player.velocity.x < 0)
-			player.velocity.x = 0;
-		player.position.x = (left_x + 1) * TILE_WIDTH;
+		if (player.velocity_x < 0)
+			player.velocity_x = 0;
+		player.position_x = (left_x + 1) * TILE_WIDTH;
 	}
 
 	//Apply player velocity
-	player.position.x += player.velocity.x;
-	player.position.y += player.velocity.y;
+	player.position_x += player.velocity_x;
+	player.position_y += player.velocity_y;
 
 	//Lower bound
-	if (player.position.y > LEVEL_PIXEL_HEIGHT) {
-		player.position.y = 0;
+	if (player.position_y > LEVEL_PIXEL_HEIGHT) {
+		player.position_y = 0;
 		//TODO: Death
 	}
 }
@@ -137,8 +139,8 @@ void game_load_assets() {
 
 void game_setup() {
 	levelgen_gen_map(&game, &game.seed);
-	player.position.x = SPAWN_X * TILE_WIDTH;
-	player.position.y = SPAWN_Y * TILE_HEIGHT;
+	player.position_x = SPAWN_X * TILE_WIDTH;
+	player.position_y = SPAWN_Y * TILE_HEIGHT;
 }
 
 void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
@@ -183,7 +185,8 @@ void game_draw_tiles(sfRenderWindow *window, sfView *view, int draw_grid) {
 }
 
 void game_draw_entities(sfRenderWindow *window, sfView *view) {
-	sfSprite_setPosition(sprite_lamp, player.position);
+	sfVector2f pos = {player.position_x, player.position_y};
+	sfSprite_setPosition(sprite_lamp, pos);
 	sfRenderWindow_drawSprite(window, sprite_lamp, NULL);
 }
 
@@ -191,9 +194,9 @@ void game_draw_overlay_text(sfRenderWindow *window, sfView *view, sfTime frameti
 	char overlay_text[4096];
 
 	sprintf(overlay_text, 
-	"Lamp pos: %.0lf, %.0lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf", 
-		player.position.x, player.position.y, 1.0 / sfTime_asSeconds(frametime), 
-		tiles_drawn, game.seed, player.velocity.x, player.velocity.y);
+	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf", 
+		player.position_x, player.position_y, 1.0 / sfTime_asSeconds(frametime), 
+		tiles_drawn, game.seed, player.velocity_x, player.velocity_y);
 
 	sfText_setString(overlay, overlay_text);
 	sfText_setPosition(overlay, game_view.corner);

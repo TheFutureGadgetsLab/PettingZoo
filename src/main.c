@@ -2,7 +2,7 @@
 #include <SFML/Graphics.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <game.h>
+#include <rendering.h>
 #include <defs.h>
 #include <math.h>
 
@@ -85,6 +85,9 @@ int main(int argc, char **argv)
 
 		//Update game state
 		game_update(window, view, input);
+		
+		// Update camera
+		handle_camera(window, view);
 
 		//Clear the screen
 		sfRenderWindow_clear(window, background);
