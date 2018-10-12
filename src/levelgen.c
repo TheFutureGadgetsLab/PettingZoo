@@ -13,8 +13,10 @@ void levelgen_gen_map(struct game_obj *game, int *seed) {
 	ground = GROUND_HEIGHT;
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
-		if (chance(7)) {
-			//ground -= randrange(-3, 3);
+		if (chance(15)) {
+			ground -= randrange(-3, 3);
+			if (ground >= LEVEL_HEIGHT)
+				ground = GROUND_HEIGHT;
 		}
 		if (chance(5)) {
 			h = randrange(8, ground - 2);

@@ -27,11 +27,14 @@ void game_update(int input[BUTTON_COUNT]) {
 	// }
 
 	//Player physics
-	int tile_x = floor((player.position_x + 16) / TILE_WIDTH);
-	int tile_y = floor((player.position_y + 16) / TILE_HEIGHT);
-	int feet_y = floor((player.position_y + 33) / TILE_HEIGHT);
-	int right_x = floor((player.position_x + 33) / TILE_WIDTH);
-	int left_x = floor((player.position_x - 1) / TILE_WIDTH);
+	int tile_x = floor((player.position_x + player.velocity_x + 16) / TILE_WIDTH);
+	int tile_y = floor((player.position_y + player.velocity_y + 16) / TILE_HEIGHT);
+	int feet_y = floor((player.position_y + player.velocity_y + 33) / TILE_HEIGHT);
+	int top_y = floor((player.position_y + player.velocity_y - 1) / TILE_HEIGHT);
+	int right_x = floor((player.position_x + player.velocity_x + PLAYER_RIGHT + 1) / TILE_WIDTH);
+	int left_x = floor((player.position_x + player.velocity_x - PLAYER_LEFT - 1) / TILE_WIDTH);
+	int tile_xl = floor((player.position_x + player.velocity_x - PLAYER_LEFT) / TILE_WIDTH);
+	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_WIDTH);
 
 	player.tile_x = tile_x;
 	player.tile_y = tile_y;
@@ -43,25 +46,32 @@ void game_update(int input[BUTTON_COUNT]) {
 	player.velocity_x /= INTERTA;
 
 	//Collision on bottom
-	if (tile_at(tile_x, feet_y) > 0) {
+	if (tile_at(tile_xl, feet_y) > 0 || tile_at(tile_xr, feet_y) > 0) {
 		if (player.velocity_y > 0)
 			player.velocity_y = 0;
 		player.position_y = (feet_y - 1) * TILE_HEIGHT;
 		player.canjump = 1;
 	}
 
+	//Collision on top
+	if (tile_at(tile_xl, top_y) > 0 || tile_at(tile_xr, top_y) > 0) {
+		if (player.velocity_y < 0)
+			player.velocity_y = 0;
+		player.position_y = (top_y + 1) * TILE_HEIGHT;
+	}
+
 	//Right collision
 	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
 		if (player.velocity_x > 0)
 			player.velocity_x = 0;
-		player.position_x = (right_x - 1) * TILE_WIDTH;
+		player.position_x = (right_x - 1) * TILE_WIDTH + PLAYER_MARGIN;
 	}
 
 	//Left collision
 	if (tile_at(left_x, tile_y) || left_x < 0) {
 		if (player.velocity_x < 0)
 			player.velocity_x = 0;
-		player.position_x = (left_x + 1) * TILE_WIDTH;
+		player.position_x = (left_x + 1) * TILE_WIDTH - PLAYER_MARGIN;
 	}
 
 	//Apply player velocity
