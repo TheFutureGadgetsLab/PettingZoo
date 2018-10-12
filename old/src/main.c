@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 		while (sfRenderWindow_pollEvent(window, &event))
 		{
 			if (event.type == sfEvtKeyPressed) {
-				if (event.key.code == sfKeyUp) {
+				if (event.key.code == sfKeyUp || event.key.code == sfKeySpace) {
 					input[BUTTON_JUMP] = 1;
 				} else if (event.key.code == sfKeyLeft) {
 					input[BUTTON_LEFT] = 1;
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 					input[BUTTON_LEFT] = 0;
 				} else if (event.key.code == sfKeyRight) {
 					input[BUTTON_RIGHT] = 0;
-				} else if (event.key.code == sfKeyUp) {
+				} else if (event.key.code == sfKeyUp || event.key.code == sfKeySpace) {
 					input[BUTTON_JUMP] = 0;
 				}
 			} else if (event.type == sfEvtClosed) {

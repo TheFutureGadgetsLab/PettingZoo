@@ -119,7 +119,7 @@ void render_entities(sfRenderWindow *window, sfView *view) {
 }
 
 void render_overlay(sfRenderWindow *window, sfView *view, sfTime frametime) {
-	char overlay_text[4096];
+	char overlay_text[10];
 
 	sprintf(overlay_text, 
 	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d", 

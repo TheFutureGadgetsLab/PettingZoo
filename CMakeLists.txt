@@ -6,13 +6,13 @@ set(CMAKE_BUILD_TYPE Release)
 include_directories(include)
 
 # Find libcsfml
-find_library(CSFML_GRAPHICS_LIB csfml-graphics)
-find_library(CSFML_WINDOW_LIB csfml-window)
-find_library(CSFML_AUDIO_LIB csfml-audio)
-find_library(CSFML_SYSTEM_LIB csfml-system)
+find_library(SFML_GRAPHICS_LIB sfml-graphics)
+find_library(SFML_WINDOW_LIB sfml-window)
+find_library(SFML_AUDIO_LIB sfml-audio)
+find_library(SFML_SYSTEM_LIB sfml-system)
 
 # Add sources to env var
-file(GLOB SOURCES "src/*.c")
+file(GLOB SOURCES "src/*.cpp")
 
 # Not 100% sure what is going on with this
 add_executable(pettingzoo ${SOURCES})
@@ -22,8 +22,8 @@ add_executable(pettingzoo ${SOURCES})
 #install(TARGETS pettingzoo DESTINATION /usr/lib)
 
 # Link it
-target_link_libraries(pettingzoo "${CSFML_GRAPHICS_LIB}")
-target_link_libraries(pettingzoo "${CSFML_WINDOW_LIB}")
-target_link_libraries(pettingzoo "${CSFML_AUDIO_LIB}")
-target_link_libraries(pettingzoo "${CSFML_SYSTEM_LIB}")
+target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
+target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
+target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
+target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
