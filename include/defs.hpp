@@ -36,7 +36,7 @@
 // Player physics parameters 
 #define V_X 6
 #define V_JUMP 8
-#define INTERTA 1.5
+#define INTERTA 1.4
 #define GRAVITY 0.3
 #define PLAYER_WIDTH 24
 #define PLAYER_HALFW (PLAYER_WIDTH / 2)

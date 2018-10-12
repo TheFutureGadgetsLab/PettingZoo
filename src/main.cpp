@@ -15,8 +15,6 @@ int main(int argc, char **argv)
 	sf::Event event;
 	sf::Time time;
 	sf::Clock clock;
-	sf::View view;
-
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 
@@ -27,7 +25,6 @@ int main(int argc, char **argv)
 	game_setup();
 
 	// Start the game loop
-	view = window.getDefaultView();
 	while (window.isOpen())
 	{
 		// Process events
@@ -56,7 +53,7 @@ int main(int argc, char **argv)
 			} else if (event.type == sf::Event::Closed) {
 				window.close();
 			} else if (event.type == sf::Event::Resized) {
-				render_scale_window(view, event);
+				render_scale_window(window, event);
                 continue;
 			}
 		}
@@ -65,7 +62,7 @@ int main(int argc, char **argv)
 		game_update(input);
 		
 		// Update camera
-		render_handle_camera(window, view);
+		render_handle_camera(window);
 
 		//Clear the screen
 		window.clear(sf::Color::White);
