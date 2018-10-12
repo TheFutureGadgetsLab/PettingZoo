@@ -34,7 +34,7 @@ void update_view_vars(sf::View view) {
 
 void render_handle_camera(sf::RenderWindow &window) {
 	// Candidate camera location, centered on player x position
-	sf::View view = window.getDefaultView();
+	sf::View view = window.getView();
 	view.setCenter(player.position_x + 16, LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0);
 
 	//Set view position and view global variables
@@ -126,7 +126,7 @@ void render_other(sf::RenderWindow &window) {
 
 void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	int zoom;
-	sf::View view = window.getDefaultView();
+	sf::View view = window.getView();
 	sf::Vector2f win_size = {(float)event.size.width, (float)event.size.height};
 
 	//Auto zoom depending on window size
@@ -136,6 +136,6 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	win_size.y /= zoom;
 	
 	view.setSize(win_size);
-	update_view_vars(view);
 	window.setView(view);
+	update_view_vars(view);
 }

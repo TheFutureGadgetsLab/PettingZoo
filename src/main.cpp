@@ -12,24 +12,18 @@ int main(int argc, char **argv)
 	int input[BUTTON_COUNT] = {0};
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
-	sf::Event event;
 	sf::Time time;
 	sf::Clock clock;
 	window.setKeyRepeatEnabled(false);
-	window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit(60);
 
-	//Load assets
 	render_load_assets();
 
-	//Generate game
 	game_setup();
 
-	// Start the game loop
-	while (window.isOpen())
-	{
-		// Process events
-		while (window.pollEvent(event))
-		{
+	while (window.isOpen()) {
+		sf::Event event;
+		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Space) {
 					input[BUTTON_JUMP] = 1;
@@ -54,7 +48,6 @@ int main(int argc, char **argv)
 				window.close();
 			} else if (event.type == sf::Event::Resized) {
 				render_scale_window(window, event);
-                continue;
 			}
 		}
 
