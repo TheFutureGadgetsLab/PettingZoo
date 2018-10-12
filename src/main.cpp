@@ -1,6 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <defs.hpp>
 #include <rendering.hpp>
+#include <gamelogic.hpp>
+#include <levelgen.hpp>
+
+extern Game game;
 
 int main(int argc, char **argv)
 {
@@ -14,24 +18,19 @@ int main(int argc, char **argv)
 	sf::View view;
 
 	window.setKeyRepeatEnabled(false);
-
-	// Vsync 
 	window.setVerticalSyncEnabled(true);
 
 	//Load assets
-    // IMPLEMENT!!!!!!!!!!!!! 
 	render_load_assets();
 
 	//Generate game
-    // IMPLEMENT!!!!!!!!!!!!! 
-	// game_setup();
+	game_setup();
 
 	// Start the game loop
 	view = window.getDefaultView();
 	while (window.isOpen())
 	{
 		// Process events
-		// while (sfRenderWindow_pollEvent(window, &event))
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::KeyPressed) {
@@ -57,37 +56,30 @@ int main(int argc, char **argv)
 			} else if (event.type == sf::Event::Closed) {
 				window.close();
 			} else if (event.type == sf::Event::Resized) {
-                // IMPLEMENT!!!!!!!!!!!!! 
-				// render_scale_window(view, event);
+				render_scale_window(view, event);
                 continue;
 			}
 		}
 
 		//Update game state
-        // IMPLEMENT!!!!!!!!!!!!! 
-		// game_update(input);
+		game_update(input);
 		
 		// Update camera
-        // IMPLEMENT!!!!!!!!!!!!! 
-		// render_handle_camera(window, view);
+		render_handle_camera(window, view);
 
 		//Clear the screen
 		window.clear(sf::Color::White);
 
 		//Draw background
-        // IMPLEMENT!!!!!!!!!!!!! 
-		// render_other(window, view);
+		render_other(window);
 
 		//Draw the tiles and entities
-        // IMPLEMENT!!!!!!!!!!!!! 
-		render_tiles(window, view, draw_overlay);
-        // IMPLEMENT!!!!!!!!!!!!! 
-		// render_entities(window, view);
+		render_tiles(window, draw_overlay);
+		render_entities(window);
 
 		//Draw coords if needed
 		if (draw_overlay) {
-            // IMPLEMENT!!!!!!!!!!!!! 
-			// render_overlay(window, view, time);
+			render_overlay(window, time);
 		}
 
 		//Frametime

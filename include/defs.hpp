@@ -24,11 +24,14 @@
 #define SPAWN_Y (GROUND_HEIGHT - 1)
 
 // Sprite parameters
-#define T_EMPTY 0
-#define T_GRASS 1
-#define T_DIRT 2
-#define T_BRICKS 3
-#define T_SPIKES 4
+#define EMPTY 0
+#define GRASS 1
+#define DIRT 2
+#define BRICKS 3
+#define SPIKES 4
+#define LAMP 5
+#define GRID 6
+#define BG 7
 
 // Player physics parameters 
 #define V_X 6

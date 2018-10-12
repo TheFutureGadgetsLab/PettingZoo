@@ -1,14 +1,14 @@
-#include <gamelogic.h>
-#include <levelgen.h>
+#include <gamelogic.hpp>
+#include <levelgen.hpp>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
-struct player_obj player;
-struct game_obj game;
+Player player;
+Game game;
 
 void game_setup() {
-	levelgen_gen_map(&game, &game.seed);
+	levelgen_gen_map(game);
 	player.position_x = SPAWN_X * TILE_WIDTH;
 	player.position_y = SPAWN_Y * TILE_HEIGHT;
 	player.canjump = 1;
@@ -21,10 +21,6 @@ void game_update(int input[BUTTON_COUNT]) {
 	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
 	player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
 	player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
-	// if (input[BUTTON_JUMP] && player.canjump) {
-		// player.velocity_y = -V_JUMP;
-		// player.canjump = 0;
-	// }
 
 	//Player physics
 	int tile_x = floor((player.position_x + player.velocity_x + 16) / TILE_WIDTH);
@@ -39,10 +35,7 @@ void game_update(int input[BUTTON_COUNT]) {
 	player.tile_x = tile_x;
 	player.tile_y = tile_y;
 
-	//Gravity
 	player.velocity_y += GRAVITY;
-
-	//Horizontal inertia
 	player.velocity_x /= INTERTA;
 
 	//Collision on bottom

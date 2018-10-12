@@ -4,6 +4,7 @@
 #include <defs.hpp>
 
 class Player {
+	public:
 	float position_x;
 	float position_y;
 	float velocity_x;
@@ -23,11 +24,11 @@ class Enemy {
 };
 
 class Game {
-    public:
+	public:
 	unsigned char tiles[LEVEL_SIZE];
 	Enemy enemies[MAX_ENEMIES];
 	unsigned int seed;
-} game;
+};
 
 void game_setup();
 void game_update(int input[BUTTON_COUNT]);
