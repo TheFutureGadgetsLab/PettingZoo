@@ -11,18 +11,20 @@ void game_setup() {
 	levelgen_gen_map(&game, &game.seed);
 	player.position_x = SPAWN_X * TILE_WIDTH;
 	player.position_y = SPAWN_Y * TILE_HEIGHT;
+	player.canjump = 1;
 }
 
 void game_update(int input[BUTTON_COUNT]) {
-	//Player input
-	if (input[BUTTON_RIGHT])
-		player.velocity_x = V_X;
-	if (input[BUTTON_LEFT])
-		player.velocity_x = -V_X;
-	if (input[BUTTON_JUMP] && player.canjump) {
-		player.velocity_y = -V_JUMP;
-		player.canjump = 0;
-	}
+	// Branchless player input
+	float tmp_yvel = player.velocity_y;
+	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];
+	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
+	player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
+	player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
+	// if (input[BUTTON_JUMP] && player.canjump) {
+		// player.velocity_y = -V_JUMP;
+		// player.canjump = 0;
+	// }
 
 	//Player physics
 	int tile_x = floor((player.position_x + 16) / TILE_WIDTH);
