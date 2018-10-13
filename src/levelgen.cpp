@@ -4,13 +4,12 @@
 #include <time.h>
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
-#include <stdio.h>
 
-void levelgen_gen_map(Game &game) {
+void levelgen_gen_map(struct Game *game) {
 	int x, y, i, w, h, ground, val;
     
-	game.seed = (unsigned)time(NULL);
-	srand(game.seed);
+	game->seed = (unsigned)time(NULL);
+	srand(game->seed);
 	ground = GROUND_HEIGHT;
 
 	for (x = 0; x < LEVEL_WIDTH; x++) {
@@ -19,6 +18,7 @@ void levelgen_gen_map(Game &game) {
 			if (ground >= LEVEL_HEIGHT)
 				ground = GROUND_HEIGHT;
 		}
+
 		if (chance(5)) {
 			h = randrange(8, ground - 2);
 			w = randrange(2, 8);
@@ -26,6 +26,7 @@ void levelgen_gen_map(Game &game) {
 				set_tile(game, x + i, h, BRICKS);
 			}
 		}
+		
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			val = EMPTY;
 			if (y == ground)
@@ -50,10 +51,10 @@ int chance(double percent) {
 	return ((double)random() / (double)RAND_MAX) < (percent / 100.0);
 }
 
-void set_tile(Game &game, int x, int y, unsigned char val) {
+void set_tile(struct Game *game, int x, int y, unsigned char val) {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
 		return;
 	}
 	
-	game.tiles[y * LEVEL_WIDTH + x] = val;
+	game->tiles[y * LEVEL_WIDTH + x] = val;
 }

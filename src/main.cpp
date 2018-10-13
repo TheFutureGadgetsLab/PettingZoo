@@ -2,9 +2,6 @@
 #include <defs.hpp>
 #include <rendering.hpp>
 #include <gamelogic.hpp>
-#include <levelgen.hpp>
-
-extern Game game;
 
 int main(int argc, char **argv)
 {
@@ -69,8 +66,11 @@ int main(int argc, char **argv)
 
 		//Draw coords if needed
 		if (draw_overlay) {
-			render_overlay(window, time);
+			render_debug_overlay(window, time);
 		}
+
+		// Score and time 
+		render_hud(window);
 
 		//Frametime
 		time = clock.getElapsedTime();

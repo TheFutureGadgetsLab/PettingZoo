@@ -1,20 +1,23 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
-Player player;
-Game game;
+struct Player player;
+struct Game game;
 
 void game_setup() {
-	levelgen_gen_map(game);
+	levelgen_gen_map(&game);
 	player.position_x = SPAWN_X * TILE_WIDTH;
 	player.position_y = SPAWN_Y * TILE_HEIGHT;
 	player.canjump = 1;
+	player.score = 0;
+	player.time = 0;
 }
 
 void game_update(int input[BUTTON_COUNT]) {
+	// Estimate of time
+	player.time += 1 / UPDATES_PS;
 	// Branchless player input
 	float tmp_yvel = player.velocity_y;
 	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];

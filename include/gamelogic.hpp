@@ -3,30 +3,30 @@
 
 #include <defs.hpp>
 
-class Player {
-	public:
+struct Player {
 	float position_x;
 	float position_y;
 	float velocity_x;
 	float velocity_y;
+	float time;
 	int left;
 	int right;
 	int jump;
 	int canjump;
 	int tile_x;
 	int tile_y;
+	int score;
 };
 
-class Enemy {
+struct Enemy {
 	int init_x;
 	int init_y;
 	unsigned char type;
 };
 
-class Game {
-	public:
+struct Game {
 	unsigned char tiles[LEVEL_SIZE];
-	Enemy enemies[MAX_ENEMIES];
+	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int seed;
 };
 

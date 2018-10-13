@@ -8,10 +8,11 @@
 sf::Sprite sprites[16];
 sf::Texture textures[16];
 sf::Text overlay;
+sf::Text score;
 sf::Font font;
 View game_view;
-extern Game game;
-extern Player player;
+extern struct Game game;
+extern struct Player player;
 int tiles_drawn;
 
 void load_sprite(int sprite_index, const std::string path, int docenter) {
@@ -64,6 +65,14 @@ void render_load_assets() {
 	overlay.setFont(font);
 	overlay.setCharacterSize(12);
 	overlay.setFillColor(sf::Color::Black);
+	
+	score.setFont(font);
+	score.setCharacterSize(12);
+	score.setFillColor(sf::Color::Black);
+	score.setString("Score: 00000"); // Set the string so bounds get set properly
+	// Centering origin of score text
+	sf::FloatRect textRect = score.getLocalBounds();
+	score.setOrigin(textRect.left + textRect.width/2.0f, textRect.top  + textRect.height/2.0f);
 }
 
 void render_tiles(sf::RenderWindow &window, int draw_grid) {
@@ -73,18 +82,21 @@ void render_tiles(sf::RenderWindow &window, int draw_grid) {
 	int val;
 
 	//Calculate bounds for drawing tiles
-	tile_y1 = game_view.corner.y / TILE_HEIGHT;
 	tile_x1 = game_view.corner.x / TILE_WIDTH;
+	tile_y1 = game_view.corner.y / TILE_HEIGHT;
 	tile_x2 = (game_view.corner.x + game_view.size.x) / TILE_WIDTH;
 	tile_y2 = (game_view.corner.y + game_view.size.y) / TILE_HEIGHT;
 
+	// Bound checking
+	tile_x1 = (tile_x1 < 0) ? 0: tile_x1;
+	tile_y1 = (tile_y1 < 0) ? 0: tile_y1;
+	tile_x2 = (tile_x2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_x2;
+	tile_y2 = (tile_y2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_y2;
+
 	//Loop over tiles and draw them
 	tiles_drawn = 0;
-	x = (x < 0) ? 0: x;
-	for (x = tile_x1; x <= tile_x2 && x < LEVEL_WIDTH; x++) {
-		for (y = tile_y1; y <= tile_y2 && y < LEVEL_HEIGHT; y++) {
-			if (y < 0)
-				continue;
+	for (x = tile_x1; x <= tile_x2; x++) {
+		for (y = tile_y1; y <= tile_y2; y++) {
 			val = game.tiles[y * LEVEL_WIDTH + x];
 			if (val > 0) {
 			    sprites[val].setPosition(x * TILE_WIDTH, y * TILE_HEIGHT);
@@ -105,8 +117,8 @@ void render_entities(sf::RenderWindow &window) {
 	window.draw(sprites[LAMP]);
 }
 
-void render_overlay(sf::RenderWindow &window, sf::Time frametime) {
-	char overlay_text[1024];
+void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
+	char overlay_text[512];
 
 	sprintf(overlay_text, 
 	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nTiles Drawn: %d\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d", 
@@ -138,4 +150,17 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	view.setSize(win_size);
 	window.setView(view);
 	update_view_vars(view);
+}
+
+void render_hud(sf::RenderWindow &window) {
+	char score_text[128];
+    sf::Vector2f pos;
+	pos.x = game_view.corner.x + game_view.size.x / 2;
+	pos.y = game_view.corner.y + 10;
+
+	sprintf(score_text, "Score: %05d\nTime: %0.1lf", player.score, player.time);
+
+	score.setString(score_text);
+	score.setPosition(pos);
+	window.draw(score);
 }
