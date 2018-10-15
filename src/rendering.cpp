@@ -36,7 +36,14 @@ void update_view_vars(sf::View view) {
 void render_handle_camera(sf::RenderWindow &window) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
-	view.setCenter(player.position_x + 16, LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0);
+	sf::Vector2f target;
+	
+	//Slide view towards player
+	target.x = player.position_x + 16;
+	target.y = player.position_y + 16;
+	game_view.center.x = game_view.center.x + (target.x - game_view.center.x) * CAMERA_INTERP;
+	game_view.center.y = game_view.center.y + (target.y - game_view.center.y) * CAMERA_INTERP;
+	view.setCenter(game_view.center);
 
 	//Set view position and view global variables
 	update_view_vars(view);
@@ -44,6 +51,8 @@ void render_handle_camera(sf::RenderWindow &window) {
 		game_view.center.x = game_view.size.x / 2.0;
 	if (game_view.corner.x + game_view.size.x > LEVEL_PIXEL_WIDTH)
 		game_view.center.x = LEVEL_PIXEL_WIDTH - game_view.size.x / 2.0;
+	if (game_view.corner.y + game_view.size.y > LEVEL_PIXEL_HEIGHT)
+        game_view.center.y = LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0;
 
 	view.setCenter(game_view.center);
 	window.setView(view);
@@ -75,7 +84,7 @@ void render_load_assets() {
 	score.setString("Score: 00000"); // Set the string so bounds get set properly
 	// Centering origin of score text
 	sf::FloatRect textRect = score.getLocalBounds();
-	score.setOrigin(textRect.left + textRect.width/2.0f, textRect.top  + textRect.height/2.0f);
+	score.setOrigin(round(textRect.left + textRect.width/2.0f), round(textRect.top  + textRect.height/2.0f));
 }
 
 void render_tiles(sf::RenderWindow &window, int draw_grid) {
@@ -145,7 +154,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	sf::Vector2f win_size = {(float)event.size.width, (float)event.size.height};
 
 	//Auto zoom depending on window size
-	zoom = round(win_size.y / (LEVEL_PIXEL_HEIGHT));
+	zoom = round((win_size.x + win_size.y) / (1600 + 900));
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;
