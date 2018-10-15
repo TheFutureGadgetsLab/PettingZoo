@@ -15,6 +15,11 @@ void game_setup() {
 	player.time = 0;
 }
 
+void game_reset_map() {
+	levelgen_clear_level(&game);
+	game_setup();
+}
+
 void game_update(int input[BUTTON_COUNT]) {
 	// Estimate of time
 	player.time += 1 / UPDATES_PS;

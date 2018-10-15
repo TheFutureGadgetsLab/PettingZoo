@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	sf::Time time;
 	sf::Clock clock;
 	window.setKeyRepeatEnabled(false);
-	window.setFramerateLimit(60);
+	window.setVerticalSyncEnabled(true);
 
 	render_load_assets();
 
@@ -32,6 +32,8 @@ int main(int argc, char **argv)
 					return 0;
 				} else if (event.key.code == sf::Keyboard::O) {
 					draw_overlay ^= 1;
+				} else if (event.key.code == sf::Keyboard::R) {
+					game_reset_map();
 				}
 			} else if (event.type == sf::Event::KeyReleased) {
 				if (event.key.code == sf::Keyboard::Left) {

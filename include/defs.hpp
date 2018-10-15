@@ -22,6 +22,7 @@
 #define GROUND_HEIGHT (LEVEL_HEIGHT - LEVEL_HEIGHT / 8)
 #define SPAWN_X 2
 #define SPAWN_Y (GROUND_HEIGHT - 1)
+#define HOLE_CHANCE 9
 
 // Sprite parameters
 #define EMPTY 0

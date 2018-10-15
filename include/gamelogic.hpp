@@ -31,6 +31,7 @@ struct Game {
 };
 
 void game_setup();
+void game_reset_map();
 void game_update(int input[BUTTON_COUNT]);
 int tile_at(int x, int y);
 
