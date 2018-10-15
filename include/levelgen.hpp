@@ -8,5 +8,7 @@ int randint(int max);
 int randrange(int min, int max);
 int chance(double percent);
 void set_tile(struct Game *game, int x, int y, unsigned char val);
+void create_hole(struct Game *game, int origin, int width);
+void levelgen_clear_level(struct Game *game);
 
 #endif
