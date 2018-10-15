@@ -11,6 +11,7 @@ int main(int argc, char **argv)
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time time;
 	sf::Clock clock;
+	sf::Color bg_color(135, 206, 235);
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 		render_handle_camera(window);
 
 		//Clear the screen
-		window.clear(sf::Color::White);
+		window.clear(bg_color);
 
 		//Draw background
 		render_other(window);
