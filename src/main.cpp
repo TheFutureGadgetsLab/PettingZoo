@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	sf::Time time;
 	sf::Clock clock;
 	window.setKeyRepeatEnabled(false);
-	window.setFramerateLimit(60);
+	window.setFramerateLimit(20);
 
 	render_load_assets();
 

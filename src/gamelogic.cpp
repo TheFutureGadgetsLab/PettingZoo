@@ -31,15 +31,30 @@ void game_update(int input[BUTTON_COUNT]) {
 	int feet_y = floor((player.position_y + player.velocity_y + 33) / TILE_HEIGHT);
 	int top_y = floor((player.position_y + player.velocity_y - 1) / TILE_HEIGHT);
 	int right_x = floor((player.position_x + player.velocity_x + PLAYER_RIGHT + 1) / TILE_WIDTH);
-	int left_x = floor((player.position_x + player.velocity_x - PLAYER_LEFT - 1) / TILE_WIDTH);
-	int tile_xl = floor((player.position_x + player.velocity_x - PLAYER_LEFT) / TILE_WIDTH);
-	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_WIDTH);
+	int left_x = floor((player.position_x + player.velocity_x + PLAYER_LEFT - 1) / TILE_WIDTH);
 
 	player.tile_x = tile_x;
 	player.tile_y = tile_y;
 
 	player.velocity_y += GRAVITY;
 	player.velocity_x /= INTERTA;
+
+	//Right collision
+	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
+		if (player.velocity_x > 0)
+			player.velocity_x = 0;
+		player.position_x = (right_x - 1) * TILE_WIDTH + PLAYER_MARGIN - 2;
+	}
+
+	//Left collision
+	if (tile_at(left_x, tile_y) || left_x < 0) {
+		if (player.velocity_x < 0)
+			player.velocity_x = 0;
+		player.position_x = (left_x + 1) * TILE_WIDTH - PLAYER_MARGIN + 2;
+	}
+
+	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_WIDTH);
+	int tile_xl = floor((player.position_x + player.velocity_x + PLAYER_LEFT) / TILE_WIDTH);
 
 	//Collision on bottom
 	if (tile_at(tile_xl, feet_y) > 0 || tile_at(tile_xr, feet_y) > 0) {
@@ -54,20 +69,6 @@ void game_update(int input[BUTTON_COUNT]) {
 		if (player.velocity_y < 0)
 			player.velocity_y = 0;
 		player.position_y = (top_y + 1) * TILE_HEIGHT;
-	}
-
-	//Right collision
-	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
-		if (player.velocity_x > 0)
-			player.velocity_x = 0;
-		player.position_x = (right_x - 1) * TILE_WIDTH + PLAYER_MARGIN;
-	}
-
-	//Left collision
-	if (tile_at(left_x, tile_y) || left_x < 0) {
-		if (player.velocity_x < 0)
-			player.velocity_x = 0;
-		player.position_x = (left_x + 1) * TILE_WIDTH - PLAYER_MARGIN;
 	}
 
 	//Apply player velocity
