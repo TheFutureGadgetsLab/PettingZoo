@@ -30,9 +30,12 @@
 #define DIRT 2
 #define BRICKS 3
 #define SPIKES 4
-#define LAMP 5
-#define GRID 6
-#define BG 7
+#define PIPE_TOP 5
+#define PIPE_MIDDLE 6
+#define PIPE_BOTTOM 7
+#define LAMP 8
+#define GRID 9
+#define BG 10
 
 // Player physics parameters 
 #define V_X 6

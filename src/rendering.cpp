@@ -59,6 +59,9 @@ void render_load_assets() {
 	load_sprite(DIRT, "../assets/dirt.png", 0);
 	load_sprite(SPIKES, "../assets/spikes.png", 0);
 	load_sprite(BRICKS, "../assets/bricks.png", 0);
+	load_sprite(PIPE_TOP, "../assets/pipe_top.png", 0);
+	load_sprite(PIPE_MIDDLE, "../assets/pipe_middle.png", 0);
+	load_sprite(PIPE_BOTTOM, "../assets/pipe_bottom.png", 0);
 
 	// Text / Font
 	font.loadFromFile("../assets/Vera.ttf");

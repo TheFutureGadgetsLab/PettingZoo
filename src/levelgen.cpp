@@ -81,6 +81,16 @@ void levelgen_gen_map(struct Game *game) {
 			x += 15;
 		}
 	}
+
+	for (x = SPAWN_X + 10; x < LEVEL_WIDTH - 15; x++) {
+		if (chance(10)) {
+			int hole_width = randrange(1, 3);
+			int hole_height = randrange(1, 3);
+			create_pipe(game, x, hole_width, ground_heights[x] + hole_height);
+			// Prevent holes from overlapping
+			x += hole_width + 10;
+		}
+	}
 }
 
 // Insert hole at origin with width width
@@ -90,6 +100,13 @@ void create_hole(struct Game *game, int origin, int width) {
 		for (y = ground_heights[x]; y < LEVEL_HEIGHT; y++) {
 			set_tile(game, x, y, EMPTY);
 		}
+	}
+}
+
+void create_pipe(struct Game *game, int origin, int width, int height) {
+	int y;
+	for (y = 0; y < LEVEL_HEIGHT; y++) {
+		set_tile(game, origin, y, PIPE_MIDDLE);
 	}
 }
 
@@ -158,7 +175,7 @@ void levelgen_clear_level(struct Game *game) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
 			set_tile(game, x, y, EMPTY);
 		}
-	}
+	} 
 }
 
 // Return an integer where 0 <= x <= max
