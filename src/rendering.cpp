@@ -15,7 +15,7 @@ extern struct Game game;
 extern struct Player player;
 int tiles_drawn;
 
-void load_sprite(int sprite_index, const std::string path, int docenter) {
+void load_sprite(int sprite_index, const std::string path, bool docenter = false, bool repeat = false) {
     textures[sprite_index].loadFromFile(path);
 	sprites[sprite_index].setTexture(textures[sprite_index], true);
 
@@ -23,6 +23,9 @@ void load_sprite(int sprite_index, const std::string path, int docenter) {
 		sf::Vector2u size = textures[sprite_index].getSize();
 		sf::Vector2f center = {size.x / 2.0f, size.y / 2.0f};
 	    sprites[sprite_index].setOrigin(center);
+	}
+	if (repeat) {
+		textures[sprite_index].setRepeated(true);
 	}
 }
 
@@ -61,13 +64,13 @@ void render_handle_camera(sf::RenderWindow &window) {
 
 void render_load_assets() {
 	// Sprites
-	load_sprite(LAMP, "../assets/lamp.png", 0);
-	load_sprite(GRID, "../assets/grid.png", 0);
-	load_sprite(BG, "../assets/bg.png", 1);
-	load_sprite(GRASS, "../assets/grass.png", 0);
-	load_sprite(DIRT, "../assets/dirt.png", 0);
-	load_sprite(SPIKES, "../assets/spikes.png", 0);
-	load_sprite(BRICKS, "../assets/bricks.png", 0);
+	load_sprite(LAMP, "../assets/lamp.png");
+	load_sprite(GRID, "../assets/grid.png");
+	load_sprite(BG, "../assets/bg.png", true, true);
+	load_sprite(GRASS, "../assets/grass.png");
+	load_sprite(DIRT, "../assets/dirt.png");
+	load_sprite(SPIKES, "../assets/spikes.png");
+	load_sprite(BRICKS, "../assets/bricks.png");
 
 	// Text / Font
 	font.loadFromFile("../assets/Vera.ttf");
