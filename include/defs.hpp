@@ -22,7 +22,7 @@
 #define MAX_ENEMIES 32
 
 // Level generation parameters
-#define GROUND_HEIGHT (LEVEL_HEIGHT - LEVEL_HEIGHT / 8)
+#define GROUND_HEIGHT (LEVEL_HEIGHT - LEVEL_HEIGHT / 16)
 #define SPAWN_X 2
 #define SPAWN_Y (GROUND_HEIGHT - 1)
 #define HOLE_CHANCE 9

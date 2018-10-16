@@ -35,8 +35,8 @@ void levelgen_gen_map(struct Game *game) {
 
 		ground_heights[x] = ground;
 
-		// 5% chance for brick platform
-		if (chance(5)) {
+		// 0% chance for brick platform
+		if (chance(0)) {
 			// Platform can be 2 to 4 tile above the ground
 			h = randrange(2, 4);
 			// Can be length 2 to 6
@@ -44,7 +44,6 @@ void levelgen_gen_map(struct Game *game) {
 			for (i = 0; i < w; i++) {
 				set_tile(game, x + i, ground - h, BRICKS);
 			}
-
 			// Prevent ground from changing under platform
 			static_ground = w;
 		}
@@ -76,20 +75,21 @@ void levelgen_gen_map(struct Game *game) {
 		if (chance(5)) {
 			int width = randrange(3, 7);
 			int height = randrange(3, 5);
-
-			create_stair_gap(game, x, height, width);
+			int do_pipe = chance(50);
+			create_stair_gap(game, x, height, width, do_pipe);
 			// Prevent stairgaps from overlapping
 			x += 15;
 		}
 	}
 
+	// Insert pipes
 	for (x = SPAWN_X + 10; x < LEVEL_WIDTH - 15; x++) {
 		if (chance(10)) {
-			int hole_width = randrange(2, 4);
-			int hole_height = randrange(1, 4);
-			create_pipe(game, x, hole_width, ground_heights[x] - hole_height);
+			int hole_width = randrange(1, 3);
+			int hole_height = randrange(1, 3);
+			create_pipe(game, x, hole_width, hole_height);
 
-			// Prevent holes from overlapping
+			// Prevent pipes from overlapping
 			x += hole_width + 10;
 		}
 	}
@@ -108,28 +108,40 @@ void create_hole(struct Game *game, int origin, int width) {
 // Create a pipe at origin, height tiles from the ground with a hole of
 // width tiles
 void create_pipe(struct Game *game, int origin, int width, int height) {
-	int y;
-	height += 1; // Not sure why this needs to be
+	int y, ground;
+	ground = ground_heights[origin];
+
 	for (y = 0; y < LEVEL_HEIGHT; y++) {
-		if ((y > height - width) && width > 0) {
+		// Middle sections
+		if (y < ground - height - width - 1 || y > ground - height) {
+			set_tile(game, origin, y, PIPE_MIDDLE);
+		// Bottom of pipe
+		} else if (y == ground - height - width - 1) {
+			set_tile(game, origin, y, PIPE_BOTTOM);
+		// Air
+		} else if (y > ground - height - width - 1 && width > 0) {
 			width--;
 			set_tile(game, origin, y, EMPTY);
-		} else if (y == height - width) {
-			set_tile(game, origin, y, PIPE_BOTTOM);
+		// Top of pipe
 		} else if (width == 0) {
-			width = -1;
+			width--;
 			set_tile(game, origin, y, PIPE_TOP);
-		} else {
-			set_tile(game, origin, y, PIPE_MIDDLE);
 		}
 	}
 }
 
 // Create a stair gap. Height describes the height of the stairs and
 // width describes the width of the gap
-void create_stair_gap(struct Game *game, int origin, int height, int width) {
+// If do_pipe is true width will be set to next greatest odd if even
+void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe) {
 	int x, y;
 	int ground = ground_heights[origin];
+
+	if (do_pipe) {
+		if (width % 2 == 0) {
+			width++;
+		}
+	}
 
 	// Clear area
 	for (x = origin; x < origin + height * 2 + width; x++) {
@@ -161,6 +173,11 @@ void create_stair_gap(struct Game *game, int origin, int height, int width) {
 		for (y = ground - height; y < LEVEL_HEIGHT; y++) {
 			set_tile(game, x, y, EMPTY);
 		}
+	}
+	if (do_pipe) {
+		int pipe_width = randrange(1, 3);
+		int pipe_height = randrange(1, 7);
+		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
 	origin += width; // Shift origin over for next section
 
