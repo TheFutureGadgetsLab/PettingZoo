@@ -1,28 +1,34 @@
-#include <gamelogic.h>
-#include <levelgen.h>
+#include <gamelogic.hpp>
+#include <levelgen.hpp>
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
-struct player_obj player;
-struct game_obj game;
+struct Player player;
+struct Game game;
 
 void game_setup() {
-	levelgen_gen_map(&game, &game.seed);
+	levelgen_gen_map(&game);
 	player.position_x = SPAWN_X * TILE_WIDTH;
 	player.position_y = SPAWN_Y * TILE_HEIGHT;
+	player.canjump = 1;
+	player.score = 0;
+	player.time = 0;
+}
+
+void game_reset_map() {
+	levelgen_clear_level(&game);
+	game_setup();
 }
 
 void game_update(int input[BUTTON_COUNT]) {
-	//Player input
-	if (input[BUTTON_RIGHT])
-		player.velocity_x = V_X;
-	if (input[BUTTON_LEFT])
-		player.velocity_x = -V_X;
-	if (input[BUTTON_JUMP] && player.canjump) {
-		player.velocity_y = -V_JUMP;
-		player.canjump = 0;
-	}
+	// Estimate of time
+	player.time += 1 / UPDATES_PS;
+	// Branchless player input
+	float tmp_yvel = player.velocity_y;
+	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];
+	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
+	player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
+	player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
 
 	//Player physics
 	int tile_x = floor((player.position_x + player.velocity_x + 16) / TILE_WIDTH);
@@ -30,18 +36,30 @@ void game_update(int input[BUTTON_COUNT]) {
 	int feet_y = floor((player.position_y + player.velocity_y + 33) / TILE_HEIGHT);
 	int top_y = floor((player.position_y + player.velocity_y - 1) / TILE_HEIGHT);
 	int right_x = floor((player.position_x + player.velocity_x + PLAYER_RIGHT + 1) / TILE_WIDTH);
-	int left_x = floor((player.position_x + player.velocity_x - PLAYER_LEFT - 1) / TILE_WIDTH);
-	int tile_xl = floor((player.position_x + player.velocity_x - PLAYER_LEFT) / TILE_WIDTH);
-	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_WIDTH);
+	int left_x = floor((player.position_x + player.velocity_x + PLAYER_LEFT - 1) / TILE_WIDTH);
 
 	player.tile_x = tile_x;
 	player.tile_y = tile_y;
 
-	//Gravity
 	player.velocity_y += GRAVITY;
-
-	//Horizontal inertia
 	player.velocity_x /= INTERTA;
+
+	//Right collision
+	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
+		if (player.velocity_x > 0)
+			player.velocity_x = 0;
+		player.position_x = (right_x - 1) * TILE_WIDTH + PLAYER_MARGIN - 2;
+	}
+
+	//Left collision
+	if (tile_at(left_x, tile_y) || left_x < 0) {
+		if (player.velocity_x < 0)
+			player.velocity_x = 0;
+		player.position_x = (left_x + 1) * TILE_WIDTH - PLAYER_MARGIN + 2;
+	}
+
+	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_WIDTH);
+	int tile_xl = floor((player.position_x + player.velocity_x + PLAYER_LEFT) / TILE_WIDTH);
 
 	//Collision on bottom
 	if (tile_at(tile_xl, feet_y) > 0 || tile_at(tile_xr, feet_y) > 0) {
@@ -56,20 +74,6 @@ void game_update(int input[BUTTON_COUNT]) {
 		if (player.velocity_y < 0)
 			player.velocity_y = 0;
 		player.position_y = (top_y + 1) * TILE_HEIGHT;
-	}
-
-	//Right collision
-	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
-		if (player.velocity_x > 0)
-			player.velocity_x = 0;
-		player.position_x = (right_x - 1) * TILE_WIDTH + PLAYER_MARGIN;
-	}
-
-	//Left collision
-	if (tile_at(left_x, tile_y) || left_x < 0) {
-		if (player.velocity_x < 0)
-			player.velocity_x = 0;
-		player.position_x = (left_x + 1) * TILE_WIDTH - PLAYER_MARGIN;
 	}
 
 	//Apply player velocity
