@@ -64,13 +64,16 @@ void render_handle_camera(sf::RenderWindow &window) {
 
 void render_load_assets() {
 	// Sprites
-	load_sprite(LAMP, "../assets/lamp.png");
-	load_sprite(GRID, "../assets/grid.png");
-	load_sprite(BG, "../assets/bg.png", true, true);
-	load_sprite(GRASS, "../assets/grass.png");
-	load_sprite(DIRT, "../assets/dirt.png");
-	load_sprite(SPIKES, "../assets/spikes.png");
-	load_sprite(BRICKS, "../assets/bricks.png");
+	load_sprite(LAMP, "../assets/lamp.png", 0);
+	load_sprite(GRID, "../assets/grid.png", 0);
+	load_sprite(BG, "../assets/bg.png", 1);
+	load_sprite(GRASS, "../assets/grass.png", 0);
+	load_sprite(DIRT, "../assets/dirt.png", 0);
+	load_sprite(SPIKES, "../assets/spikes.png", 0);
+	load_sprite(BRICKS, "../assets/bricks.png", 0);
+	load_sprite(PIPE_TOP, "../assets/pipe_top.png", 0);
+	load_sprite(PIPE_MIDDLE, "../assets/pipe_middle.png", 0);
+	load_sprite(PIPE_BOTTOM, "../assets/pipe_bottom.png", 0);
 
 	// Text / Font
 	font.loadFromFile("../assets/Vera.ttf");
