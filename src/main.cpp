@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		}
 
 		// Score and time 
-		render_hud(window);
+		render_hud(window, input);
 
 		//Frametime
 		time = clock.getElapsedTime();
