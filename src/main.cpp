@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 					draw_overlay ^= 1;
 				} else if (event.key.code == sf::Keyboard::R) {
 					game_reset_map();
+					render_regen_map();
 				}
 			} else if (event.type == sf::Event::KeyReleased) {
 				if (event.key.code == sf::Keyboard::Left) {

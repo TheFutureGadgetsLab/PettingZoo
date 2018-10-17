@@ -142,6 +142,10 @@ void render_load_assets() {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
+void render_regen_map() {
+	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
+}
+
 void render_tiles(sf::RenderWindow &window) {
 	window.draw(map);
 }
