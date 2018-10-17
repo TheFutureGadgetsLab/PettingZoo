@@ -15,9 +15,8 @@ int main(int argc, char **argv)
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 
-	render_load_assets();
-
 	game_setup();
+	render_load_assets();
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -64,10 +63,12 @@ int main(int argc, char **argv)
 		render_other(window);
 
 		//Draw the tiles and entities
-		render_tiles(window, draw_overlay);
+		render_tiles(window);
 		render_entities(window);
 
-		//Draw coords if needed
+		//Draw debug overlay + fps
+		time = clock.getElapsedTime();
+		clock.restart();
 		if (draw_overlay) {
 			render_debug_overlay(window, time);
 		}
@@ -75,12 +76,6 @@ int main(int argc, char **argv)
 		// Score and time 
 		render_hud(window, input);
 
-		//Frametime
-		time = clock.getElapsedTime();
-		// Restart the clock
-		clock.restart();
-
-		// Update the window
 		window.display();
 	}
 
