@@ -12,7 +12,7 @@
 
 // Level parameters
 #define LEVEL_HEIGHT 32
-#define LEVEL_WIDTH 128
+#define LEVEL_WIDTH 256
 #define TILE_SIZE 32
 #define LEVEL_PIXEL_WIDTH (LEVEL_WIDTH * TILE_SIZE)
 #define LEVEL_PIXEL_HEIGHT (LEVEL_HEIGHT * TILE_SIZE)
@@ -21,24 +21,26 @@
 #define MAX_ENEMIES 32
 
 // Level generation parameters
-#define GROUND_HEIGHT (LEVEL_HEIGHT - LEVEL_HEIGHT / 16)
-#define SPAWN_X 2
+#define GROUND_HEIGHT (LEVEL_HEIGHT * 3 / 4)
+#define START_PLATLEN 5
+#define SPAWN_X 0
 #define SPAWN_Y (GROUND_HEIGHT - 1)
 #define HOLE_CHANCE 9
 
 // Sprite parameters
-#define EMPTY 0
-#define BRICKS 1
-#define DIRT 2
-#define GRASS 3
-#define LAMP 4
-#define PIPE_BOTTOM 5
-#define PIPE_MIDDLE 6
-#define PIPE_TOP 7
-#define SPIKES 8
-#define ENEMY 9
-#define GRID 10
-#define BG 11
+#define EMPTY         0
+#define PIPE_BOTTOM   1
+#define PIPE_MIDDLE   2
+#define PIPE_TOP      3
+#define GRASS         4
+#define DIRT          5
+#define BRICKS        6
+#define SPIKES_TOP    7
+#define SPIKES_BOTTOM 8
+#define LAMP          9
+#define ENEMY         10
+#define GRID          11
+#define BG            12
 
 // Player physics parameters 
 #define V_X 6
