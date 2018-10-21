@@ -1,6 +1,7 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 struct Player player;
@@ -10,7 +11,7 @@ void game_setup() {
 	levelgen_gen_map(&game);
 	player.position_x = SPAWN_X * TILE_SIZE;
 	player.position_y = SPAWN_Y * TILE_SIZE;
-	player.canjump = 1;
+	player.canjump = 0;
 	player.score = 0;
 	player.time = 0;
 }
@@ -20,15 +21,19 @@ void game_reset_map() {
 	game_setup();
 }
 
-void game_update(int input[BUTTON_COUNT]) {
+int game_update(int input[BUTTON_COUNT]) {
 	// Estimate of time
 	player.time += 1 / UPDATES_PS;
+
 	// Branchless player input
 	float tmp_yvel = player.velocity_y;
 	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];
 	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
 	player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
 	player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
+
+	//Button presses
+	player.buttonpresses += input[BUTTON_JUMP] + input[BUTTON_LEFT] + input[BUTTON_RIGHT];
 
 	//Player physics
 	int tile_x = floor((player.position_x + player.velocity_x + 16) / TILE_SIZE);
@@ -64,14 +69,21 @@ void game_update(int input[BUTTON_COUNT]) {
 		if (player.velocity_y >= 0) {
 			player.velocity_y = 0;
 			player.canjump = 1;
+			if (tile_at(tile_xl, feet_y) == SPIKES_TOP || tile_at(tile_xr, feet_y) == SPIKES_TOP) {
+				return -1;
+			}
 		}
 		player.position_y = (feet_y - 1) * TILE_SIZE;
 	}
 
 	//Collision on top
 	if (tile_at(tile_xl, top_y) > 0 || tile_at(tile_xr, top_y) > 0) {
-		if (player.velocity_y < 0)
+		if (player.velocity_y < 0) {
 			player.velocity_y = 0;
+			if (tile_at(tile_xl, top_y) == SPIKES_BOTTOM || tile_at(tile_xr, top_y) == SPIKES_BOTTOM) {
+				return -1;
+			}
+		}
 		player.position_y = (top_y + 1) * TILE_SIZE;
 	}
 
@@ -81,9 +93,22 @@ void game_update(int input[BUTTON_COUNT]) {
 
 	//Lower bound
 	if (player.position_y > LEVEL_PIXEL_HEIGHT) {
-		player.position_y = 0;
-		//TODO: Death
+		return -1;
 	}
+
+	//Fitness / score
+	player.score = player.position_x;
+	player.fitness = player.score;
+	player.fitness -= player.time * FIT_TIME_WEIGHT;
+	player.fitness -= player.buttonpresses * FIT_BUTTONS_WEIGHT;
+	return 0;
+}
+
+void game_player_death() {
+	printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+	player.velocity_x = 0;
+	player.velocity_y = 0;
+	game_reset_map();
 }
 
 int tile_at(int x, int y) {

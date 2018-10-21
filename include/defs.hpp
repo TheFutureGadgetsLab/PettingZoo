@@ -54,4 +54,8 @@
 #define PLAYER_LEFT (PLAYER_MARGIN / 2)
 #define UPDATES_PS 60.0
 
+// Fitness measurement parameters
+#define FIT_TIME_WEIGHT 2.0
+#define FIT_BUTTONS_WEIGHT 0.2
+
 #endif

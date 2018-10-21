@@ -12,6 +12,7 @@ public:
 	bool load_textures(const std::string& tileset) {
         if (!m_tileset.loadFromFile(tileset))
             return false;
+		return true;
 	}
 
     bool load_map(const unsigned char* tiles, int width, int height) {
@@ -198,8 +199,8 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	pos.x = game_view.corner.x + game_view.size.x / 2;
 	pos.y = game_view.corner.y + 10;
 
-	sprintf(score_text, "Score: %05d\nTime: %0.1lf\n%s %s %s",
-	player.score, player.time,
+	sprintf(score_text, "Score: %05d\nFitness: %05d\nTime: %0.1lf\n%s %s %s",
+	player.score, player.fitness, player.time,
 	(input[BUTTON_LEFT] > 0) ? "Left" : "     ",
 	(input[BUTTON_RIGHT] > 0) ? "Right" : "     ",
 	(input[BUTTON_JUMP] > 0) ? "JUMP" : "");
