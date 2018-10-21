@@ -12,6 +12,8 @@ public:
 	bool load_textures(const std::string& tileset) {
         if (!m_tileset.loadFromFile(tileset))
             return false;
+		
+		return true;
 	}
 
     bool load_map(const unsigned char* tiles, int width, int height) {

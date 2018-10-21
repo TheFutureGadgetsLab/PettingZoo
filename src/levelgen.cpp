@@ -7,14 +7,13 @@
 #include <stdio.h>
 
 void levelgen_gen_map(struct Game *game) {
-	int x, y, i, w, h, val;
-	int static_ground = 0;
+	int x;
 	bool flat_region;
 
 	game->seed = (unsigned)time(NULL);
 	srand(game->seed);
 
-	// Insert beginning and end platforms
+	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
 
 	flat_region = true;
@@ -22,7 +21,7 @@ void levelgen_gen_map(struct Game *game) {
 		if (flat_region) {
 			int length = randrange(20, 50);
 
-			if (x + length > LEVEL_WIDTH - START_PLATLEN)
+			if (x + length >= LEVEL_WIDTH - START_PLATLEN)
 				length = (LEVEL_WIDTH - START_PLATLEN) - x;
 
 			generate_flat_region(game, x, length);
@@ -35,40 +34,6 @@ void levelgen_gen_map(struct Game *game) {
 			flat_region = true;
 		}
 	}
-
-// 	// Insert holes. Loop over tile space
-// 	for (x = SPAWN_X + 10; x < LEVEL_WIDTH - 15; x++) {
-// 		if (chance(HOLE_CHANCE)) {
-// 			int hole_width = randrange(2, 8);
-// 			create_hole(game, x, hole_width);
-// 			// Prevent holes from overlapping
-// 			x += hole_width + 10;
-// 		}
-// 	}
-
-// 	// Insert stair gap. Loop over tile space
-// 	for (x = SPAWN_X + 10; x < LEVEL_WIDTH - 15; x++) {
-// 		if (chance(5)) {
-// 			int width = randrange(3, 7);
-// 			int height = randrange(3, 5);
-// 			int do_pipe = chance(50);
-// 			create_stair_gap(game, x, height, width, do_pipe);
-// 			// Prevent stairgaps from overlapping
-// 			x += 15;
-// 		}
-// 	}
-
-// 	// Insert pipes
-// 	for (x = SPAWN_X + 10; x < LEVEL_WIDTH - 15; x++) {
-// 		if (chance(10)) {
-// 			int hole_width = randrange(1, 3);
-// 			int hole_height = randrange(1, 3);
-// 			create_pipe(game, x, hole_width, hole_height);
-
-// 			// Prevent pipes from overlapping
-// 			x += hole_width + 10;
-// 		}
-// 	}
 }
 
 // Generate a flat region beginning at origin for length tiles
@@ -134,14 +99,14 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 		
 		// If height of prev. plat allows, or base_plat is not 0, and the plat is long enough
 		// Insert a hole
-		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole == true && chance(50) && (type != SPIKES_BOTTOM || base_plat != 0)) {
+		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && chance(50) && (type != SPIKES_BOTTOM || base_plat != 0)) {
 			int hole_len = randrange(2, 5);
-			int hole_origin = randrange(0, plat_len - hole_len + 3);
+			int hole_origin = x + randrange(0, plat_len - hole_len + 3);
 
-			if (hole_origin + hole_len > origin + length)
-				hole_len = origin + length - x - 1;
+			if (hole_origin + hole_len >= origin + length)
+				hole_len = origin + length - hole_origin - 1;
 
-			create_hole(game, x + hole_origin, hole_len);
+			create_hole(game, hole_origin, hole_len);
 			// Prevent multiple holes under a plat
 			allow_hole = false;
 		}
@@ -155,8 +120,9 @@ int generate_obstacle(struct Game *game, int origin) {
 	width = randrange(3, 7);
 	height = randrange(3, 5);
 	do_pipe = chance(50);
+
 	create_stair_gap(game, origin, height, width, do_pipe);
-		 
+
 	return height * 2 + width;
 }
 
@@ -227,29 +193,13 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe) {
 	int x, y;
 
-	if (do_pipe) {
-		if (width % 2 == 0) {
-			width++;
-		}
-	}
-
-	// Clear area
-	for (x = origin; x < origin + height * 2 + width; x++) {
-		for (y = GROUND_HEIGHT - height - 1; y < LEVEL_HEIGHT; y++) {
-			set_tile(game, x, y, EMPTY);
-		}
-	}
-
-	// Lay foundation
-	for (x = origin; x < origin + height * 2 + width; x++) {
-		for (y = GROUND_HEIGHT; y < LEVEL_HEIGHT; y++) {
-			set_tile(game, x, y, DIRT);
-		}
+	if (do_pipe && width % 2 == 0) {
+		width++;
 	}
 
 	// Insert first stair
 	for (x = 0; x < height; x++) {
-		for (y = 1; y <= x + 1; y++) {
+		for (y = 0; y <= x + 1; y++) {
 			if (y == x + 1)
 				set_tile(game, x + origin, GROUND_HEIGHT - y, GRASS);
 			else
@@ -259,11 +209,8 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 	origin += height; // Shift origin over for next section
 
 	// Insert hole
-	for (x = origin; x < origin + width; x++) {
-		for (y = GROUND_HEIGHT - height; y < LEVEL_HEIGHT; y++) {
-			set_tile(game, x, y, EMPTY);
-		}
-	}
+	create_hole(game, origin, width);
+
 	if (do_pipe) {
 		int pipe_width = randrange(2, 4);
 		int pipe_height = randrange(1, 7);
