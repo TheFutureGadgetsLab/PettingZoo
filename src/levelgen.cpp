@@ -80,11 +80,8 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 						stack_offset = plat_len;
 				} else {
 					base_plat = 0;
-				}
-
-				
+				}	
 			}
-
 
 			// Allows non-stacking plats to overlap
 			if (base_plat != 0) {
@@ -233,6 +230,13 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 	if (do_pipe) {
 		int pipe_width = randrange(2, 4);
 		int pipe_height = randrange(1, 7);
+
+		// Bound check pipe height
+		if (pipe_height - height > 3)
+			pipe_height = height + 3;
+		else if (height - pipe_height < 3)
+			pipe_height = height - 3;
+			
 		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
 	origin += width; // Shift origin over for next section
