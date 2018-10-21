@@ -6,9 +6,20 @@
 #include <gamelogic.hpp>
 #include <stdio.h>
 #include <cstdarg>
+#include <list>
+
+struct platform {
+	int origin;
+	int height;
+	int length;
+	int type;
+};
+
+std::list<struct platform> plats;
 
 void levelgen_gen_map(struct Game *game) {
 	printf("------------------------------------------------\n");
+	plats.clear();
 	int x;
 	bool flat_region;
 
@@ -37,13 +48,20 @@ void levelgen_gen_map(struct Game *game) {
 			flat_region = true;
 		}
 	}
+
+	// Iterate over plats to place coins
+	for (auto const& i : plats) {
+    	if (chance(50)) {
+			set_tile(game, i.origin + i.length / 2, i.height - 1, COIN);
+		}
+	}
 }
 
 // Generate a flat region beginning at origin for length tiles
 void generate_flat_region(struct Game *game, int origin, int length) {
 	int x, y, val, plat_len, height;
 	int base_plat = 0;
-	int stack_offset;
+	int stack_offset, stack_height;
 	bool allow_hole = false;
 	bool inserted_tee = false;
 	int type;
@@ -74,7 +92,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 						t_platlen++;
 
 					if (t_platlen < 0) {
-						insert_platform(game, x, height, plat_len, type);
+						insert_platform(game, x, height, plat_len, type, true);
 						allow_hole = true;
 					} else {
 						int tee_height = height - base_plat - 1;
@@ -86,15 +104,15 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 						height = tee_height;
 					}
 				} else {
-					insert_platform(game, x, height, plat_len, type);
+					insert_platform(game, x, height, plat_len, type, true);
 					allow_hole = true;
 				}
 
 				// If the plat is not a top spike and height allows
 				// Then allow stacking
 				if (type != SPIKES_TOP && height - base_plat < 3) {
-						base_plat = height;
-						stack_offset = plat_len;
+					base_plat = height;
+					stack_offset = plat_len;
 				} else {
 					base_plat = 0;
 				}	
@@ -165,13 +183,22 @@ void insert_floor(struct Game *game, int origin, int ground, int length) {
 }
 
 // Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
-void insert_platform(struct Game *game, int origin, int height, int length, int type) {
+void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append) {
 	int x, base;
 
 	base = GROUND_HEIGHT - height - 1;
 
 	for (x = origin; x < origin + length; x++) {
 		set_tile(game, x, base, type);
+	}
+
+	if (append && type != SPIKES_TOP) {
+		struct platform tmp;
+		tmp.height = base;
+		tmp.length = length;
+		tmp.origin = origin;
+		tmp.type = type;
+		plats.push_back(tmp);
 	}
 }
 
@@ -181,7 +208,7 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 	int x, y, top;
 	top = GROUND_HEIGHT - height;
 	
-	insert_platform(game, origin, height, length, BRICKS);
+	insert_platform(game, origin, height, length, BRICKS, false);
 
 	for (y = top; y < GROUND_HEIGHT; y++) {
 		set_tile(game, origin + (length / 2), y, BRICKS);

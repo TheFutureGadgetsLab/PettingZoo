@@ -15,9 +15,8 @@ void create_pipe(struct Game *game, int origin, int width, int height);
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe);
 void generate_flat_region(struct Game *game, int origin, int length);
 void insert_floor(struct Game *game, int origin, int ground, int length);
-void insert_platform(struct Game *game, int origin, int height, int length, int type);
+void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append);
 void insert_tee(struct Game *game, int origin, int height, int length);
 int generate_obstacle(struct Game *game, int origin);
-
 
 #endif

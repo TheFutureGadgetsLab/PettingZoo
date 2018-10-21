@@ -40,7 +40,8 @@
 #define LAMP          9
 #define ENEMY         10
 #define GRID          11
-#define BG            12
+#define COIN          12
+#define BG            13
 
 // Player physics parameters 
 #define V_X 6
