@@ -100,7 +100,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (chance(50) && type == BRICKS /*  && base_plat == 0 */) {
+				if (plat_len % 2 == 1 && type == BRICKS /*  && base_plat == 0 */) {
 					insert_tee(game, x, height - 1, plat_len);
 					allow_hole = false;
 				} else {
