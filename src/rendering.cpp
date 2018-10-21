@@ -184,7 +184,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	sf::Vector2f win_size = {(float)event.size.width, (float)event.size.height};
 
 	//Auto zoom depending on window size
-	zoom = round((win_size.x + win_size.y) / (800 + 600));
+	zoom = round((win_size.x + win_size.y) / (1600 + 900));
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;

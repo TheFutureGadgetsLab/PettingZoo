@@ -5,6 +5,7 @@
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
 #include <stdio.h>
+#include <cstdarg>
 
 void levelgen_gen_map(struct Game *game) {
 	int x;
@@ -64,7 +65,10 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				insert_platform(game, x, height, plat_len, type);
+				if (chance(50)/*  && base_plat == 0 */) {
+					insert_tee(game, x, height - 1, choose((3), 3, 5, 7));
+				} else
+					insert_platform(game, x, height, plat_len, type);
 
 				// If the plat is not a top spike and height allows
 				// Then allow stacking
@@ -152,6 +156,18 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 	for (x = origin; x < origin + length; x++) {
 		set_tile(game, x, base, type);
 	}
+}
+
+// Insert Tee
+void insert_tee(struct Game *game, int origin, int height, int length) {
+	int x, y, top;
+	top = GROUND_HEIGHT - height;
+	
+	for (y = top; y < GROUND_HEIGHT; y++) {
+		set_tile(game, origin, y, BRICKS);
+	}
+
+	insert_platform(game, origin - (length / 2), height, length, BRICKS);
 }
 
 // Insert hole in the ground at 'origin' with width 'width'
@@ -262,4 +278,16 @@ int randrange(int min, int max) {
 // Return 0 or 1 probabilistically
 int chance(double percent) {
 	return ((double)random() / (double)RAND_MAX) <= (percent / 100.0);
+}
+
+// Returns a random integer in list of integers
+int choose(int nargs...) {
+	va_list args;
+	va_start(args, nargs);
+	int array[nargs];
+	int i;
+	for (i = 0; i < nargs; i++) {
+		array[i] = va_arg(args, int);
+	}
+	return array[randint(nargs - 1)];
 }
