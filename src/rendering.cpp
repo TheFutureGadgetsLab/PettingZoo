@@ -34,16 +34,16 @@ public:
                 sf::Vertex* quad = &m_vertices[(i + j * width) * 4];
 
                 // define its 4 corners
-                quad[0].position = sf::Vector2f(i * TILE_SIZE, j * TILE_SIZE);
-                quad[1].position = sf::Vector2f((i + 1) * TILE_SIZE, j * TILE_SIZE);
-                quad[2].position = sf::Vector2f((i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE);
-                quad[3].position = sf::Vector2f(i * TILE_SIZE, (j + 1) * TILE_SIZE);
+                quad[0].position = sf::Vector2f(i * TILE_SIZE + 0.01, j * TILE_SIZE + 0.01);
+                quad[1].position = sf::Vector2f((i + 1) * TILE_SIZE + 0.01, j * TILE_SIZE + 0.01);
+                quad[2].position = sf::Vector2f((i + 1) * TILE_SIZE + 0.01, (j + 1) * TILE_SIZE + 0.01);
+                quad[3].position = sf::Vector2f(i * TILE_SIZE + 0.01, (j + 1) * TILE_SIZE + 0.01);
 
                 // define its 4 texture coordinates
-                quad[0].texCoords = sf::Vector2f(tu * TILE_SIZE, tv * TILE_SIZE);
-                quad[1].texCoords = sf::Vector2f((tu + 1) * TILE_SIZE, tv * TILE_SIZE);
-                quad[2].texCoords = sf::Vector2f((tu + 1) * TILE_SIZE, (tv + 1) * TILE_SIZE);
-                quad[3].texCoords = sf::Vector2f(tu * TILE_SIZE, (tv + 1) * TILE_SIZE);
+                quad[0].texCoords = sf::Vector2f(tu * TILE_SIZE + 0.01, tv * TILE_SIZE + 0.01);
+                quad[1].texCoords = sf::Vector2f((tu + 1) * TILE_SIZE + 0.01, tv * TILE_SIZE + 0.01);
+                quad[2].texCoords = sf::Vector2f((tu + 1) * TILE_SIZE + 0.01, (tv + 1) * TILE_SIZE + 0.01);
+                quad[3].texCoords = sf::Vector2f(tu * TILE_SIZE + 0.01, (tv + 1) * TILE_SIZE + 0.01);
             }
 
         return true;
