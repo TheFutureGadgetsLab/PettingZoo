@@ -8,11 +8,13 @@
 #include <cstdarg>
 
 void levelgen_gen_map(struct Game *game) {
+	printf("------------------------------------------------\n");
 	int x;
 	bool flat_region;
 
 	game->seed = (unsigned)time(NULL);
 	srand(game->seed);
+	printf("Seed: %d\n", game->seed);
 
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
@@ -35,6 +37,7 @@ void levelgen_gen_map(struct Game *game) {
 			flat_region = true;
 		}
 	}
+	printf("------------------------------------------------\n");
 }
 
 // Generate a flat region beginning at origin for length tiles
@@ -43,6 +46,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 	int base_plat = 0;
 	int stack_offset;
 	bool allow_hole = false;
+	bool inserted_tee = false;
 	int type;
 
 	plat_len = 0;
@@ -50,7 +54,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
 		if (chance(15)) {
-			plat_len = randrange(4, 8);
+			plat_len = randrange(3, 8);
 			// Ensure platform doesnt extend past region
 			if (x + plat_len >= origin + length)
 				plat_len = origin + length - x - 1;
@@ -65,9 +69,23 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (plat_len % 2 == 1 && type == BRICKS /*  && base_plat == 0 */) {
-					insert_tee(game, x, height - 1, plat_len);
-					allow_hole = false;
+				if (base_plat == 0 && type == BRICKS && chance(75)) {
+					int t_platlen = plat_len;
+					if (t_platlen % 2 == 0)
+						t_platlen++;
+
+					if (t_platlen < 0) {
+						insert_platform(game, x, height, plat_len, type);
+						allow_hole = true;
+					} else {
+						int tee_height = height - base_plat - 1;
+						if (tee_height > 3)
+							tee_height = 3;
+						insert_tee(game, x, tee_height, t_platlen);
+						allow_hole = true;
+						plat_len = t_platlen;
+						height = tee_height;
+					}
 				} else {
 					insert_platform(game, x, height, plat_len, type);
 					allow_hole = true;
@@ -160,14 +178,15 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 
 // Insert Tee
 void insert_tee(struct Game *game, int origin, int height, int length) {
+	printf("Tee:\tat %d\theight %d\tlength %d\n", origin, length, height);
 	int x, y, top;
 	top = GROUND_HEIGHT - height;
 	
-	for (y = top; y < GROUND_HEIGHT; y++) {
-		set_tile(game, origin, y, BRICKS);
-	}
+	insert_platform(game, origin, height, length, BRICKS);
 
-	insert_platform(game, origin - (length / 2), height, length, BRICKS);
+	for (y = top; y < GROUND_HEIGHT; y++) {
+		set_tile(game, origin + (length / 2), y, BRICKS);
+	}
 }
 
 // Insert hole in the ground at 'origin' with width 'width'
@@ -180,9 +199,10 @@ void create_hole(struct Game *game, int origin, int width) {
 	}
 }
 
-// Create a pipe at 'origin', 'height' tiles from the ground with a gap of 'width' tiles
+// Create a pipe at 'origin', opens at 'height' tiles from the ground with a gap of 'width' tiles
 void create_pipe(struct Game *game, int origin, int width, int height) {
 	int y;
+	printf("Pipe:\tat %d\theight %d\twidth %d\n", origin, height, width);
 
 	for (y = 0; y < LEVEL_HEIGHT; y++) {
 		// Middle sections
@@ -208,7 +228,7 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 // If 'do_pipe' is true, 'width' will be set to next greatest odd if even
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe) {
 	int x, y;
-
+	printf("Gap:\tat %d\theight %d\twidth %d\tdopipe %d\n", origin, height, width, do_pipe);
 	if (do_pipe && width % 2 == 0) {
 		width++;
 	}
@@ -229,14 +249,8 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 
 	if (do_pipe) {
 		int pipe_width = randrange(2, 4);
-		int pipe_height = randrange(1, 7);
+		int pipe_height = height + choose((7), 0, 1, 2, 2, 3, 3, 3) * choose((2), 1, -1);
 
-		// Bound check pipe height
-		if (pipe_height - height > 3)
-			pipe_height = height + 3;
-		else if (height - pipe_height < 3)
-			pipe_height = height - 3;
-			
 		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
 	origin += width; // Shift origin over for next section
