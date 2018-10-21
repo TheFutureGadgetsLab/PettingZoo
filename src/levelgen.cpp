@@ -65,10 +65,13 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (chance(50)/*  && base_plat == 0 */) {
-					insert_tee(game, x, height - 1, choose((3), 3, 5, 7));
-				} else
+				if (chance(50) && type == BRICKS /*  && base_plat == 0 */) {
+					insert_tee(game, x, height - 1, plat_len);
+					allow_hole = false;
+				} else {
 					insert_platform(game, x, height, plat_len, type);
+					allow_hole = true;
+				}
 
 				// If the plat is not a top spike and height allows
 				// Then allow stacking
@@ -79,7 +82,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 					base_plat = 0;
 				}
 
-				allow_hole = true;
+				
 			}
 
 
