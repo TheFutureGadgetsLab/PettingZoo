@@ -249,7 +249,7 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 
 	if (do_pipe) {
 		int pipe_width = randrange(2, 4);
-		int pipe_height = height + choose((7), 0, 1, 2, 2, 3, 3, 3) * choose((2), 1, -1);
+		int pipe_height = height + choose((7), 0, 1, 1, 2, 2, 2, 3, 3, 3, 3) * choose((2), 1, -1);
 
 		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
