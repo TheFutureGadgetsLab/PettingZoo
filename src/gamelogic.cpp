@@ -46,20 +46,18 @@ void game_update(int input[BUTTON_COUNT]) {
 
 	//Right collision
 	if (tile_at(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
-		if (player.velocity_x > 0)
-			player.velocity_x = 0;
+		player.velocity_x = 0;
 		player.position_x = (right_x - 1) * TILE_SIZE + PLAYER_MARGIN - 2;
 	}
 
 	//Left collision
 	if (tile_at(left_x, tile_y) || left_x < 0) {
-		if (player.velocity_x < 0)
-			player.velocity_x = 0;
+		player.velocity_x = 0;
 		player.position_x = (left_x + 1) * TILE_SIZE - PLAYER_MARGIN + 2;
 	}
 
-	int tile_xr = floor((player.position_x + PLAYER_RIGHT) / TILE_SIZE) - 1;
-	int tile_xl = floor((player.position_x + PLAYER_LEFT) / TILE_SIZE) + 1;
+	int tile_xr = floor((player.position_x + PLAYER_RIGHT) / TILE_SIZE);
+	int tile_xl = floor((player.position_x + PLAYER_LEFT) / TILE_SIZE);
 
 	//Collision on bottom
 	if (tile_at(tile_xl, feet_y) > 0 || tile_at(tile_xr, feet_y) > 0) {
