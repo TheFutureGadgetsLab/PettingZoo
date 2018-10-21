@@ -103,7 +103,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 		
 		// If height of prev. plat allows, or base_plat is not 0, and the plat is long enough
 		// Insert a hole
-		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && chance(50) && (type != SPIKES_BOTTOM || base_plat != 0)) {
+		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && (type != SPIKES_BOTTOM || base_plat != 0)) {
 			int hole_len = randrange(2, 5);
 			int hole_origin = x + randrange(0, plat_len - hole_len + 3);
 
