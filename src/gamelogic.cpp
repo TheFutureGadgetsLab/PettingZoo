@@ -29,8 +29,21 @@ int game_update(int input[BUTTON_COUNT]) {
 	float tmp_yvel = player.velocity_y;
 	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];
 	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
-	player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
-	player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
+	//player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
+	//player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
+	if (input[BUTTON_JUMP] && player.canjump) {
+		player.isjump = true;
+		player.canjump = false;
+	}
+	if (!input[BUTTON_JUMP] && player.isjump)
+		player.isjump = false;
+	if (player.isjump) {
+		player.velocity_y -= 1.5;
+		if (player.velocity_y <= -V_JUMP) {
+			player.isjump = false;
+			player.velocity_y = -V_JUMP;
+		}
+	}
 
 	//Button presses
 	player.buttonpresses += input[BUTTON_JUMP] + input[BUTTON_LEFT] + input[BUTTON_RIGHT];

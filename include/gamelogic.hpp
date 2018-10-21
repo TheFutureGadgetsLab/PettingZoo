@@ -12,7 +12,8 @@ struct Player {
 	int left;
 	int right;
 	int jump;
-	int canjump;
+	bool canjump;
+	bool isjump;
 	int tile_x;
 	int tile_y;
 	int score;
