@@ -208,7 +208,7 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 			set_tile(game, origin, y, PIPE_MIDDLE);
 		// Bottom of pipe
 		} else if (y == GROUND_HEIGHT - height - width - 1) {
-			set_tile(game, origin, y, PIPE_BOTTOM);
+			set_tile(game, origin, y, PIPE_TOP);
 		// Gap
 		} else if (y > GROUND_HEIGHT - height - width - 1 && width > 0) {
 			width--;
@@ -216,7 +216,7 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 		// Top of pipe
 		} else if (width == 0) {
 			width--;
-			set_tile(game, origin, y, PIPE_TOP);
+			set_tile(game, origin, y, PIPE_BOTTOM);
 		}
 	}
 }

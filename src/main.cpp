@@ -13,7 +13,8 @@ int main(int argc, char **argv)
 	sf::Clock clock;
 	sf::Color bg_color(135, 206, 235);
 	window.setKeyRepeatEnabled(false);
-	window.setVerticalSyncEnabled(true);
+	//window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit((uint)UPDATES_PS);
 
 	game_setup();
 	render_load_assets();

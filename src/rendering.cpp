@@ -116,6 +116,8 @@ void render_handle_camera(sf::RenderWindow &window) {
 	if (game_view.corner.y + game_view.size.y > LEVEL_PIXEL_HEIGHT)
         game_view.center.y = LEVEL_PIXEL_HEIGHT - game_view.size.y / 2.0;
 
+	game_view.center.x = (int)game_view.center.x;
+	game_view.center.y = (int)game_view.center.y;
 	view.setCenter(game_view.center);
 	window.setView(view);
 	update_view_vars(view);
@@ -180,7 +182,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	sf::Vector2f win_size = {(float)event.size.width, (float)event.size.height};
 
 	//Auto zoom depending on window size
-	zoom = round((win_size.x + win_size.y) / (1600 + 900));
+	zoom = round((win_size.x + win_size.y) / (800 + 600));
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;

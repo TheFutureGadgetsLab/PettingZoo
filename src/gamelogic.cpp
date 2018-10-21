@@ -58,15 +58,16 @@ void game_update(int input[BUTTON_COUNT]) {
 		player.position_x = (left_x + 1) * TILE_SIZE - PLAYER_MARGIN + 2;
 	}
 
-	int tile_xr = floor((player.position_x + player.velocity_x + PLAYER_RIGHT) / TILE_SIZE);
-	int tile_xl = floor((player.position_x + player.velocity_x + PLAYER_LEFT) / TILE_SIZE);
+	int tile_xr = floor((player.position_x + PLAYER_RIGHT) / TILE_SIZE) - 1;
+	int tile_xl = floor((player.position_x + PLAYER_LEFT) / TILE_SIZE) + 1;
 
 	//Collision on bottom
 	if (tile_at(tile_xl, feet_y) > 0 || tile_at(tile_xr, feet_y) > 0) {
-		if (player.velocity_y > 0)
+		if (player.velocity_y >= 0) {
 			player.velocity_y = 0;
+			player.canjump = 1;
+		}
 		player.position_y = (feet_y - 1) * TILE_SIZE;
-		player.canjump = 1;
 	}
 
 	//Collision on top
