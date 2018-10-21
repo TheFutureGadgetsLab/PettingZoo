@@ -153,7 +153,7 @@ void render_tiles(sf::RenderWindow &window) {
 }
 
 void render_entities(sf::RenderWindow &window) {
-	sprites[0].setPosition(player.position_x, player.position_y);
+	sprites[0].setPosition((int)player.position_x, (int)player.position_y);
 	window.draw(sprites[0]);
 }
 
