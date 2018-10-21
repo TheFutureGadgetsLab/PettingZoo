@@ -37,7 +37,6 @@ void levelgen_gen_map(struct Game *game) {
 			flat_region = true;
 		}
 	}
-	printf("------------------------------------------------\n");
 }
 
 // Generate a flat region beginning at origin for length tiles

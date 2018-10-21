@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
-	int playerdead = 0;
+	int ret = 0;
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time time;
@@ -35,7 +35,8 @@ int main(int argc, char **argv)
 				} else if (event.key.code == sf::Keyboard::O) {
 					draw_overlay ^= 1;
 				} else if (event.key.code == sf::Keyboard::R) {
-					playerdead = 1;
+					game_reset_map();
+					render_regen_map();
 				}
 			} else if (event.type == sf::Event::KeyReleased) {
 				if (event.key.code == sf::Keyboard::Left) {
@@ -53,12 +54,12 @@ int main(int argc, char **argv)
 		}
 
 		//Update game state
-		if (!playerdead)
-			playerdead = game_update(input);
-		if (playerdead) {
-			game_player_death();
+		ret = game_update(input);
+		if (ret == PLAYER_DEAD) {
+			game_reset_map();
 			render_regen_map();
-			playerdead = 0;
+		} else if (ret == REGEN_MAP) {
+			render_regen_map();
 		}
 		
 		// Update camera

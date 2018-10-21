@@ -11,8 +11,11 @@ void game_setup() {
 	levelgen_gen_map(&game);
 	player.position_x = SPAWN_X * TILE_SIZE;
 	player.position_y = SPAWN_Y * TILE_SIZE;
+	player.velocity_x = 0;
+	player.velocity_y = 0;
 	player.canjump = 0;
 	player.score = 0;
+	player.fitness = 0;
 	player.time = 0;
 }
 
@@ -83,6 +86,7 @@ int game_update(int input[BUTTON_COUNT]) {
 			player.velocity_y = 0;
 			player.canjump = 1;
 			if (tile_at(tile_xl, feet_y) == SPIKES_TOP || tile_at(tile_xr, feet_y) == SPIKES_TOP) {
+				printf("PLAYER DEAD\n\tSCORE: %d\n\tFITNESS: %d\n", player.score, player.fitness);
 				return -1;
 			}
 		}
@@ -94,6 +98,7 @@ int game_update(int input[BUTTON_COUNT]) {
 		if (player.velocity_y < 0) {
 			player.velocity_y = 0;
 			if (tile_at(tile_xl, top_y) == SPIKES_BOTTOM || tile_at(tile_xr, top_y) == SPIKES_BOTTOM) {
+			printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
 				return -1;
 			}
 		}
@@ -106,7 +111,8 @@ int game_update(int input[BUTTON_COUNT]) {
 
 	//Lower bound
 	if (player.position_y > LEVEL_PIXEL_HEIGHT) {
-		return -1;
+		printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+		return PLAYER_DEAD;
 	}
 
 	//Fitness / score
@@ -115,13 +121,6 @@ int game_update(int input[BUTTON_COUNT]) {
 	player.fitness -= player.time * FIT_TIME_WEIGHT;
 	player.fitness -= player.buttonpresses * FIT_BUTTONS_WEIGHT;
 	return 0;
-}
-
-void game_player_death() {
-	printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
-	player.velocity_x = 0;
-	player.velocity_y = 0;
-	game_reset_map();
 }
 
 int tile_at(int x, int y) {

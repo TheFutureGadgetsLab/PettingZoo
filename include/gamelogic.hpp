@@ -36,7 +36,6 @@ struct Game {
 void game_setup();
 void game_reset_map();
 int game_update(int input[BUTTON_COUNT]);
-void game_player_death();
 int tile_at(int x, int y);
 
 #endif

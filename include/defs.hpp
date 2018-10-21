@@ -58,4 +58,7 @@
 #define FIT_TIME_WEIGHT 2.0
 #define FIT_BUTTONS_WEIGHT 0.2
 
+// Misc
+#define PLAYER_DEAD -1
+#define REGEN_MAP   -2
 #endif
