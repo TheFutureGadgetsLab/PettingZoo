@@ -7,17 +7,18 @@ int main(int argc, char **argv)
 {
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
+	int ret = 0;
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time time;
 	sf::Clock clock;
 	sf::Color bg_color(135, 206, 235);
 	window.setKeyRepeatEnabled(false);
-	window.setVerticalSyncEnabled(true);
-
-	render_load_assets();
+	//window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit((uint)UPDATES_PS);
 
 	game_setup();
+	render_load_assets();
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
 					draw_overlay ^= 1;
 				} else if (event.key.code == sf::Keyboard::R) {
 					game_reset_map();
+					render_regen_map();
 				}
 			} else if (event.type == sf::Event::KeyReleased) {
 				if (event.key.code == sf::Keyboard::Left) {
@@ -52,7 +54,17 @@ int main(int argc, char **argv)
 		}
 
 		//Update game state
-		game_update(input);
+		ret = game_update(input);
+		if (ret == PLAYER_DEAD) {
+			game_reset_map();
+			render_regen_map();
+		} else if (ret == REDRAW) {
+			render_regen_map();
+		} else if (ret > 0) {
+			printf("PLAYER WON! FITNESS=%d\n", ret);
+			game_reset_map();
+			render_regen_map();
+		}
 		
 		// Update camera
 		render_handle_camera(window);
@@ -64,10 +76,12 @@ int main(int argc, char **argv)
 		render_other(window);
 
 		//Draw the tiles and entities
-		render_tiles(window, draw_overlay);
+		render_tiles(window);
 		render_entities(window);
 
-		//Draw coords if needed
+		//Draw debug overlay + fps
+		time = clock.getElapsedTime();
+		clock.restart();
 		if (draw_overlay) {
 			render_debug_overlay(window, time);
 		}
@@ -75,12 +89,6 @@ int main(int argc, char **argv)
 		// Score and time 
 		render_hud(window, input);
 
-		//Frametime
-		time = clock.getElapsedTime();
-		// Restart the clock
-		clock.restart();
-
-		// Update the window
 		window.display();
 	}
 

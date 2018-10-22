@@ -12,10 +12,14 @@ struct Player {
 	int left;
 	int right;
 	int jump;
-	int canjump;
+	bool canjump;
+	bool isjump;
+	bool standing;
 	int tile_x;
 	int tile_y;
 	int score;
+	int buttonpresses;
+	int fitness;
 };
 
 struct Enemy {
@@ -32,7 +36,8 @@ struct Game {
 
 void game_setup();
 void game_reset_map();
-void game_update(int input[BUTTON_COUNT]);
+int game_update(int input[BUTTON_COUNT]);
 int tile_at(int x, int y);
+int tile_solid(int x, int y);
 
 #endif
