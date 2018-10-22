@@ -7,7 +7,12 @@
 struct Player player;
 struct Game game;
 
+int tile_at(int x, int y);
+int tile_solid(int x, int y);
+void game_set_tile(struct Game *game, int x, int y, unsigned char val);
+
 void game_setup() {
+	levelgen_clear_level(&game);
 	levelgen_gen_map(&game);
 	player.position_x = SPAWN_X * TILE_SIZE;
 	player.position_y = SPAWN_Y * TILE_SIZE;
@@ -21,21 +26,12 @@ void game_setup() {
 	player.buttonpresses = 0;
 }
 
-void game_reset_map() {
-	levelgen_clear_level(&game);
-	game_setup();
-}
-
 int game_update(int input[BUTTON_COUNT]) {
 	// Estimate of time
 	player.time += 1 / UPDATES_PS;
 
-	// Branchless player input
-	float tmp_yvel = player.velocity_y;
 	player.velocity_x += (V_X - player.velocity_x) * input[BUTTON_RIGHT];
 	player.velocity_x += (-V_X - player.velocity_x) * input[BUTTON_LEFT];
-	//player.velocity_y += (-V_JUMP - player.velocity_y) * input[BUTTON_JUMP] * player.canjump;
-	//player.canjump = player.canjump - !(tmp_yvel == player.velocity_y);
 	if (input[BUTTON_JUMP] && player.canjump) {
 		player.isjump = true;
 		player.canjump = false;
@@ -111,9 +107,9 @@ int game_update(int input[BUTTON_COUNT]) {
 		player.position_y = (top_y + 1) * TILE_SIZE;
 	}
 
-	//Collisions with other tiles
+	//Collisions with coin
 	if (tile_at(tile_x, tile_y) == COIN) {
-		set_tile(&game, tile_x, tile_y, EMPTY);
+		game_set_tile(&game, tile_x, tile_y, EMPTY);
 		player.score += COIN_VALUE;
 		return REDRAW;
 	}
@@ -165,4 +161,12 @@ int tile_solid(int x, int y) {
 			break;
 	}
 	return true;
+}
+
+// Set tile to given type at (x, y)
+void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
+	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
+		return;
+	}
+	game->tiles[y * LEVEL_WIDTH + x] = val;
 }

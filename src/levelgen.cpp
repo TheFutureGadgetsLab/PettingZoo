@@ -8,6 +8,20 @@
 #include <cstdarg>
 #include <list>
 
+int randint(int max);
+int randrange(int min, int max);
+int chance(double percent);
+int choose(int nargs...);
+void set_tile(struct Game *game, int x, int y, unsigned char val);
+void create_hole(struct Game *game, int origin, int width);
+void create_pipe(struct Game *game, int origin, int width, int height);
+void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe);
+void generate_flat_region(struct Game *game, int origin, int length);
+void insert_floor(struct Game *game, int origin, int ground, int length);
+void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append);
+void insert_tee(struct Game *game, int origin, int height, int length);
+int generate_obstacle(struct Game *game, int origin);
+
 struct platform {
 	int origin;
 	int height;
@@ -118,12 +132,12 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 					stack_offset = plat_len;
 				} else {
 					base_plat = 0;
-				}	
+				}
 			}
 
 			// Allows non-stacking plats to overlap
 			if (base_plat != 0) {
-				x += 2;	
+				x += 2;
 			} else {
 				x += plat_len + 2;
 			}
@@ -138,7 +152,7 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 			else
 				base_plat = 0;
 		}
-		
+
 		// If height of prev. plat allows, or base_plat is not 0, and the plat is long enough
 		// Insert a hole
 		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && (type != SPIKES_BOTTOM || base_plat != 0)) {
@@ -210,7 +224,7 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 	printf("Tee:\tat %d\theight %d\tlength %d\n", origin, length, height);
 	int x, y, top;
 	top = GROUND_HEIGHT - height;
-	
+
 	insert_platform(game, origin, height, length, BRICKS, false);
 
 	for (y = top; y < GROUND_HEIGHT; y++) {

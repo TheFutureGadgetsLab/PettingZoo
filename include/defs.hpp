@@ -45,7 +45,7 @@
 #define FLAG          13
 #define BG            100
 
-// Player physics parameters 
+// Player physics parameters
 #define V_X 6
 #define V_JUMP 8
 #define INTERTA 1.4

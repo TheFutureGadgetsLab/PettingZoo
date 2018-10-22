@@ -12,7 +12,7 @@ public:
 	bool load_textures(const std::string& tileset) {
         if (!m_tileset.loadFromFile(tileset))
             return false;
-		
+
 		return true;
 	}
 
@@ -101,7 +101,7 @@ void render_handle_camera(sf::RenderWindow &window) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
 	sf::Vector2f target;
-	
+
 	//Slide view towards player
 	target.x = player.position_x + 16;
 	target.y = player.position_y + 16;
@@ -162,9 +162,9 @@ void render_entities(sf::RenderWindow &window) {
 void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	char overlay_text[512];
 
-	sprintf(overlay_text, 
-	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d", 
-		player.position_x, player.position_y, 1.0 / frametime.asSeconds(), 
+	sprintf(overlay_text,
+	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d",
+		player.position_x, player.position_y, 1.0 / frametime.asSeconds(),
 		game.seed, player.velocity_x, player.velocity_y,
 		player.tile_x, player.tile_y);
 
@@ -188,7 +188,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	zoom = zoom < 1 ? 1 : zoom;
 	win_size.x /= zoom;
 	win_size.y /= zoom;
-	
+
 	view.setSize(win_size);
 	window.setView(view);
 	update_view_vars(view);
