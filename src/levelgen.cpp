@@ -31,7 +31,7 @@ void levelgen_gen_map(struct Game *game) {
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
 
 	flat_region = true;
-	for (x = START_PLATLEN; x < LEVEL_WIDTH - 10; x++) {
+	for (x = START_PLATLEN; x < LEVEL_WIDTH - 20; x++) {
 		if (flat_region) {
 			int length = randrange(20, 50);
 
@@ -55,6 +55,9 @@ void levelgen_gen_map(struct Game *game) {
 			set_tile(game, i.origin + i.length / 2, i.height - 1, COIN);
 		}
 	}
+
+	// Ending flag
+	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
 }
 
 // Generate a flat region beginning at origin for length tiles

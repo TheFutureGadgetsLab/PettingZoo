@@ -58,7 +58,11 @@ int main(int argc, char **argv)
 		if (ret == PLAYER_DEAD) {
 			game_reset_map();
 			render_regen_map();
-		} else if (ret == REGEN_MAP) {
+		} else if (ret == REDRAW) {
+			render_regen_map();
+		} else if (ret > 0) {
+			printf("PLAYER WON! FITNESS=%d\n", ret);
+			game_reset_map();
 			render_regen_map();
 		}
 		

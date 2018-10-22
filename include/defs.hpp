@@ -19,6 +19,7 @@
 #define LEVEL_SIZE (LEVEL_HEIGHT * LEVEL_WIDTH)
 #define VIEW_SIZE_Y (LEVEL_PIXEL_HEIGHT + 2 * TILE_SIZE)
 #define MAX_ENEMIES 32
+#define COIN_VALUE 1000
 
 // Level generation parameters
 #define GROUND_HEIGHT (LEVEL_HEIGHT * 3 / 4)
@@ -41,7 +42,8 @@
 #define ENEMY         10
 #define GRID          11
 #define COIN          12
-#define BG            13
+#define FLAG          13
+#define BG            100
 
 // Player physics parameters 
 #define V_X 6
@@ -61,5 +63,5 @@
 
 // Misc
 #define PLAYER_DEAD -1
-#define REGEN_MAP   -2
+#define REDRAW      -2
 #endif
