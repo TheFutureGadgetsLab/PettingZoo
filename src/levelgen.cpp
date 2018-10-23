@@ -20,6 +20,7 @@ void generate_flat_region(struct Game *game, int origin, int length);
 void insert_floor(struct Game *game, int origin, int ground, int length);
 void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append);
 void insert_tee(struct Game *game, int origin, int height, int length);
+void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
 
 struct platform {
@@ -72,6 +73,9 @@ void levelgen_gen_map(struct Game *game) {
 
 	// Ending flag
 	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
+
+	// TEST enemy
+	insert_enemy(game, 4, GROUND_HEIGHT - 1, ENEMY);
 }
 
 // Generate a flat region beginning at origin for length tiles
@@ -230,6 +234,16 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 	for (y = top; y < GROUND_HEIGHT; y++) {
 		set_tile(game, origin + (length / 2), y, BRICKS);
 	}
+}
+
+// Insert enemy at tile position
+void insert_enemy(struct Game *game, int x, int y, int type) {
+	struct Enemy enemy;
+	enemy.init_x = x * TILE_SIZE;
+	enemy.init_y = y * TILE_SIZE;
+	enemy.type = type;
+	game->enemies[game->n_enemies] = enemy;
+	game->n_enemies++;
 }
 
 // Insert hole in the ground at 'origin' with width 'width'

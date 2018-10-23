@@ -31,6 +31,7 @@ struct Enemy {
 struct Game {
 	unsigned char tiles[LEVEL_SIZE];
 	struct Enemy enemies[MAX_ENEMIES];
+	unsigned int n_enemies;
 	unsigned int seed;
 };
 

@@ -69,8 +69,8 @@ private:
     sf::Texture m_tileset;
 };
 
-sf::Sprite sprites[2];
-sf::Texture textures[2];
+sf::Sprite sprites[3];
+sf::Texture textures[3];
 sf::Text overlay;
 sf::Text score;
 sf::Font font;
@@ -129,6 +129,7 @@ void render_load_assets() {
 	// Sprites
 	load_sprite(0, "../assets/lamp.png", false);
 	load_sprite(1, "../assets/bg.png", true);
+	load_sprite(ENEMY, "../assets/enemy.png", false);
 
 	// Text / Font
 	font.loadFromFile("../assets/Vera.ttf");
@@ -157,6 +158,14 @@ void render_tiles(sf::RenderWindow &window) {
 void render_entities(sf::RenderWindow &window) {
 	sprites[0].setPosition((int)player.position_x, (int)player.position_y);
 	window.draw(sprites[0]);
+
+	int i;
+	struct Enemy enemy;
+	for (i = 0; i < game.n_enemies; i++) {
+		enemy = game.enemies[i];
+		sprites[ENEMY].setPosition(enemy.init_x, enemy.init_y);
+		window.draw(sprites[ENEMY]);
+	}
 }
 
 void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {

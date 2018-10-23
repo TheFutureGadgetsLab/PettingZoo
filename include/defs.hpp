@@ -39,11 +39,13 @@
 #define SPIKES_TOP    7
 #define SPIKES_BOTTOM 8
 #define LAMP          9
-#define ENEMY         10
+#define SHROOM        10
 #define GRID          11
 #define COIN          12
 #define FLAG          13
 #define BG            100
+
+#define ENEMY         2
 
 // Player physics parameters
 #define V_X 6
