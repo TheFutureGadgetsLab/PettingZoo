@@ -2,7 +2,6 @@
 #include <levelgen.hpp>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
 struct Player player;
 struct Game game;
@@ -109,12 +108,12 @@ int physics_sim(struct Body* body, bool jump) {
 	}
 
 	//Player physics
-	int tile_x = floor((body->px + body->vx + 16) / TILE_SIZE);
-	int tile_y = floor((body->py + body->vy + 16) / TILE_SIZE);
-	int feet_y = floor((body->py + body->vy + 33) / TILE_SIZE);
-	int top_y = floor((body->py + body->vy - 1) / TILE_SIZE);
-	int right_x = floor((body->px + body->vx + PLAYER_RIGHT + 1) / TILE_SIZE);
-	int left_x = floor((body->px + body->vx + PLAYER_LEFT - 1) / TILE_SIZE);
+	int tile_x = (body->px + body->vx + 16) / TILE_SIZE;
+	int tile_y = (body->py + body->vy + 16) / TILE_SIZE;
+	int feet_y = (body->py + body->vy + 33) / TILE_SIZE;
+	int top_y = (body->py + body->vy - 1) / TILE_SIZE;
+	int right_x = (body->px + body->vx + PLAYER_RIGHT + 1) / TILE_SIZE;
+	int left_x = (body->px + body->vx + PLAYER_LEFT - 1) / TILE_SIZE;
 
 	body->tile_x = tile_x;
 	body->tile_y = tile_y;
@@ -134,8 +133,8 @@ int physics_sim(struct Body* body, bool jump) {
 		body->px = (left_x + 1) * TILE_SIZE - PLAYER_MARGIN + 2;
 	}
 
-	int tile_xr = floor((body->px + PLAYER_RIGHT) / TILE_SIZE);
-	int tile_xl = floor((body->px + PLAYER_LEFT) / TILE_SIZE);
+	int tile_xr = (body->px + PLAYER_RIGHT) / TILE_SIZE;
+	int tile_xl = (body->px + PLAYER_LEFT) / TILE_SIZE;
 
 	//Collision on bottom
 	body->standing = false;
