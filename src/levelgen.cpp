@@ -75,7 +75,14 @@ void levelgen_gen_map(struct Game *game) {
 	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
 
 	// TEST enemy
-	insert_enemy(game, 4, GROUND_HEIGHT - 1, ENEMY);
+	insert_enemy(game, 1, GROUND_HEIGHT - 1, ENEMY);
+	insert_enemy(game, 2, GROUND_HEIGHT - 2, ENEMY);
+	insert_enemy(game, 3, GROUND_HEIGHT - 3, ENEMY);
+	insert_enemy(game, 4, GROUND_HEIGHT - 4, ENEMY);
+	insert_enemy(game, 1, GROUND_HEIGHT - 5, ENEMY);
+	insert_enemy(game, 2, GROUND_HEIGHT - 6, ENEMY);
+	insert_enemy(game, 3, GROUND_HEIGHT - 7, ENEMY);
+	insert_enemy(game, 4, GROUND_HEIGHT - 8, ENEMY);
 }
 
 // Generate a flat region beginning at origin for length tiles
@@ -239,9 +246,11 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 // Insert enemy at tile position
 void insert_enemy(struct Game *game, int x, int y, int type) {
 	struct Enemy enemy;
-	enemy.init_x = x * TILE_SIZE;
-	enemy.init_y = y * TILE_SIZE;
+	enemy.body.px = x * TILE_SIZE;
+	enemy.body.py = y * TILE_SIZE;
 	enemy.type = type;
+	enemy.dead = false;
+	enemy.body.immune = true;
 	game->enemies[game->n_enemies] = enemy;
 	game->n_enemies++;
 }
@@ -339,6 +348,7 @@ void levelgen_clear_level(struct Game *game) {
 			set_tile(game, x, y, EMPTY);
 		}
 	}
+	game->n_enemies = 0;
 }
 
 // Return an integer where 0 <= x <= max

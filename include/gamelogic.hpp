@@ -3,28 +3,34 @@
 
 #include <defs.hpp>
 
-struct Player {
-	float position_x;
-	float position_y;
-	float velocity_x;
-	float velocity_y;
-	float time;
-	int left;
-	int right;
-	int jump;
+struct Body {
+	float px;
+	float py;
+	float vx;
+	float vy;
+	bool immune;
 	bool canjump;
 	bool isjump;
 	bool standing;
 	int tile_x;
 	int tile_y;
+};
+
+struct Player {
+	struct Body body;
+	float time;
+	int left;
+	int right;
+	int jump;
 	int score;
 	int buttonpresses;
 	int fitness;
 };
 
 struct Enemy {
-	int init_x;
-	int init_y;
+	struct Body body;
+	bool dead;
+	float speed;
 	unsigned char type;
 };
 

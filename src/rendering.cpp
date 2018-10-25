@@ -103,8 +103,8 @@ void render_handle_camera(sf::RenderWindow &window) {
 	sf::Vector2f target;
 
 	//Slide view towards player
-	target.x = player.position_x + 16;
-	target.y = player.position_y + 16;
+	target.x = player.body.px + 16;
+	target.y = player.body.py + 16;
 	game_view.center.x = game_view.center.x + (target.x - game_view.center.x) * CAMERA_INTERP;
 	game_view.center.y = game_view.center.y + (target.y - game_view.center.y) * CAMERA_INTERP;
 	view.setCenter(game_view.center);
@@ -156,15 +156,17 @@ void render_tiles(sf::RenderWindow &window) {
 }
 
 void render_entities(sf::RenderWindow &window) {
-	sprites[0].setPosition((int)player.position_x, (int)player.position_y);
+	sprites[0].setPosition((int)player.body.px, (int)player.body.py);
 	window.draw(sprites[0]);
 
 	int i;
 	struct Enemy enemy;
 	for (i = 0; i < game.n_enemies; i++) {
-		enemy = game.enemies[i];
-		sprites[ENEMY].setPosition(enemy.init_x, enemy.init_y);
-		window.draw(sprites[ENEMY]);
+		if (!game.enemies[i].dead) {
+			enemy = game.enemies[i];
+			sprites[ENEMY].setPosition(enemy.body.px, enemy.body.py);
+			window.draw(sprites[ENEMY]);
+		}
 	}
 }
 
@@ -173,9 +175,9 @@ void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 
 	sprintf(overlay_text,
 	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d",
-		player.position_x, player.position_y, 1.0 / frametime.asSeconds(),
-		game.seed, player.velocity_x, player.velocity_y,
-		player.tile_x, player.tile_y);
+		player.body.px, player.body.py, 1.0 / frametime.asSeconds(),
+		game.seed, player.body.vx, player.body.vy,
+		player.body.tile_x, player.body.tile_y);
 
 	overlay.setString(overlay_text);
 	overlay.setPosition(game_view.corner);
