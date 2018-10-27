@@ -9,7 +9,7 @@ struct Game game;
 int tile_at(int x, int y);
 int tile_solid(int x, int y);
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
-int physics_sim(struct Body* body, bool jump);
+uint physics_sim(struct Body* body, bool jump);
 
 
 void game_setup() {
@@ -29,6 +29,8 @@ void game_setup() {
 }
 
 int game_update(int input[BUTTON_COUNT]) {
+	int return_value = 0;
+
 	// Estimate of time
 	player.time += 1 / UPDATES_PS;
 
@@ -41,14 +43,13 @@ int game_update(int input[BUTTON_COUNT]) {
 
 	//Physics sim for player
 	int ret = physics_sim(&player.body, input[BUTTON_JUMP]);
-	if (ret != 0)
-		return ret;
+	return_value = ret;
 
 	//Collisions with coin
 	if (tile_at(player.body.tile_x, player.body.tile_y) == COIN) {
 		game_set_tile(&game, player.body.tile_x, player.body.tile_y, EMPTY);
 		player.score += COIN_VALUE;
-		return REDRAW;
+		return_value = REDRAW;
 	}
 
 	//Lower bound
@@ -61,7 +62,7 @@ int game_update(int input[BUTTON_COUNT]) {
 	int i;
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
-			game.enemies[i].body.vx = 2;
+			game.enemies[i].body.vx = game.enemies[i].direction;
 			ret = physics_sim(&game.enemies[i].body, true);
 			if (ret == PLAYER_DEAD) {
 				game.enemies[i].dead = true;
@@ -86,10 +87,10 @@ int game_update(int input[BUTTON_COUNT]) {
 		return PLAYER_DEAD;
 	}
 
-	return 0;
+	return return_value;
 }
 
-int physics_sim(struct Body* body, bool jump) {
+uint physics_sim(struct Body* body, bool jump) {
 	//Jumping
 	if (jump && body->canjump) {
 		body->isjump = true;

@@ -66,4 +66,6 @@
 // Misc
 #define PLAYER_DEAD -1
 #define REDRAW      -2
+#define COL_LEFT    1
+#define COL_RIGHT   2
 #endif

@@ -31,6 +31,7 @@ struct Enemy {
 	struct Body body;
 	bool dead;
 	float speed;
+	float direction;
 	unsigned char type;
 };
 
