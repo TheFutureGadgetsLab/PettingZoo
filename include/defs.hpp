@@ -22,7 +22,7 @@
 #define COIN_VALUE 1000
 
 // Level generation parameters
-#define GROUND_HEIGHT (LEVEL_HEIGHT * 3 / 4)
+#define GROUND_HEIGHT (LEVEL_HEIGHT - 4)
 #define START_PLATLEN 5
 #define SPAWN_X 0
 #define SPAWN_Y (GROUND_HEIGHT - 1)
@@ -38,14 +38,17 @@
 #define BRICKS        6
 #define SPIKES_TOP    7
 #define SPIKES_BOTTOM 8
-#define LAMP          9
 #define SHROOM        10
-#define GRID          11
 #define COIN          12
 #define FLAG          13
-#define BG            100
 
-#define ENEMY         2
+#define ENEMY         0
+#define BG            1
+#define GRID          2
+#define LAMP          3
+
+// AI parameters
+#define INPUT_SIZE 12
 
 // Player physics parameters
 #define V_X 6

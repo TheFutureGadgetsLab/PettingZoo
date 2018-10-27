@@ -69,8 +69,8 @@ private:
     sf::Texture m_tileset;
 };
 
-sf::Sprite sprites[3];
-sf::Texture textures[3];
+sf::Sprite sprites[4];
+sf::Texture textures[4];
 sf::Text overlay;
 sf::Text score;
 sf::Font font;
@@ -127,8 +127,9 @@ void render_handle_camera(sf::RenderWindow &window) {
 
 void render_load_assets() {
 	// Sprites
-	load_sprite(0, "../assets/lamp.png", false);
-	load_sprite(1, "../assets/bg.png", true);
+	load_sprite(LAMP, "../assets/lamp.png", false);
+	load_sprite(BG, "../assets/bg.png", true);
+	load_sprite(GRID, "../assets/grid.png", false);
 	load_sprite(ENEMY, "../assets/enemy.png", false);
 
 	// Text / Font
@@ -156,8 +157,8 @@ void render_tiles(sf::RenderWindow &window) {
 }
 
 void render_entities(sf::RenderWindow &window) {
-	sprites[0].setPosition((int)player.body.px, (int)player.body.py);
-	window.draw(sprites[0]);
+	sprites[LAMP].setPosition((int)player.body.px, (int)player.body.py);
+	window.draw(sprites[LAMP]);
 
 	int i;
 	struct Enemy enemy;
@@ -182,11 +183,35 @@ void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	overlay.setString(overlay_text);
 	overlay.setPosition(game_view.corner);
 	window.draw(overlay);
+
+	int tile_x1, tile_y1;
+	int tile_x2, tile_y2;
+	int x, y;
+
+	//Calculate bounds for drawing tiles
+	tile_x1 = player.body.tile_x - INPUT_SIZE / 2;
+	tile_x2 = player.body.tile_x + INPUT_SIZE / 2;
+	tile_y1 = player.body.tile_y - INPUT_SIZE / 2;
+	tile_y2 = player.body.tile_y + INPUT_SIZE / 2;
+
+	// Bound checking
+	tile_x1 = (tile_x1 < 0) ? 0: tile_x1;
+	tile_y1 = (tile_y1 < 0) ? 0: tile_y1;
+	tile_x2 = (tile_x2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_x2;
+	tile_y2 = (tile_y2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_y2;
+
+	//Loop over tiles and draw them
+	for (x = tile_x1; x < tile_x2; x++) {
+		for (y = tile_y1; y < tile_y2; y++) {	
+			sprites[GRID].setPosition(x * TILE_SIZE, y * TILE_SIZE);
+			window.draw(sprites[GRID]);
+		}
+	}
 }
 
 void render_other(sf::RenderWindow &window) {
-	sprites[1].setPosition(game_view.center);
-	window.draw(sprites[1]);
+	sprites[BG].setPosition(game_view.center);
+	window.draw(sprites[BG]);
 }
 
 void render_scale_window(sf::RenderWindow &window, sf::Event event) {
