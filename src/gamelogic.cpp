@@ -2,6 +2,7 @@
 #include <levelgen.hpp>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 struct Player player;
 struct Game game;
@@ -10,6 +11,7 @@ int tile_at(int x, int y);
 int tile_solid(int x, int y);
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
 uint physics_sim(struct Body* body, bool jump);
+float dist(float x1, float y1, float x2, float y2);
 
 
 void game_setup() {
@@ -42,8 +44,7 @@ int game_update(int input[BUTTON_COUNT]) {
 	player.buttonpresses += input[BUTTON_JUMP] + input[BUTTON_LEFT] + input[BUTTON_RIGHT];
 
 	//Physics sim for player
-	int ret = physics_sim(&player.body, input[BUTTON_JUMP]);
-	return_value = ret;
+	return_value = physics_sim(&player.body, input[BUTTON_JUMP]);
 
 	//Collisions with coin
 	if (tile_at(player.body.tile_x, player.body.tile_y) == COIN) {
@@ -59,13 +60,21 @@ int game_update(int input[BUTTON_COUNT]) {
 	}
 
 	//Enemies
-	int i;
+	int i, ret;
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
 			game.enemies[i].body.vx = game.enemies[i].direction;
-			ret = physics_sim(&game.enemies[i].body, true);
+			ret = physics_sim(&game.enemies[i].body, chance(50));
 			if (ret == PLAYER_DEAD) {
 				game.enemies[i].dead = true;
+			}
+			if (ret == COL_RIGHT && game.enemies[i].direction > 0) {
+				game.enemies[i].direction = -game.enemies[i].direction;
+			} else if (ret == COL_LEFT && game.enemies[i].direction < 0) {
+				game.enemies[i].direction = -game.enemies[i].direction;
+			}
+			if (dist(player.body.px, player.body.py, game.enemies[i].body.px, game.enemies[i].body.py) < 32) {
+				return PLAYER_DEAD;
 			}
 		}
 	}
@@ -79,7 +88,7 @@ int game_update(int input[BUTTON_COUNT]) {
 
 	//End of level
 	if (player.body.px + PLAYER_RIGHT >= (LEVEL_WIDTH - 4) * TILE_SIZE) {
-		return player.fitness;
+		return PLAYER_DEAD;
 	}
 
 	//Time limit
@@ -91,6 +100,8 @@ int game_update(int input[BUTTON_COUNT]) {
 }
 
 uint physics_sim(struct Body* body, bool jump) {
+	uint return_value = 0;
+
 	//Jumping
 	if (jump && body->canjump) {
 		body->isjump = true;
@@ -126,12 +137,14 @@ uint physics_sim(struct Body* body, bool jump) {
 	if (tile_solid(right_x, tile_y) || right_x >= LEVEL_WIDTH) {
 		body->vx = 0;
 		body->px = (right_x - 1) * TILE_SIZE + PLAYER_MARGIN - 2;
+		return_value = COL_RIGHT;
 	}
 
 	//Left collision
 	if (tile_solid(left_x, tile_y) || left_x < 0) {
 		body->vx = 0;
 		body->px = (left_x + 1) * TILE_SIZE - PLAYER_MARGIN + 2;
+		return_value = COL_LEFT;
 	}
 
 	int tile_xr = (body->px + PLAYER_RIGHT) / TILE_SIZE;
@@ -167,7 +180,7 @@ uint physics_sim(struct Body* body, bool jump) {
 	body->px += body->vx;
 	body->py += body->vy;
 
-	return 0;
+	return return_value;
 }
 
 int tile_at(int x, int y) {
@@ -195,4 +208,8 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
 		return;
 	}
 	game->tiles[y * LEVEL_WIDTH + x] = val;
+}
+
+float dist(float x1, float y1, float x2, float y2) {
+	return sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0));
 }

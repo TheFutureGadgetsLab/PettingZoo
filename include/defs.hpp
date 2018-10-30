@@ -67,8 +67,8 @@
 #define FIT_BUTTONS_WEIGHT 0.2
 
 // Misc
-#define PLAYER_DEAD -1
 #define REDRAW      -2
-#define COL_LEFT    1
-#define COL_RIGHT   2
+#define PLAYER_DEAD 1
+#define COL_LEFT    2
+#define COL_RIGHT   4
 #endif

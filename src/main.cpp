@@ -59,11 +59,11 @@ int main(int argc, char **argv)
 			render_regen_map();
 		} else if (ret == REDRAW) {
 			render_regen_map();
-		} else if (ret > 0) {
+		} /* else if (ret > 0) {
 			printf("PLAYER WON! FITNESS=%d\n", ret);
 			game_setup();
 			render_regen_map();
-		}
+		} */
 
 		// Update camera
 		render_handle_camera(window);
