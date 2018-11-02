@@ -145,7 +145,7 @@ void render_load_assets() {
 	sf::FloatRect textRect = score.getLocalBounds();
 	score.setOrigin(round(textRect.left + textRect.width/2.0f), round(textRect.top  + textRect.height/2.0f));
 
-	map.load_textures("../assets/new_spritesheet.png");
+	map.load_textures("../assets/spritesheet.png");
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
