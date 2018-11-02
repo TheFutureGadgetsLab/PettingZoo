@@ -28,7 +28,7 @@
 #define SPAWN_Y (GROUND_HEIGHT - 1)
 #define HOLE_CHANCE 9
 
-// Sprite parameters
+// Sprite parameters (flat index into spritesheet)
 #define EMPTY         0
 #define PIPE_BOTTOM   1
 #define PIPE_MIDDLE   2
@@ -38,14 +38,14 @@
 #define BRICKS        6
 #define SPIKES_TOP    7
 #define SPIKES_BOTTOM 8
-#define SHROOM        10
-#define COIN          12
-#define FLAG          13
+#define COIN          9
+#define FLAG          10
 
 #define ENEMY         0
 #define BG            1
 #define GRID          2
 #define LAMP          3
+#define SHROOM        4
 
 // AI parameters
 #define INPUT_SIZE 12
