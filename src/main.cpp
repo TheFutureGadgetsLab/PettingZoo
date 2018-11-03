@@ -3,7 +3,7 @@
 #include <rendering.hpp>
 #include <gamelogic.hpp>
 
-int main(int argc, char **argv)
+int main()
 {
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};

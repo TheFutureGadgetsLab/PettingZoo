@@ -60,7 +60,8 @@ int game_update(int input[BUTTON_COUNT]) {
 	}
 
 	//Enemies
-	int i, ret;
+	int ret;
+	uint i;
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
 			game.enemies[i].body.vx = game.enemies[i].direction;

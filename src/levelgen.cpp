@@ -81,15 +81,15 @@ void levelgen_gen_map(struct Game *game) {
 
 // Generate a flat region beginning at origin for length tiles
 void generate_flat_region(struct Game *game, int origin, int length) {
-	int x, y, val, plat_len, height;
+	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
-	int stack_offset, stack_height;
 	bool allow_hole = false;
-	bool inserted_tee = false;
 	int type;
 
 	plat_len = 0;
 	stack_offset = 0;
+	height = 0;
+	type = 0;
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
 		if (chance(15)) {
@@ -227,7 +227,7 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 // Insert Tee
 void insert_tee(struct Game *game, int origin, int height, int length) {
 	printf("Tee:\tat %d\theight %d\tlength %d\n", origin, length, height);
-	int x, y, top;
+	int y, top;
 	top = GROUND_HEIGHT - height;
 
 	insert_platform(game, origin, height, length, BRICKS, false);

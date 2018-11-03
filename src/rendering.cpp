@@ -29,7 +29,6 @@ public:
                 int tileNumber = tiles[i + j * width];
 
                 // find its position in the tileset texture
-				// Do we need to do + 2?
                 int tu = tileNumber % (m_tileset.getSize().x / (TILE_SIZE + 2));
                 int tv = tileNumber / (m_tileset.getSize().x / (TILE_SIZE + 2));
 
@@ -43,6 +42,8 @@ public:
                 quad[3].position = sf::Vector2f(i * TILE_SIZE, (j + 1) * TILE_SIZE);
 
                 // define its 4 texture coordinates
+				// TILE_SIZE + 2 because there is a one pixel halo around each tile
+				// and +/- 1 to further account for the halo
                 quad[0].texCoords = sf::Vector2f(tu * (TILE_SIZE + 2) + 1, tv * (TILE_SIZE + 2) + 1);
                 quad[1].texCoords = sf::Vector2f((tu + 1) * (TILE_SIZE + 2) - 1, tv * (TILE_SIZE + 2) + 1);
                 quad[2].texCoords = sf::Vector2f((tu + 1) * (TILE_SIZE + 2) - 1, (tv + 1) * (TILE_SIZE + 2) - 1);
@@ -158,10 +159,10 @@ void render_tiles(sf::RenderWindow &window) {
 }
 
 void render_entities(sf::RenderWindow &window) {
-	sprites[LAMP].setPosition((int)player.body.px, (int)player.body.py);
+	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
 
-	int i;
+	uint i;
 	struct Enemy enemy;
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
@@ -233,9 +234,6 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 
 void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	char score_text[128];
-    sf::Vector2f pos;
-	pos.x = game_view.corner.x + game_view.size.x / 2;
-	pos.y = game_view.corner.y + 10;
 
 	sprintf(score_text, "Score: %05d\nFitness: %05d\nTime: %0.1lf\n%s %s %s",
 	player.score, player.fitness, player.time,
@@ -244,6 +242,6 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	(input[BUTTON_JUMP] > 0) ? "JUMP" : "");
 
 	score.setString(score_text);
-	score.setPosition(pos);
+	score.setPosition({game_view.corner.x + game_view.size.x / 2, game_view.corner.y + 10});
 	window.draw(score);
 }
