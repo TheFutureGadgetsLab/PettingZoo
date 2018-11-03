@@ -242,6 +242,6 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	(input[BUTTON_JUMP] > 0) ? "JUMP" : "");
 
 	score.setString(score_text);
-	score.setPosition({game_view.corner.x + game_view.size.x / 2, game_view.corner.y + 10});
+	score.setPosition({game_view.center.x, game_view.corner.y + 10});
 	window.draw(score);
 }

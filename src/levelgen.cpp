@@ -4,7 +4,6 @@
 #include <time.h>
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
-#include <stdio.h>
 #include <cstdarg>
 #include <list>
 
@@ -33,14 +32,12 @@ struct platform {
 std::list<struct platform> plats;
 
 void levelgen_gen_map(struct Game *game) {
-	printf("------------------------------------------------\n");
 	plats.clear();
 	int x;
 	bool flat_region;
 
 	game->seed = (unsigned)time(NULL);
 	srand(game->seed);
-	printf("Seed: %d\n", game->seed);
 
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
@@ -226,7 +223,6 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 
 // Insert Tee
 void insert_tee(struct Game *game, int origin, int height, int length) {
-	printf("Tee:\tat %d\theight %d\tlength %d\n", origin, length, height);
 	int y, top;
 	top = GROUND_HEIGHT - height;
 
@@ -263,7 +259,6 @@ void create_hole(struct Game *game, int origin, int width) {
 // Create a pipe at 'origin', opens at 'height' tiles from the ground with a gap of 'width' tiles
 void create_pipe(struct Game *game, int origin, int width, int height) {
 	int y;
-	printf("Pipe:\tat %d\theight %d\twidth %d\n", origin, height, width);
 
 	for (y = 0; y < LEVEL_HEIGHT; y++) {
 		// Middle sections
@@ -289,7 +284,7 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 // If 'do_pipe' is true, 'width' will be set to next greatest odd if even
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe) {
 	int x, y;
-	printf("Gap:\tat %d\theight %d\twidth %d\tdopipe %d\n", origin, height, width, do_pipe);
+
 	if (do_pipe && width % 2 == 0) {
 		width++;
 	}
