@@ -45,7 +45,6 @@
 #define BG            1
 #define GRID          2
 #define LAMP          3
-#define SHROOM        4
 
 // AI parameters
 #define INPUT_SIZE 12

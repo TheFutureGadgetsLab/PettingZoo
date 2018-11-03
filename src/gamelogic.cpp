@@ -178,9 +178,9 @@ uint physics_sim(struct Body* body, bool jump) {
 	}
 
 	//Apply body->velocity
-	body->px += body->vx;
-	body->py += body->vy;
-
+	body->px = round(body->px + body->vx);
+	body->py = round(body->py + body->vy);
+	
 	return return_value;
 }
 

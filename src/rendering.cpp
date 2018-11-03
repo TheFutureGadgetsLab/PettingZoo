@@ -154,10 +154,6 @@ void render_regen_map() {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
-void render_tiles(sf::RenderWindow &window) {
-	window.draw(map);
-}
-
 void render_entities(sf::RenderWindow &window) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
@@ -244,4 +240,10 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	score.setString(score_text);
 	score.setPosition({game_view.center.x, game_view.corner.y + 10});
 	window.draw(score);
+}
+
+void render_draw_state(sf::RenderWindow &window) {
+	render_other(window);
+	window.draw(map);
+	render_entities(window);
 }

@@ -22,30 +22,41 @@ int main()
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Space) {
-					input[BUTTON_JUMP] = 1;
-				} else if (event.key.code == sf::Keyboard::Left) {
-					input[BUTTON_LEFT] = 1;
-				} else if (event.key.code == sf::Keyboard::Right) {
-					input[BUTTON_RIGHT] = 1;
-				} else if (event.key.code == sf::Keyboard::Escape) {
+			int is_pressed = (event.type == sf::Event::KeyPressed);
+			switch(event.key.code) {
+				// Jump
+				case sf::Keyboard::Up:
+				case sf::Keyboard::Space:
+				case sf::Keyboard::W:
+					input[BUTTON_JUMP] = is_pressed;
+					break;
+				// Left
+				case sf::Keyboard::Left:
+				case sf::Keyboard::A:
+					input[BUTTON_LEFT] = is_pressed;
+					break;
+				// Right
+				case sf::Keyboard::Right:
+				case sf::Keyboard::D:
+					input[BUTTON_RIGHT] = is_pressed;
+					break;
+				case sf::Keyboard::Escape:
 					return 0;
-				} else if (event.key.code == sf::Keyboard::O) {
-					draw_overlay ^= 1;
-				} else if (event.key.code == sf::Keyboard::R) {
-					game_setup();
-					render_regen_map();
-				}
-			} else if (event.type == sf::Event::KeyReleased) {
-				if (event.key.code == sf::Keyboard::Left) {
-					input[BUTTON_LEFT] = 0;
-				} else if (event.key.code == sf::Keyboard::Right) {
-					input[BUTTON_RIGHT] = 0;
-				} else if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Space) {
-					input[BUTTON_JUMP] = 0;
-				}
-			} else if (event.type == sf::Event::Closed) {
+				case sf::Keyboard::O:
+					draw_overlay ^= 1 * is_pressed;
+					break;
+				// Reset game state
+				case sf::Keyboard::R:
+					if (is_pressed) {
+						game_setup();
+						render_regen_map();
+					}
+					break;
+				default:
+					break;
+			}
+
+			if (event.type == sf::Event::Closed) {
 				window.close();
 			} else if (event.type == sf::Event::Resized) {
 				render_scale_window(window, event);
@@ -59,11 +70,7 @@ int main()
 			render_regen_map();
 		} else if (ret == REDRAW) {
 			render_regen_map();
-		} /* else if (ret > 0) {
-			printf("PLAYER WON! FITNESS=%d\n", ret);
-			game_setup();
-			render_regen_map();
-		} */
+		}
 
 		// Update camera
 		render_handle_camera(window);
@@ -72,9 +79,7 @@ int main()
 		window.clear(bg_color);
 
 		//Draw background, tiles, and entities
-		render_other(window);
-		render_tiles(window);
-		render_entities(window);
+		render_draw_state(window);
 
 		//Draw debug overlay + fps
 		time = clock.getElapsedTime();
