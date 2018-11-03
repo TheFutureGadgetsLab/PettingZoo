@@ -8,12 +8,12 @@ struct Body {
 	float py;
 	float vx;
 	float vy;
+	int tile_x;
+	int tile_y;
 	bool immune;
 	bool canjump;
 	bool isjump;
 	bool standing;
-	int tile_x;
-	int tile_y;
 };
 
 struct Player {
@@ -29,17 +29,17 @@ struct Player {
 
 struct Enemy {
 	struct Body body;
-	bool dead;
 	float speed;
 	float direction;
+	bool dead;
 	unsigned char type;
 };
 
 struct Game {
-	unsigned char tiles[LEVEL_SIZE];
 	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int n_enemies;
 	unsigned int seed;
+	unsigned char tiles[LEVEL_SIZE];
 };
 
 void game_setup();
