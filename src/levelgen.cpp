@@ -52,7 +52,7 @@ void levelgen_gen_map(struct Game *game) {
 
 			generate_flat_region(game, x, length);
 
-			if (chance(25)) {
+			if (chance(75)) {
 				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
 			}
 

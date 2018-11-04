@@ -61,20 +61,31 @@ int game_update(int input[BUTTON_COUNT]) {
 
 	//Enemies
 	int ret;
-	uint i;
+	uint i, y;
+	bool empty_below;
+	struct Enemy *enemy;
 	for (i = 0; i < game.n_enemies; i++) {
-		if (!game.enemies[i].dead) {
-			game.enemies[i].body.vx = game.enemies[i].direction;
-			ret = physics_sim(&game.enemies[i].body, chance(50));
+		enemy = &game.enemies[i];
+		empty_below = true;
+		if (!enemy->dead) {
+			enemy->body.vx = enemy->direction;
+			ret = physics_sim(&(enemy->body), JUMPING_ENEMIES ? chance(75) : false);
 			if (ret == PLAYER_DEAD) {
-				game.enemies[i].dead = true;
+				enemy->dead = true;
 			}
-			if (ret == COL_RIGHT && game.enemies[i].direction > 0) {
-				game.enemies[i].direction = -game.enemies[i].direction;
-			} else if (ret == COL_LEFT && game.enemies[i].direction < 0) {
-				game.enemies[i].direction = -game.enemies[i].direction;
+			//Check if empty below
+			for (y = enemy->body.tile_y; y < LEVEL_HEIGHT; y++) {
+				if (tile_solid(enemy->body.tile_x, y))
+					empty_below = false;
 			}
-			if (dist(player.body.px, player.body.py, game.enemies[i].body.px, game.enemies[i].body.py) < 32) {
+			if (empty_below) {
+				enemy->direction = -enemy->direction;
+			} else if (ret == COL_RIGHT && enemy->direction > 0) {
+				enemy->direction = -enemy->direction;
+			} else if (ret == COL_LEFT && enemy->direction < 0) {
+				enemy->direction = -enemy->direction;
+			}
+			if (dist(player.body.px, player.body.py, enemy->body.px, enemy->body.py) < 32) {
 				return PLAYER_DEAD;
 			}
 		}
