@@ -81,6 +81,7 @@ extern struct Game game;
 extern struct Player player;
 TileMap map;
 
+//Load a sprite where index is its identifier in sprites array
 void load_sprite(int sprite_index, const std::string path, bool docenter = false) {
     textures[sprite_index].loadFromFile(path);
 	sprites[sprite_index].setTexture(textures[sprite_index], true);
@@ -92,6 +93,7 @@ void load_sprite(int sprite_index, const std::string path, bool docenter = false
 	}
 }
 
+//Update the shared view properties
 void update_view_vars(sf::View view) {
 	game_view.center = view.getCenter();
 	game_view.size = view.getSize();
@@ -99,6 +101,7 @@ void update_view_vars(sf::View view) {
 	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
 }
 
+//Handle the render camera
 void render_handle_camera(sf::RenderWindow &window) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
@@ -127,6 +130,7 @@ void render_handle_camera(sf::RenderWindow &window) {
 	update_view_vars(view);
 }
 
+//Load visual game assets
 void render_load_assets() {
 	// Sprites
 	load_sprite(LAMP, "../assets/lamp.png", false);
@@ -150,10 +154,12 @@ void render_load_assets() {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
+//Render the entire map
 void render_regen_map() {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
+//Render all entities (player, enemies)
 void render_entities(sf::RenderWindow &window) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
@@ -169,6 +175,7 @@ void render_entities(sf::RenderWindow &window) {
 	}
 }
 
+//Render the debug information overlay
 void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	char overlay_text[512];
 
@@ -207,11 +214,13 @@ void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	}
 }
 
+//Render other things
 void render_other(sf::RenderWindow &window) {
 	sprites[BG].setPosition(game_view.center);
 	window.draw(sprites[BG]);
 }
 
+//Window rescale handler
 void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	int zoom;
 	sf::View view = window.getView();
@@ -228,6 +237,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	update_view_vars(view);
 }
 
+//Render the HUD
 void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	char score_text[128];
 
@@ -242,6 +252,7 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 	window.draw(score);
 }
 
+//Render everything
 void render_draw_state(sf::RenderWindow &window) {
 	render_other(window);
 	window.draw(map);

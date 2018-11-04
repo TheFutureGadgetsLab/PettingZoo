@@ -31,12 +31,13 @@ struct platform {
 
 std::list<struct platform> plats;
 
-void levelgen_gen_map(struct Game *game) {
+//Generate a new map from given seed
+void levelgen_gen_map(struct Game *game, unsigned seed) {
 	plats.clear();
 	int x;
 	bool flat_region;
 
-	game->seed = (unsigned)time(NULL);
+	game->seed = seed;
 	srand(game->seed);
 
 	// Insert ground
