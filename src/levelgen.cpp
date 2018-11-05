@@ -31,12 +31,13 @@ struct platform {
 
 std::list<struct platform> plats;
 
-void levelgen_gen_map(struct Game *game) {
+//Generate a new map from given seed
+void levelgen_gen_map(struct Game *game, unsigned seed) {
 	plats.clear();
 	int x;
 	bool flat_region;
 
-	game->seed = (unsigned)time(NULL);
+	game->seed = seed;
 	srand(game->seed);
 
 	// Insert ground
@@ -52,7 +53,7 @@ void levelgen_gen_map(struct Game *game) {
 
 			generate_flat_region(game, x, length);
 
-			if (chance(25)) {
+			if (chance(75)) {
 				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
 			}
 
@@ -235,6 +236,8 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 
 // Insert enemy at tile position
 void insert_enemy(struct Game *game, int x, int y, int type) {
+	if (!ENABLE_ENEMIES)
+		return;
 	struct Enemy enemy;
 	enemy.body.px = x * TILE_SIZE;
 	enemy.body.py = y * TILE_SIZE;

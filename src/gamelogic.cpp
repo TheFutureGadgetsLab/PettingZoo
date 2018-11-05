@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 struct Player player;
 struct Game game;
@@ -13,10 +14,10 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val);
 uint physics_sim(struct Body* body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
-
+//Setup for a new game, full reset
 void game_setup() {
 	levelgen_clear_level(&game);
-	levelgen_gen_map(&game);
+	levelgen_gen_map(&game, (unsigned)time(NULL));
 	player.body.px = SPAWN_X * TILE_SIZE;
 	player.body.py = SPAWN_Y * TILE_SIZE;
 	player.body.vx = 0;
@@ -30,6 +31,7 @@ void game_setup() {
 	player.body.immune = false;
 }
 
+//Called every frame
 int game_update(int input[BUTTON_COUNT]) {
 	int return_value = 0;
 
@@ -61,20 +63,37 @@ int game_update(int input[BUTTON_COUNT]) {
 
 	//Enemies
 	int ret;
-	uint i;
+	uint i, y;
+	bool empty_below;
+	struct Enemy *enemy;
 	for (i = 0; i < game.n_enemies; i++) {
-		if (!game.enemies[i].dead) {
-			game.enemies[i].body.vx = game.enemies[i].direction;
-			ret = physics_sim(&game.enemies[i].body, chance(50));
+		enemy = &game.enemies[i];
+		empty_below = true;
+		if (!enemy->dead) {
+			//Enemy physics simulation
+			enemy->body.vx = enemy->direction;
+			ret = physics_sim(&(enemy->body), JUMPING_ENEMIES ? chance(75) : false);
 			if (ret == PLAYER_DEAD) {
-				game.enemies[i].dead = true;
+				enemy->dead = true;
 			}
-			if (ret == COL_RIGHT && game.enemies[i].direction > 0) {
-				game.enemies[i].direction = -game.enemies[i].direction;
-			} else if (ret == COL_LEFT && game.enemies[i].direction < 0) {
-				game.enemies[i].direction = -game.enemies[i].direction;
+
+			//Check if empty below
+			for (y = enemy->body.tile_y; y < LEVEL_HEIGHT; y++) {
+				if (tile_solid(enemy->body.tile_x, y))
+					empty_below = false;
 			}
-			if (dist(player.body.px, player.body.py, game.enemies[i].body.px, game.enemies[i].body.py) < 32) {
+
+			//Determine if we need to change direction
+			if (empty_below) {
+				enemy->direction = -enemy->direction;
+			} else if (ret == COL_RIGHT && enemy->direction > 0) {
+				enemy->direction = -enemy->direction;
+			} else if (ret == COL_LEFT && enemy->direction < 0) {
+				enemy->direction = -enemy->direction;
+			}
+
+			//Kill player
+			if (dist(player.body.px, player.body.py, enemy->body.px, enemy->body.py) < 32) {
 				return PLAYER_DEAD;
 			}
 		}
@@ -100,6 +119,7 @@ int game_update(int input[BUTTON_COUNT]) {
 	return return_value;
 }
 
+//Physics simulation for any body
 uint physics_sim(struct Body* body, bool jump) {
 	uint return_value = 0;
 
@@ -184,12 +204,14 @@ uint physics_sim(struct Body* body, bool jump) {
 	return return_value;
 }
 
+//Return the tile at given tile position
 int tile_at(int x, int y) {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
 		return 0;
 	return game.tiles[y * LEVEL_WIDTH + x];
 }
 
+//Return if the tile at the given tile position is solid
 int tile_solid(int x, int y) {
 	int tile = tile_at(x, y);
 	switch(tile) {
@@ -211,6 +233,7 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
 	game->tiles[y * LEVEL_WIDTH + x] = val;
 }
 
+//Basic distance function
 float dist(float x1, float y1, float x2, float y2) {
 	return sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0));
 }
