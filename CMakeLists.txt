@@ -2,32 +2,48 @@ cmake_minimum_required(VERSION 3.0.0)
 project(pettingzoo)
 set(CMAKE_BUILD_TYPE Release)
  
-#Bring the headers, such as Student.h into the project
+# Locate headers
 include_directories(include)
 
+# Add extra compiler flags
 if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif()
 
+###############################################################
+#
+#                           Petting zoo
+#
+###############################################################
 # Find libcsfml
 find_library(SFML_GRAPHICS_LIB sfml-graphics)
 find_library(SFML_WINDOW_LIB sfml-window)
-find_library(SFML_AUDIO_LIB sfml-audio)
 find_library(SFML_SYSTEM_LIB sfml-system)
 
-# Add sources to env var
-file(GLOB SOURCES "src/*.cpp")
+# Load game sources
+set(GAME_SOURCES src/gamelogic.cpp src/levelgen.cpp src/rendering.cpp src/main.cpp)
 
-# Not 100% sure what is going on with this
-add_executable(pettingzoo ${SOURCES})
+# Compile into petting zoo
+add_executable(pettingzoo ${GAME_SOURCES})
 
-# Set the location for library installation -- i.e., /usr/lib
-# Use "sudo make install" to apply
-#install(TARGETS pettingzoo DESTINATION /usr/lib)
-
-# Link it
+# Link petting zoo
 target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
+
+###############################################################
+#
+#                           Neural Network
+#
+###############################################################
+# Load NN sources
+set(NN_SOURCES src/neural_network.cpp)
+
+# Compile neural network
+add_executable(neural_network ${NN_SOURCES})
+
+# Set the location for library installation -- i.e., /usr/lib
+# Use "sudo make install" to apply
+#install(TARGETS pettingzoo DESTINATION /usr/lib)
