@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-#define IN_H 16
-#define IN_W 16
+#define IN_H 4
+#define IN_W 4
 #define OUTPUT_SIZE 3
-#define HLC 2
-#define NPL 256
+#define HLC 3
+#define NPL 16
 
 /*
 
@@ -21,8 +21,8 @@ follows (byte indexed):
 
     0: IN_W (input width)
     1: IN_H (input height)
-    2-3: HLC (hidden layer count)
-    4: NPL (nodes per hidden layer)
+    2-3: NPL (nodes per hidden layer)
+    4: HLC (hidden layer count)
 
 The next chunk of the chromosome will be a matrix of size (IN_H, IN_W) describing which
 input tiles are active. It currently makes sense to me that an inactive input tile should
