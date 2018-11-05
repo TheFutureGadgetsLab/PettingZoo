@@ -166,6 +166,7 @@ void render_entities(sf::RenderWindow &window) {
 
 	uint i;
 	struct Enemy enemy;
+	if (ENABLE_ENEMIES)
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
 			enemy = game.enemies[i];

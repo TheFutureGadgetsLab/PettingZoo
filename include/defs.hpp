@@ -20,6 +20,7 @@
 #define VIEW_SIZE_Y (LEVEL_PIXEL_HEIGHT + 2 * TILE_SIZE)
 #define MAX_ENEMIES 32
 #define COIN_VALUE 1000
+#define ENABLE_ENEMIES false
 #define JUMPING_ENEMIES false
 
 // Level generation parameters

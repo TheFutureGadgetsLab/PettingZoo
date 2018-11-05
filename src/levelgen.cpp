@@ -236,6 +236,8 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 
 // Insert enemy at tile position
 void insert_enemy(struct Game *game, int x, int y, int type) {
+	if (!ENABLE_ENEMIES)
+		return;
 	struct Enemy enemy;
 	enemy.body.px = x * TILE_SIZE;
 	enemy.body.py = y * TILE_SIZE;
