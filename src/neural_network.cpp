@@ -22,20 +22,14 @@ int main()
 uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
 {
     srand(10);
-    size_t total_size, in_act, in_adj, hidden_act, hidden_adj, out_adj;
+    size_t total_size;
     uint8_t *chrom = NULL;
     float *tmp;
     int r, c, hl, base;
     
     // Adj matrices multiplied by 4 as they are floats
-    in_act = in_h * in_w;
-    in_adj = (in_h * in_w) * npl * 4;
-    hidden_act = hlc * npl;
-    hidden_adj = (hlc - 1) * (npl * npl) * 4;
-    out_adj = (npl * OUTPUT_SIZE) * 4;
+    total_size = 5 + in_h * in_w + (in_h * in_w) * npl * 4 + hlc * npl + (hlc - 1) * (npl * npl) * 4 + (npl * OUTPUT_SIZE) * 4;
 
-    total_size = 5 + in_act + in_adj + hidden_act + hidden_adj + out_adj;
-    
     chrom = (uint8_t *)malloc(total_size);
 
     chrom[0] = in_w;
@@ -48,10 +42,8 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
     for (r = 0; r < in_h; r++) {
         for (c = 0; c < in_w; c++) {
             chrom[base] = random() % 2;
-            printf("%d\t", chrom[base]);
             base++;
         }
-        puts("");
     }
 
     // Generate input adj matrix
@@ -59,21 +51,17 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
     for (r = 0; r < in_h * in_w; r++) {
         for (c = 0; c < npl; c++) {
             *tmp = (float)random() / (float)random();
-            printf("%0.2lf\t", *tmp);
             tmp++;
-            base++;
+            base += 4;
         }
-        puts("");
     }
 
     // Generate hidden act matrix
     for (r = 0; r < npl; r++) {
         for (c = 0; c < hlc; c++) {
             chrom[base] = random() % 2;
-            printf("%d\t", chrom[base]);
             base++;
         }
-        puts("");
     }
 
     // Generate hidden adj matrices
@@ -82,13 +70,10 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
         for (r = 0; r < npl; r++) {
             for (c = 0; c < npl; c++) {
                 *tmp = (float)random() / (float)random();
-                printf("%0.2lf\t", *tmp);
                 tmp++;
-                base++;
+                base += 4;
             }
-            puts("");
         }
-        puts("");
     }
 
     // Generate out adj matrix
@@ -96,11 +81,9 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
     for (r = 0; r < npl; r++) {
         for (c = 0; c < OUTPUT_SIZE; c++) {
             *tmp = (float)random() / (float)random();
-            printf("%0.2lf\t", *tmp);
             tmp++;
-            base++;
+            base += 4;
         }
-        puts("");
     }
 
     return chrom;
@@ -109,7 +92,7 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
 void print_chromosome(uint8_t *chrom)
 {
     printf("-------------------------------------------\n");
-    size_t total_size, in_act, in_adj, hidden_act, hidden_adj, out_adj;
+    size_t total_size;
     uint8_t in_w, in_h, hlc;
     uint16_t npl;
     float *tmp;
@@ -120,14 +103,8 @@ void print_chromosome(uint8_t *chrom)
     npl = *((uint16_t *)chrom + 1);
     hlc = chrom[4];
 
-    in_act = in_h * in_w;
-    in_adj = (in_h * in_w) * npl * 4;
-    hidden_act = hlc * npl;
-    hidden_adj = (hlc - 1) * (npl * npl) * 4;
-    out_adj = (npl * OUTPUT_SIZE) * 4;
-
     // Adj matrices multiplied by 4 as they are floats
-    total_size = 5 + in_act + in_adj + hidden_act + hidden_adj + out_adj;
+    total_size = 5 + in_h * in_w + (in_h * in_w) * npl * 4 + hlc * npl + (hlc - 1) * (npl * npl) * 4 + (npl * OUTPUT_SIZE) * 4;
 
     base = 5;
     // Generate input act matrix
@@ -144,7 +121,7 @@ void print_chromosome(uint8_t *chrom)
         for (c = 0; c < npl; c++) {
             printf("%0.2lf\t", *tmp);
             tmp++;
-            base++;
+            base += 4;
         }
         puts("");
     }
@@ -163,7 +140,7 @@ void print_chromosome(uint8_t *chrom)
             for (c = 0; c < npl; c++) {
                 printf("%0.2lf\t", *tmp);
                 tmp++;
-                base++;
+                base += 4;
             }
             puts("");
         }
@@ -175,10 +152,11 @@ void print_chromosome(uint8_t *chrom)
         for (c = 0; c < OUTPUT_SIZE; c++) {
             printf("%0.2lf\t", *tmp);
             tmp++;
-            base++;
+            base += 4;
         }
         puts("");
     }
+
     printf("\nChromosome:\n");
     printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n",
               in_h, in_w, npl, hlc);
