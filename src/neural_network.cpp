@@ -34,7 +34,7 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
 
     chrom[0] = in_w;
     chrom[1] = in_h;
-    *(((uint16_t *)chrom) + 1) = npl;
+    *((uint16_t *)chrom + 1) = npl; // Bytes 2-3
     chrom[4] = hlc;
     
     base = 5;
@@ -52,9 +52,9 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
         for (c = 0; c < npl; c++) {
             *tmp = (float)random() / (float)random();
             tmp++;
-            base += 4;
         }
     }
+    base = (uint8_t *)tmp - chrom;
 
     // Generate hidden act matrix
     for (r = 0; r < npl; r++) {
@@ -71,10 +71,10 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
             for (c = 0; c < npl; c++) {
                 *tmp = (float)random() / (float)random();
                 tmp++;
-                base += 4;
             }
         }
     }
+    base = (uint8_t *)tmp - chrom;
 
     // Generate out adj matrix
     tmp = (float *)(chrom + base);
@@ -82,9 +82,9 @@ uint8_t * generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t 
         for (c = 0; c < OUTPUT_SIZE; c++) {
             *tmp = (float)random() / (float)random();
             tmp++;
-            base += 4;
         }
     }
+    base = (uint8_t *)tmp - chrom;
 
     return chrom;
 }
@@ -107,25 +107,27 @@ void print_chromosome(uint8_t *chrom)
     total_size = 5 + in_h * in_w + (in_h * in_w) * npl * 4 + hlc * npl + (hlc - 1) * (npl * npl) * 4 + (npl * OUTPUT_SIZE) * 4;
 
     base = 5;
-    // Generate input act matrix
+    printf("Input activation:\n");
     for (r = 0; r < in_h; r++) {
         for (c = 0; c < in_w; c++) {
             printf("%d\t", chrom[base]);
             base++;
         }
-        printf("\n");
+        puts("");
     }
 
+    printf("\nInput to first hidden layer adj:\n");
     tmp = (float *)(chrom + base);
     for (r = 0; r < in_w * in_h; r++) {
         for (c = 0; c < npl; c++) {
             printf("%0.2lf\t", *tmp);
             tmp++;
-            base += 4;
         }
         puts("");
     }
+    base = (uint8_t *)tmp - chrom;
 
+    printf("\nHidden layers activation:\n");
     for (r = 0; r < npl; r++) {
         for (c = 0; c < hlc; c++) {
             printf("%d\t", chrom[base]);
@@ -134,32 +136,34 @@ void print_chromosome(uint8_t *chrom)
         puts("");
     }
 
+    puts("");
     tmp = (float *)(chrom + base);
     for (hl = 0; hl < hlc - 1; hl++) {
+        printf("Hidden layer %d to %d act:\n", hl + 1, hl + 2);
         for (r = 0; r < npl; r++) {
             for (c = 0; c < npl; c++) {
                 printf("%0.2lf\t", *tmp);
                 tmp++;
-                base += 4;
             }
             puts("");
         }
         puts("");
     }
+    base = (uint8_t *)tmp - chrom;
 
+    printf("Hidden layer %d to output act:\n", hlc);
     tmp = (float *)(chrom + base);
     for (r = 0; r < npl; r++) {
         for (c = 0; c < OUTPUT_SIZE; c++) {
             printf("%0.2lf\t", *tmp);
             tmp++;
-            base += 4;
         }
         puts("");
     }
+    base = (uint8_t *)tmp - chrom;
 
     printf("\nChromosome:\n");
-    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n",
-              in_h, in_w, npl, hlc);
-    printf("\nTotal size: %0.2lfKB\n\n", total_size / 1000.0);
+    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", in_h, in_w, npl, hlc);
+    printf("\nTotal size: %0.2lfKB\n", total_size / 1000.0);
     printf("-------------------------------------------\n");
 }
