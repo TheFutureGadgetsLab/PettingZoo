@@ -1,5 +1,5 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef RENDERING_H
+#define RENDERING_H
 
 #include <SFML/Graphics.hpp>
 #include <defs.hpp>
