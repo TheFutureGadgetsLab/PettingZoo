@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pettingzoo)
-set(CMAKE_BUILD_TYPE Release)
  
 # Locate headers
 include_directories(include)
@@ -26,7 +25,7 @@ set(GAME_SOURCES src/gamelogic.cpp src/levelgen.cpp src/rendering.cpp src/main.c
 # Compile into petting zoo
 add_executable(pettingzoo ${GAME_SOURCES})
 
-# Link petting zoo
+# Link libraries
 target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
@@ -39,10 +38,13 @@ target_link_libraries(pettingzoo m)
 #
 ###############################################################
 # Load NN sources
-set(NN_SOURCES src/neural_network.cpp)
+set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp)
 
 # Compile neural network
 add_executable(neural_network ${NN_SOURCES})
+
+# Link libraries
+target_link_libraries(neural_network m)
 
 # Set the location for library installation -- i.e., /usr/lib
 # Use "sudo make install" to apply
