@@ -5,9 +5,18 @@
 
 #define IN_H 4
 #define IN_W 4
-#define OUTPUT_SIZE 3
+#define BUTTON_COUNT 3
 #define HLC 3
 #define NPL 16
+
+uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+uint8_t *locate_input_act(uint8_t *chrom);
+float *locate_input_adj(uint8_t *chrom);
+uint8_t *locate_hidden_act(uint8_t *chrom);
+size_t get_chromosome_size(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+float *locate_hidden_adj(uint8_t *chrom, int num);
+float *locate_out_adj(uint8_t *chrom);
+void print_chromosome(uint8_t *chrom);
 
 /*
 
