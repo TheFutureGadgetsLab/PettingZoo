@@ -70,8 +70,8 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
         sum = 0.0f;
         printf("HL 0, node %d\n", node);
         for (weight = 0; weight < in_h * in_w; weight++) {
-            sum += input_adj[weight * npl + node] * inputs[weight];
-            printf("%0.3f * %d\n", input_adj[weight * npl + node], inputs[weight]);
+            sum += input_adj[node * npl + weight] * inputs[weight];
+            printf("%0.3f * %d\n", input_adj[node * npl + weight], inputs[weight]);
         }
         // node_outputs[node] = sigmoid(sum);
         node_outputs[node * hlc] = sum;

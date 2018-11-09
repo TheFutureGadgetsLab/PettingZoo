@@ -4,7 +4,7 @@
 #define IN_H 3
 #define IN_W 3
 #define BUTTON_COUNT 3
-#define HLC 2
+#define HLC 3
 #define NPL 5
 
 float sigmoid(float x);

@@ -28,8 +28,8 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
 
     // Generate input adj matrix
     cur_float = locate_input_adj(chrom);
-    for (r = 0; r < in_h * in_w; r++) {
-        for (c = 0; c < npl; c++) {
+    for (r = 0; r < npl; r++) {
+        for (c = 0; c < in_h * in_w; c++) {
             *cur_float = (float)random() / (float)random();
             cur_float++;
         }
@@ -37,8 +37,8 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
 
     // Generate hidden act matrix
     cur_uint = locate_hidden_act(chrom);
-    for (r = 0; r < npl; r++) {
-        for (c = 0; c < hlc; c++) {
+    for (r = 0; r < hlc; r++) {
+        for (c = 0; c < npl; c++) {
             *cur_uint = random() % 2;
             cur_uint++;
         }
@@ -57,8 +57,8 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
 
     // Generate out adj matrix
     cur_float = locate_out_adj(chrom);
-    for (r = 0; r < npl; r++) {
-        for (c = 0; c < BUTTON_COUNT; c++) {
+    for (r = 0; r < BUTTON_COUNT; r++) {
+        for (c = 0; c < npl; c++) {
             *cur_float = (float)random() / (float)random();
             cur_float++;
         }
@@ -93,9 +93,9 @@ void print_chromosome(uint8_t *chrom)
 
     printf("\nInput to first hidden layer adj:\n");
     cur_float = locate_input_adj(chrom);
-    for (r = 0; r < in_h * in_w; r++) {
-        for (c = 0; c < npl; c++) {
-            printf("%0.2lf\t", *cur_float);
+    for (r = 0; r < npl; r++) {
+        for (c = 0; c < in_h * in_w; c++) {
+            printf("%0.3lf\t", *cur_float);
             cur_float++;
         }
         puts("");
@@ -103,8 +103,8 @@ void print_chromosome(uint8_t *chrom)
 
     printf("\nHidden layers activation:\n");
     cur_uint = locate_hidden_act(chrom);
-    for (r = 0; r < npl; r++) {
-        for (c = 0; c < hlc; c++) {
+    for (r = 0; r < hlc; r++) {
+        for (c = 0; c < npl; c++) {
             printf("%d\t", *cur_uint);
             cur_uint++;
         }
@@ -127,8 +127,8 @@ void print_chromosome(uint8_t *chrom)
 
     printf("Hidden layer %d to output act:\n", hlc);
     cur_float = locate_out_adj(chrom);
-    for (r = 0; r < npl; r++) {
-        for (c = 0; c < BUTTON_COUNT; c++) {
+    for (r = 0; r < BUTTON_COUNT; r++) {
+        for (c = 0; c < npl; c++) {
             printf("%0.2lf\t", *cur_float);
             cur_float++;
         }
