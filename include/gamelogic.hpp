@@ -2,6 +2,7 @@
 #define GAMELOGIC_H
 
 #include <defs.hpp>
+#include <stdint.h>
 
 struct Body {
 	float px;
@@ -39,7 +40,7 @@ struct Game {
 	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int n_enemies;
 	unsigned int seed;
-	unsigned char tiles[LEVEL_SIZE];
+	uint8_t tiles[LEVEL_SIZE];
 };
 
 void game_setup();

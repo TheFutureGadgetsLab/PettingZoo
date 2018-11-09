@@ -18,7 +18,7 @@ void print_chromosome(uint8_t *chrom);
 /*
 
 All matrices in the chromosome will be flattened, 2D, row-major matrices with elements of type
-UINT_8 unless otherwise stated.
+uint8_t unless otherwise stated.
 
 The parameters that define the size of a chromosome (notably nodes per hidden layer and hidden
 layer count) will hopefully change so we will embed the size parameters in the beginning of a
@@ -30,10 +30,13 @@ follows (byte indexed):
     2-3: NPL (nodes per hidden layer)
     4: HLC (hidden layer count)
 
+INPUT ACTIVATION MATRIX
 The next chunk of the chromosome will be a matrix of size (IN_H, IN_W) describing which
-input tiles are active. It currently makes sense to me that an inactive input tile should
-report that there is simply nothing there (empty tile). A 0 in this matrix at index i,j means
-that input tile i,j is inactive. A 1 means the input is active.
+input tiles are active. The array is arranged from top to bottom, left to right w.r.t. the 
+input (top left tile of input is first entry, bottom right tile is last entry). It currently 
+makes sense to me that an inactive input tile should report that there is simply nothing there 
+(empty tile). A 0 in this matrix at index i,j means that input tile i,j is inactive. A 1 means 
+the input is active.
 
 The next chunk will be a matrix of size (HLC, NPL) describing which neurons are active in the
 hidden layers. A 0 means active, and a 1 means inactive.
