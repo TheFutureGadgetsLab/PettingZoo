@@ -8,6 +8,13 @@
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 
+// Activation functions
+float sigmoid(float x);
+float softsign(float x);
+float sigmoid_bounded(float x);
+float softsign_bounded(float x);
+float tanh_bounded(float x);
+
 int main()
 {
     uint8_t *chrom = NULL;
@@ -108,9 +115,34 @@ void calc_hidden_layers(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
     }
 }
 
+// sigmoid in [-1,1]
 float sigmoid(float x)
 {
-    return 1.0f / (1 + expf(-x));
+    return 2.0 / (1.0 + expf(-x)) - 1.0;
+}
+
+// x/(1+|x|) in [-1,1]
+float softsign(float x)
+{
+    return x / (1.0 + abs(x));
+}
+
+// sigmoid in [0,1]
+float sigmoid_bounded(float x)
+{
+    return 1.0 / (1.0 + expf(-x));
+}
+
+// x/(1+|x|) in [0,1]
+float softsign_bounded(float x)
+{
+    return (0.5 * x) / (1.0 + abs(x)) + 0.5;
+}
+
+// tanh(x) in [0,1]
+float tanh_bounded(float x)
+{
+    return 0.5 + tanh(x) * 0.5;
 }
 
 // float vec_dot(float *a, float *b, int size)

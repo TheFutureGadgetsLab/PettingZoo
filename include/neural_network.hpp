@@ -7,7 +7,6 @@
 #define HLC 3
 #define NPL 5
 
-float sigmoid(float x);
 float vec_dot(float *a, float *b, int size);
 
 #endif
