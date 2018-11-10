@@ -8,5 +8,7 @@
 #define NPL 5
 
 float vec_dot(float *a, float *b, int size);
+float sigmoid(float x);
+float soft_sign(float x);
 
 #endif
