@@ -45,5 +45,6 @@ struct Game {
 
 void game_setup();
 int game_update(int input[BUTTON_COUNT]);
+void get_input_tiles(uint8_t *tiles, uint8_t in_h, uint8_t in_w);
 
 #endif

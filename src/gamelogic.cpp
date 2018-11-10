@@ -237,3 +237,34 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
 float dist(float x1, float y1, float x2, float y2) {
 	return sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0));
 }
+
+void get_input_tiles(uint8_t *tiles, uint8_t in_h, uint8_t in_w)
+{
+	int tile_x1, tile_y1;
+	int tile_x2, tile_y2;
+	int x, y;
+	uint8_t *tmp;
+
+	tmp = tiles;
+
+	//Calculate bounds for drawing tiles
+	tile_x1 = player.body.tile_x - in_w / 2;
+	tile_x2 = player.body.tile_x + in_w / 2;
+	tile_y1 = player.body.tile_y - in_h / 2;
+	tile_y2 = player.body.tile_y + in_h / 2;
+
+	//Loop over tiles and draw them
+	for (y = tile_y1; y < tile_y2; y++) {
+		for (x = tile_x1; x < tile_x2; x++) {
+			// Report walls on left and right side of level
+			if (x < 0 || x >= LEVEL_WIDTH)
+				*tmp = BRICKS;
+			else if (y < 0 || y >= LEVEL_HEIGHT)
+				*tmp = EMPTY;
+			else 
+				*tmp = game.tiles[y * LEVEL_WIDTH + x];
+	
+			tmp++;
+		}
+	}
+}
