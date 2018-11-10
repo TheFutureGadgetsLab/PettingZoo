@@ -95,7 +95,7 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
                    inputs[weight] * input_act[weight];
         }
 
-        node_outputs[node] = sigmoid(sum);
+        node_outputs[node] = sigmoid_bounded(sum);
     }
 }
 
@@ -132,7 +132,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
                        node_outs[(layer - 1) * prms.npl + weight];
             }
 
-            node_outs[cur_node] = sigmoid(sum);
+            node_outs[cur_node] = sigmoid_bounded(sum);
         }
     }
 }
@@ -157,7 +157,7 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
                    node_outs[(prms.hlc - 1) * prms.npl + weight];
         }
 
-        net_outs[bttn] = sigmoid(sum);
+        net_outs[bttn] = sigmoid_bounded(sum);
     }
 }
 
@@ -189,9 +189,4 @@ float softsign_bounded(float x)
 float tanh_bounded(float x)
 {
     return 0.5 + tanh(x) * 0.5;
-}
-
-float soft_sign(float x)
-{
-    return x / (1 + abs(x));
 }
