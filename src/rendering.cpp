@@ -203,8 +203,8 @@ void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	// Bound checking
 	tile_x1 = (tile_x1 < 0) ? 0: tile_x1;
 	tile_y1 = (tile_y1 < 0) ? 0: tile_y1;
-	tile_x2 = (tile_x2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_x2;
-	tile_y2 = (tile_y2 >= LEVEL_WIDTH) ? LEVEL_WIDTH - 1: tile_y2;
+	tile_x2 = (tile_x2 > LEVEL_WIDTH) ? LEVEL_WIDTH: tile_x2;
+	tile_y2 = (tile_y2 > LEVEL_HEIGHT) ? LEVEL_HEIGHT: tile_y2;
 
 	//Loop over tiles and draw them
 	for (x = tile_x1; x < tile_x2; x++) {
