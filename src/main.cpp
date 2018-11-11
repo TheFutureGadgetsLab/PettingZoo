@@ -8,6 +8,8 @@ int main()
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
 	int ret = 0;
+	int frames;
+	double fps;
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time time;
 	sf::Clock clock;
@@ -20,7 +22,7 @@ int main()
 
 	game_setup(&game, &player);
 	render_load_assets();
-	render_gen_map(&game);
+	render_gen_map(game);
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -44,6 +46,7 @@ int main()
 					input[BUTTON_RIGHT] = is_pressed;
 					break;
 				case sf::Keyboard::Escape:
+					printf("Average FPS: %lf\n", fps / frames);
 					return 0;
 				case sf::Keyboard::O:
 					draw_overlay ^= 1 * is_pressed;
@@ -52,7 +55,7 @@ int main()
 				case sf::Keyboard::R:
 					if (is_pressed) {
 						game_setup(&game, &player);
-						render_gen_map(&game);
+						render_gen_map(game);
 					}
 					break;
 				default:
@@ -70,29 +73,31 @@ int main()
 		ret = game_update(&game, &player, input);
 		if (ret == PLAYER_DEAD) {
 			game_setup(&game, &player);
-			render_gen_map(&game);
+			render_gen_map(game);
 		} else if (ret == REDRAW) {
-			render_gen_map(&game);
+			render_gen_map(game);
 		}
 
 		// Update camera
-		render_handle_camera(window, &player);
+		render_handle_camera(window, player);
 
 		//Clear the screen
 		window.clear(bg_color);
 
 		//Draw background, tiles, and entities
-		render_draw_state(window, &game, &player);
+		render_draw_state(window, game, player);
 
 		//Draw debug overlay + fps
 		time = clock.getElapsedTime();
 		clock.restart();
 		if (draw_overlay) {
-			render_debug_overlay(window, &game, &player, time);
+			render_debug_overlay(window, game, player, time);
 		}
 
+		fps += 1.0 / time.asSeconds();
+		frames++;
 		// Score and time
-		render_hud(window, &player, input);
+		render_hud(window, player, input);
 
 		window.display();
 	}
