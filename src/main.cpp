@@ -69,6 +69,7 @@ int main()
 		//Update game state
 		ret = game_update(&game, &player, input);
 		if (ret == PLAYER_DEAD) {
+		    printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
 			game_setup(&game, &player);
 			render_gen_map(game);
 		} else if (ret == REDRAW) {

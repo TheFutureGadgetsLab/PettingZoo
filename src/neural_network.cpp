@@ -39,6 +39,8 @@ int main()
         continue;
     }    
 
+    printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+
     free(chrom);
     free(tiles);
     free(node_outputs);

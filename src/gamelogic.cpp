@@ -54,7 +54,6 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 
 	//Lower bound
 	if (player->body.py > LEVEL_PIXEL_HEIGHT) {
-		printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player->score, player->fitness);
 		return PLAYER_DEAD;
 	}
 
