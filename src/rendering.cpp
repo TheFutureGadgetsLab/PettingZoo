@@ -77,8 +77,6 @@ sf::Text overlay;
 sf::Text score;
 sf::Font font;
 View game_view;
-extern struct Game game;
-extern struct Player player;
 TileMap map;
 
 //Load a sprite where index is its identifier in sprites array
@@ -102,14 +100,14 @@ void update_view_vars(sf::View view) {
 }
 
 //Handle the render camera
-void render_handle_camera(sf::RenderWindow &window) {
+void render_handle_camera(sf::RenderWindow &window, struct Player *player) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
 	sf::Vector2f target;
 
 	//Slide view towards player
-	target.x = player.body.px + 16;
-	target.y = player.body.py + 16;
+	target.x = player->body.px + 16;
+	target.y = player->body.py + 16;
 	game_view.center.x = game_view.center.x + (target.x - game_view.center.x) * CAMERA_INTERP;
 	game_view.center.y = game_view.center.y + (target.y - game_view.center.y) * CAMERA_INTERP;
 	view.setCenter(game_view.center);
@@ -151,25 +149,24 @@ void render_load_assets() {
 	score.setOrigin(round(textRect.left + textRect.width/2.0f), round(textRect.top  + textRect.height/2.0f));
 
 	map.load_textures("../assets/spritesheet.png");
-	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
 //Render the entire map
-void render_regen_map() {
-	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
+void render_gen_map(struct Game *game) {
+	map.load_map(game->tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
 //Render all entities (player, enemies)
-void render_entities(sf::RenderWindow &window) {
-	sprites[LAMP].setPosition(player.body.px, player.body.py);
+void render_entities(sf::RenderWindow &window, struct Game *game, struct Player *player) {
+	sprites[LAMP].setPosition(player->body.px, player->body.py);
 	window.draw(sprites[LAMP]);
 
 	uint i;
 	struct Enemy enemy;
 	if (ENABLE_ENEMIES)
-	for (i = 0; i < game.n_enemies; i++) {
-		if (!game.enemies[i].dead) {
-			enemy = game.enemies[i];
+	for (i = 0; i < game->n_enemies; i++) {
+		if (!game->enemies[i].dead) {
+			enemy = game->enemies[i];
 			sprites[ENEMY].setPosition(enemy.body.px, enemy.body.py);
 			window.draw(sprites[ENEMY]);
 		}
@@ -177,14 +174,14 @@ void render_entities(sf::RenderWindow &window) {
 }
 
 //Render the debug information overlay
-void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
+void render_debug_overlay(sf::RenderWindow &window, struct Game *game, struct Player *player, sf::Time frametime) {
 	char overlay_text[512];
 
 	sprintf(overlay_text,
 	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d",
-		player.body.px, player.body.py, 1.0 / frametime.asSeconds(),
-		game.seed, player.body.vx, player.body.vy,
-		player.body.tile_x, player.body.tile_y);
+		player->body.px, player->body.py, 1.0 / frametime.asSeconds(),
+		game->seed, player->body.vx, player->body.vy,
+		player->body.tile_x, player->body.tile_y);
 
 	overlay.setString(overlay_text);
 	overlay.setPosition(game_view.corner);
@@ -195,10 +192,10 @@ void render_debug_overlay(sf::RenderWindow &window, sf::Time frametime) {
 	int x, y;
 
 	//Calculate bounds for drawing tiles
-	tile_x1 = player.body.tile_x - INPUT_SIZE / 2;
-	tile_x2 = player.body.tile_x + INPUT_SIZE / 2;
-	tile_y1 = player.body.tile_y - INPUT_SIZE / 2;
-	tile_y2 = player.body.tile_y + INPUT_SIZE / 2;
+	tile_x1 = player->body.tile_x - INPUT_SIZE / 2;
+	tile_x2 = player->body.tile_x + INPUT_SIZE / 2;
+	tile_y1 = player->body.tile_y - INPUT_SIZE / 2;
+	tile_y2 = player->body.tile_y + INPUT_SIZE / 2;
 
 	// Bound checking
 	tile_x1 = (tile_x1 < 0) ? 0: tile_x1;
@@ -239,11 +236,11 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 }
 
 //Render the HUD
-void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
+void render_hud(sf::RenderWindow &window, struct Player *player, int input[BUTTON_COUNT]) {
 	char score_text[128];
 
 	sprintf(score_text, "Score: %05d\nFitness: %05d\nTime: %0.1lf\n%s %s %s",
-	player.score, player.fitness, player.time,
+	player->score, player->fitness, player->time,
 	(input[BUTTON_LEFT] > 0) ? "Left" : "     ",
 	(input[BUTTON_RIGHT] > 0) ? "Right" : "     ",
 	(input[BUTTON_JUMP] > 0) ? "JUMP" : "");
@@ -254,8 +251,8 @@ void render_hud(sf::RenderWindow &window, int input[BUTTON_COUNT]) {
 }
 
 //Render everything
-void render_draw_state(sf::RenderWindow &window) {
+void render_draw_state(sf::RenderWindow &window, struct Game *game, struct Player *player) {
 	render_other(window);
 	window.draw(map);
-	render_entities(window);
+	render_entities(window, game, player);
 }
