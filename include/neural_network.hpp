@@ -10,5 +10,6 @@
 float vec_dot(float *a, float *b, int size);
 float sigmoid(float x);
 float soft_sign(float x);
+uint extract_from_bytes(uint8_t *bytes, uint8_t *chrom, uint8_t *buttons);
 
 #endif

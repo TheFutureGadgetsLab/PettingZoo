@@ -11,7 +11,7 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
 int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons);
-void write_buttons(uint8_t *buttons, size_t size);
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t chrom_bytes, unsigned int seed);
 
 // Activation functions
 float sigmoid(float x);
@@ -34,7 +34,8 @@ int main()
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
     buttons = (uint8_t *)malloc(sizeof(uint8_t) * MAX_FRAMES);
 
-    srand(time(NULL));
+    uint seed = time(NULL);
+    srand(seed);
 
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
 
@@ -46,7 +47,9 @@ int main()
 
     printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
 
-    write_buttons(buttons, MAX_FRAMES);
+    struct params prms;
+    get_params(chrom, &prms);
+    write_out(buttons, MAX_FRAMES, chrom, get_chromosome_size(prms), seed);
 
     free(chrom);
     free(tiles);
@@ -104,11 +107,28 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     return 0;
 }
 
-void write_buttons(uint8_t *buttons, size_t size) {
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t chrom_bytes, unsigned int seed) {
     FILE *file = fopen("output.bin", "w");
-    fwrite(buttons, sizeof(uint8_t), size, file);
-    printf("wrote %lu bytes\n", size);
+    size_t total_bytes = buttons_bytes + chrom_bytes + sizeof(seed);
+
+    //Seed
+    fwrite(&seed, sizeof(unsigned int), 1, file);
+
+    //Button presses
+    fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
+
+    //Chromosome
+    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
+
+    printf("wrote %lu bytes\n", total_bytes);
     fclose(file);
+}
+
+uint extract_from_bytes(uint8_t *bytes, size_t nbytes, uint8_t *chrom, uint8_t *buttons) {
+    uint seed = ((unsigned int *)bytes)[0];
+
+    buttons = bytes + sizeof(unsigned int);
+    chrom = chrom + MAX_FRAMES;
 }
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)

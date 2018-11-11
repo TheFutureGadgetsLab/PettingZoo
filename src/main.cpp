@@ -2,6 +2,8 @@
 #include <defs.hpp>
 #include <rendering.hpp>
 #include <gamelogic.hpp>
+#include <sys/stat.h>
+#include <neural_network.hpp>
 
 int main()
 {
@@ -14,6 +16,24 @@ int main()
 	sf::Color bg_color(135, 206, 235);
 	struct Game game;
 	struct Player player;
+	uint8_t curbuttons;
+	uint seed;
+	size_t nbytes;
+	uint8_t *bytes = NULL;
+	uint8_t *buttons = NULL;
+	uint8_t *chrom = NULL;
+
+	//Get size of file
+	struct stat st;
+	stat("output.bin", &st);
+	nbytes = st.st_size;
+	bytes = (uint8_t *)malloc(nbytes);
+
+	//Read file, extract information
+	FILE *infile = fopen("output.bin", "r");
+	fread(buttons, sizeof(uint8_t), MAX_FRAMES, infile);
+	fclose(infile);
+	seed = extract_from_bytes(bytes, chrom, buttons);
 
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
@@ -66,6 +86,12 @@ int main()
 			}
 		}
 
+		//Get buttons
+		curbuttons = buttons[game.frame];
+		input[BUTTON_RIGHT] = curbuttons & 0x1;
+		input[BUTTON_LEFT] = curbuttons & 0x2;
+		input[BUTTON_JUMP] = curbuttons & 0x4;
+
 		//Update game state
 		ret = game_update(&game, &player, input);
 		if (ret == PLAYER_DEAD) {
@@ -84,6 +110,9 @@ int main()
 
 		//Draw background, tiles, and entities
 		render_draw_state(window, game, player);
+
+		//Increment frame
+		game.frame += 1;
 
 		//Draw debug overlay + fps
 		frame_time = clock.getElapsedTime();
