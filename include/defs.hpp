@@ -61,7 +61,9 @@
 #define PLAYER_MARGIN ((TILE_SIZE - PLAYER_WIDTH) / 2)
 #define PLAYER_RIGHT (TILE_SIZE - PLAYER_MARGIN)
 #define PLAYER_LEFT (PLAYER_MARGIN / 2)
-#define UPDATES_PS 60.0
+#define UPDATES_PS 60
+#define MAX_TIME (LEVEL_WIDTH / 4)
+#define MAX_FRAMES (MAX_TIME * UPDATES_PS)
 
 // Fitness measurement parameters
 #define FIT_TIME_WEIGHT 2.0

@@ -15,6 +15,7 @@ float dist(float x1, float y1, float x2, float y2);
 void game_setup(struct Game *game, struct Player *player) {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, (unsigned)time(NULL));
+	game->frame = 0;
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
@@ -33,7 +34,7 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 	int return_value = 0;
 
 	// Estimate of time
-	player->time += 1 / UPDATES_PS;
+	player->time += 1.0 / UPDATES_PS;
 
 	//Left and right button press
 	player->body.vx += (V_X - player->body.vx) * input[BUTTON_RIGHT];
@@ -108,7 +109,7 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 	}
 
 	//Time limit
-	if (player->time >= 0.25 * LEVEL_WIDTH) {
+	if (player->time >= MAX_TIME) {
 		return PLAYER_DEAD;
 	}
 
