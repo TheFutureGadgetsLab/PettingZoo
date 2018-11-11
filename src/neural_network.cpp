@@ -51,10 +51,23 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     struct params prms;
     float network_outputs[BUTTON_COUNT];
     int inputs[BUTTON_COUNT];
-    int ret;
+    int ret, x, y;
 
     get_params(chrom, &prms);
     get_input_tiles(game, player, tiles, prms.in_h, prms.in_w);
+
+    
+    for(y = 0; y < prms.in_h; y++) {
+        for(x = 0; x < prms.in_w; x++) {
+            if (tiles[y * prms.in_w + x] > 0) {
+                printf("0 ");
+            } else {
+                printf("  ");
+            }
+        }
+        puts("");
+    }
+    
 
     calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);
@@ -66,9 +79,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_RIGHT] > 0.5f;
 
     printf("----------------------------\n");
-    printf("Jump:\t%d\n", inputs[BUTTON_JUMP]);
-    printf("Left:\t%d\n", inputs[BUTTON_LEFT]);
-    printf("Right:\t%d\n", inputs[BUTTON_RIGHT]);
+    printf("Jump:\t%d\t%lf\n", inputs[BUTTON_JUMP], network_outputs[BUTTON_JUMP]);
+    printf("Left:\t%d\t%lf\n", inputs[BUTTON_LEFT], network_outputs[BUTTON_LEFT]);
+    printf("Right:\t%d\t%lf\n", inputs[BUTTON_RIGHT], network_outputs[BUTTON_RIGHT]);
     printf("----------------------------\n");
 
     if ((ret = game_update(game, player, inputs)) == PLAYER_DEAD) {
