@@ -9,7 +9,7 @@ int main()
 	int input[BUTTON_COUNT] = {0};
 	int ret = 0;
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
-	sf::Time time;
+	sf::Time frame_time;
 	sf::Clock clock;
 	sf::Color bg_color(135, 206, 235);
 	struct Game game;
@@ -85,10 +85,10 @@ int main()
 		render_draw_state(window, game, player);
 
 		//Draw debug overlay + fps
-		time = clock.getElapsedTime();
+		frame_time = clock.getElapsedTime();
 		clock.restart();
 		if (draw_overlay) {
-			render_debug_overlay(window, game, player, time);
+			render_debug_overlay(window, game, player, frame_time);
 		}
 
 		// Score and time

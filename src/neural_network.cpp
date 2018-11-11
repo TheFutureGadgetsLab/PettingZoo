@@ -23,7 +23,6 @@ int main()
 {
     uint8_t *chrom = NULL;
     float *node_outputs = NULL;
-    float *network_outputs = NULL;
     uint8_t *tiles = NULL;
     struct Game game;
     struct Player player;
@@ -36,9 +35,9 @@ int main()
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
 
     game_setup(&game, &player);
-    // while (do_it(&game, chrom, inputs, node_outputs) != -1) {
-        // continue;
-    // }    
+    while (evaluate_frame(&game, &player, chrom, tiles, node_outputs) != -1) {
+        continue;
+    }    
 
     free(chrom);
     free(tiles);
@@ -66,9 +65,17 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.5f;
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_RIGHT] > 0.5f;
 
+    printf("----------------------------\n");
+    printf("Jump:\t%d\n", inputs[BUTTON_JUMP]);
+    printf("Left:\t%d\n", inputs[BUTTON_LEFT]);
+    printf("Right:\t%d\n", inputs[BUTTON_RIGHT]);
+    printf("----------------------------\n");
+
     if ((ret = game_update(game, player, inputs)) == PLAYER_DEAD) {
         return -1;
     }
+
+    return 0;
 }
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
