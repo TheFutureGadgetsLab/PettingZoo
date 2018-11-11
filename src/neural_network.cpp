@@ -76,7 +76,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     // Assign button presses based on output probability
     inputs[BUTTON_RIGHT] = network_outputs[BUTTON_RIGHT] > 0.5f;
     inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.5f;
-    inputs[BUTTON_JUMP] = network_outputs[BUTTON_RIGHT] > 0.5f;
+    inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.5f;
 
     printf("----------------------------\n");
     printf("Jump:\t%d\t%lf\n", inputs[BUTTON_JUMP], network_outputs[BUTTON_JUMP]);
