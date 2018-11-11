@@ -8,8 +8,6 @@ int main()
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
 	int ret = 0;
-	int frames;
-	double fps;
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time time;
 	sf::Clock clock;
@@ -46,7 +44,6 @@ int main()
 					input[BUTTON_RIGHT] = is_pressed;
 					break;
 				case sf::Keyboard::Escape:
-					printf("Average FPS: %lf\n", fps / frames);
 					return 0;
 				case sf::Keyboard::O:
 					draw_overlay ^= 1 * is_pressed;
@@ -94,8 +91,6 @@ int main()
 			render_debug_overlay(window, game, player, time);
 		}
 
-		fps += 1.0 / time.asSeconds();
-		frames++;
 		// Score and time
 		render_hud(window, player, input);
 
