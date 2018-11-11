@@ -124,6 +124,7 @@ void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t ch
     fclose(file);
 }
 
+//Extract button presses, chromosome and seed (the return value) from bytes
 uint extract_from_bytes(uint8_t *bytes, size_t nbytes, uint8_t *chrom, uint8_t *buttons) {
     uint seed = ((unsigned int *)bytes)[0];
 
