@@ -38,7 +38,7 @@ target_link_libraries(pettingzoo m)
 #
 ###############################################################
 # Load NN sources
-set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp)
+set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
 
 # Compile neural network
 add_executable(neural_network ${NN_SOURCES})
