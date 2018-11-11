@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <defs.hpp>
-#include <time.h>
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
 #include <cstdarg>
@@ -37,8 +36,8 @@ void levelgen_gen_map(struct Game *game, unsigned seed) {
 	int x;
 	bool flat_region;
 
+	srand(seed);
 	game->seed = seed;
-	srand(game->seed);
 
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);

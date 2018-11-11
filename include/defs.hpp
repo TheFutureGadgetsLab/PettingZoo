@@ -28,7 +28,6 @@
 #define START_PLATLEN 5
 #define SPAWN_X 0
 #define SPAWN_Y (GROUND_HEIGHT - 1)
-#define HOLE_CHANCE 9
 
 // Sprite parameters (flat index into spritesheet)
 #define EMPTY         0

@@ -142,7 +142,7 @@ void print_chromosome(uint8_t *chrom)
 
     printf("\nChromosome:\n");
     printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", params.in_h, params.in_w, params.npl, params.hlc);
-    printf("\nTotal size: %0.2lfKB\n", get_chromosome_size(params) / 1000.0);
+    printf("\nTotal size: %0.2lfKB\n", get_chromosome_size(params) / 1000.0f);
     printf("-------------------------------------------\n");
 }
 
@@ -233,10 +233,10 @@ float gen_random_weight()
 {
     float weight;
     
-    weight = (float)random() / RAND_MAX / 10;
+    weight = (float)drand48();
 
     // Connection is inactive
-    if ((float)random() / RAND_MAX > 0.9)
+    if ((float)drand48() > 0.9f)
         return 0.0f;
 
     if (random() % 2 == 0)
