@@ -12,12 +12,15 @@ int main()
 	sf::Time time;
 	sf::Clock clock;
 	sf::Color bg_color(135, 206, 235);
+	struct Game game;
+	struct Player player;
 
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 
-	game_setup();
+	game_setup(&game, &player);
 	render_load_assets();
+	render_gen_map(&game);
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -48,8 +51,8 @@ int main()
 				// Reset game state
 				case sf::Keyboard::R:
 					if (is_pressed) {
-						game_setup();
-						render_regen_map();
+						game_setup(&game, &player);
+						render_gen_map(&game);
 					}
 					break;
 				default:
@@ -64,32 +67,32 @@ int main()
 		}
 
 		//Update game state
-		ret = game_update(input);
+		ret = game_update(&game, &player, input);
 		if (ret == PLAYER_DEAD) {
-			game_setup();
-			render_regen_map();
+			game_setup(&game, &player);
+			render_gen_map(&game);
 		} else if (ret == REDRAW) {
-			render_regen_map();
+			render_gen_map(&game);
 		}
 
 		// Update camera
-		render_handle_camera(window);
+		render_handle_camera(window, &player);
 
 		//Clear the screen
 		window.clear(bg_color);
 
 		//Draw background, tiles, and entities
-		render_draw_state(window);
+		render_draw_state(window, &game, &player);
 
 		//Draw debug overlay + fps
 		time = clock.getElapsedTime();
 		clock.restart();
 		if (draw_overlay) {
-			render_debug_overlay(window, time);
+			render_debug_overlay(window, &game, &player, time);
 		}
 
 		// Score and time
-		render_hud(window, input);
+		render_hud(window, &player, input);
 
 		window.display();
 	}

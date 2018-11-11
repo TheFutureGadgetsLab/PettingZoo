@@ -5,10 +5,12 @@
 #include <stdint.h>
 #include <time.h>
 #include <math.h>
+#include <gamelogic.hpp>
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
+int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs);
 
 // Activation functions
 float sigmoid(float x);
@@ -22,45 +24,51 @@ int main()
     uint8_t *chrom = NULL;
     float *node_outputs = NULL;
     float *network_outputs = NULL;
-    uint8_t *inputs = NULL;
-    int row, col, button;
+    uint8_t *tiles = NULL;
+    struct Game game;
+    struct Player player;
 
-    inputs = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
+    tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
-    network_outputs = (float *)malloc(sizeof(float) * BUTTON_COUNT);
 
-    // Initialize example input array
-    for (row = 0; row < IN_H; row++) {
-        for (col = 0; col < IN_W; col++) {
-            inputs[row * IN_W + col] = row * IN_W + col;
-        }
-    }
-
-    srand(10);
+    srand(time(NULL));
 
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
 
-    calc_first_layer(chrom, inputs, node_outputs);
+    game_setup(&game, &player);
+    // while (do_it(&game, chrom, inputs, node_outputs) != -1) {
+        // continue;
+    // }    
+
+    free(chrom);
+    free(tiles);
+    free(node_outputs);
+
+    return 0;
+}
+
+int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs)
+{
+    struct params prms;
+    float network_outputs[BUTTON_COUNT];
+    int inputs[BUTTON_COUNT];
+    int ret;
+
+    get_params(chrom, &prms);
+    get_input_tiles(game, player, tiles, prms.in_h, prms.in_w);
+
+    calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);
     calc_output(chrom, node_outputs, network_outputs);
 
-    printf("node_outputs:\n");
-    for (row = 0; row < HLC; row++) {
-        for (col = 0; col < NPL; col++) {
-            printf("%lf\t", node_outputs[row * NPL + col]);
-        }
-        puts("");
+    // Assign button presses based on output probability
+    inputs[BUTTON_RIGHT] = network_outputs[BUTTON_RIGHT] > 0.5f;
+    inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.5f;
+    inputs[BUTTON_JUMP] = network_outputs[BUTTON_RIGHT] > 0.5f;
+
+    if ((ret = game_update(game, player, inputs)) == PLAYER_DEAD) {
+        return -1;
     }
-
-    printf("\nnetwork_outputs:\n");
-    for (button = 0; button < BUTTON_COUNT; button++) {
-        printf("%lf\t", network_outputs[button]);
-    }
-    puts("");
-
-    free(chrom);
-
-    return 0;
 }
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
