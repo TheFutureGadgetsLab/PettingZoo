@@ -2,6 +2,7 @@
 #include <defs.hpp>
 #include <rendering.hpp>
 #include <gamelogic.hpp>
+#include <time.h>
 
 int main()
 {
@@ -14,11 +15,14 @@ int main()
 	sf::Color bg_color(135, 206, 235);
 	struct Game game;
 	struct Player player;
+	unsigned seed;
 
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 
-	game_setup(&game, &player);
+	seed = time(NULL);
+
+	game_setup(&game, &player, seed);
 	render_load_assets();
 	render_gen_map(game);
 
@@ -51,7 +55,8 @@ int main()
 				// Reset game state
 				case sf::Keyboard::R:
 					if (is_pressed) {
-						game_setup(&game, &player);
+						seed = time(NULL);
+						game_setup(&game, &player, seed);
 						render_gen_map(game);
 					}
 					break;
@@ -70,7 +75,8 @@ int main()
 		ret = game_update(&game, &player, input);
 		if (ret == PLAYER_DEAD) {
 		    printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
-			game_setup(&game, &player);
+			seed = time(NULL);
+			game_setup(&game, &player, seed);
 			render_gen_map(game);
 		} else if (ret == REDRAW) {
 			render_gen_map(game);

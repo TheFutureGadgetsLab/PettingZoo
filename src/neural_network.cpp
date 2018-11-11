@@ -26,15 +26,15 @@ int main()
     uint8_t *tiles = NULL;
     struct Game game;
     struct Player player;
+    unsigned seed = time(NULL);
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
-    srand(time(NULL));
-
+    srand(seed);
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
 
-    game_setup(&game, &player);
+    game_setup(&game, &player, seed);
     while (evaluate_frame(&game, &player, chrom, tiles, node_outputs) != -1) {
         continue;
     }    
@@ -53,7 +53,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     struct params prms;
     float network_outputs[BUTTON_COUNT];
     int inputs[BUTTON_COUNT];
-    int ret, x, y;
+    int x, y;
 
     get_params(chrom, &prms);
     get_input_tiles(game, player, tiles, prms.in_h, prms.in_w);
@@ -70,7 +70,6 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
         puts("");
     }
     
-
     calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);
     calc_output(chrom, node_outputs, network_outputs);
@@ -86,7 +85,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     printf("Right:\t%d\t%lf\n", inputs[BUTTON_RIGHT], network_outputs[BUTTON_RIGHT]);
     printf("----------------------------\n");
 
-    if ((ret = game_update(game, player, inputs)) == PLAYER_DEAD) {
+    if (game_update(game, player, inputs) == PLAYER_DEAD) {
         return -1;
     }
 

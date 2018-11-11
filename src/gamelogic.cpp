@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
 
 int tile_at(struct Game *game, int x, int y);
 int tile_solid(struct Game *game, int x, int y);
@@ -12,9 +11,10 @@ uint physics_sim(struct Game *game, struct Body* body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
-void game_setup(struct Game *game, struct Player *player) {
+void game_setup(struct Game *game, struct Player *player, unsigned seed) {
 	levelgen_clear_level(game);
-	levelgen_gen_map(game, (unsigned)time(NULL));
+	levelgen_gen_map(game, seed);
+	srand(seed);
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
