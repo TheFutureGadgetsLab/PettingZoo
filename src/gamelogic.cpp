@@ -7,14 +7,15 @@
 int tile_at(struct Game *game, int x, int y);
 int tile_solid(struct Game *game, int x, int y);
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
-uint physics_sim(struct Game *game, struct Body* body, bool jump);
+unsigned int physics_sim(struct Game *game, struct Body* body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
-void game_setup(struct Game *game, struct Player *player, unsigned seed) {
+void game_setup(struct Game *game, struct Player *player, unsigned int seed) {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
-	srand(seed);
+
+	// Reset parameters
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
@@ -68,7 +69,7 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 		if (!enemy->dead) {
 			//Enemy physics simulation
 			enemy->body.vx = enemy->direction;
-			ret = physics_sim(game, &(enemy->body), JUMPING_ENEMIES ? chance(75) : false);
+			ret = physics_sim(game, &(enemy->body), JUMPING_ENEMIES ? chance(&game->seed_state, 75) : false);
 			if (ret == PLAYER_DEAD) {
 				enemy->dead = true;
 			}
@@ -116,8 +117,8 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 }
 
 //Physics simulation for any body
-uint physics_sim(struct Game *game, struct Body* body, bool jump) {
-	uint return_value = 0;
+unsigned int physics_sim(struct Game *game, struct Body* body, bool jump) {
+	unsigned int return_value = 0;
 
 	//Jumping
 	if (jump && body->canjump) {

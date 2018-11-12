@@ -20,17 +20,17 @@ find_library(SFML_WINDOW_LIB sfml-window)
 find_library(SFML_SYSTEM_LIB sfml-system)
 
 # Load game sources
-set(GAME_SOURCES src/gamelogic.cpp src/levelgen.cpp src/rendering.cpp src/main.cpp src/neural_network.cpp)
+set(GAME_SOURCES src/gamelogic.cpp src/levelgen.cpp src/rendering.cpp src/main.cpp)
 
 # Compile into petting zoo
-# add_executable(pettingzoo ${GAME_SOURCES})
+add_executable(pettingzoo ${GAME_SOURCES})
 
 # Link libraries
-# target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
-# target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
-# target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
-# target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
-# target_link_libraries(pettingzoo m)
+target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
+target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
+target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
+target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
+target_link_libraries(pettingzoo m)
 
 ###############################################################
 #

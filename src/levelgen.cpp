@@ -6,10 +6,10 @@
 #include <cstdarg>
 #include <list>
 
-int randint(int max);
-int randrange(int min, int max);
-int chance(double percent);
-int choose(int nargs...);
+int randint(unsigned int *seedp, int max);
+int randrange(unsigned int *seedp, int min, int max);
+int chance(unsigned int *seedp, double percent);
+int choose(unsigned int *seedp, int nargs...);
 void set_tile(struct Game *game, int x, int y, unsigned char val);
 void create_hole(struct Game *game, int origin, int width);
 void create_pipe(struct Game *game, int origin, int width, int height);
@@ -31,13 +31,14 @@ struct platform {
 std::list<struct platform> plats;
 
 //Generate a new map from given seed
-void levelgen_gen_map(struct Game *game, unsigned seed) {
-	plats.clear();
+void levelgen_gen_map(struct Game *game, unsigned int seed) {
 	int x;
 	bool flat_region;
 
-	srand(seed);
+	plats.clear();
+
 	game->seed = seed;
+	game->seed_state = seed;
 
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
@@ -45,14 +46,14 @@ void levelgen_gen_map(struct Game *game, unsigned seed) {
 	flat_region = true;
 	for (x = START_PLATLEN; x < LEVEL_WIDTH - 20; x++) {
 		if (flat_region) {
-			int length = randrange(20, 50);
+			int length = randrange(&game->seed_state, 20, 50);
 
 			if (x + length >= LEVEL_WIDTH - START_PLATLEN)
 				length = (LEVEL_WIDTH - START_PLATLEN) - x;
 
 			generate_flat_region(game, x, length);
 
-			if (chance(75)) {
+			if (chance(&game->seed_state, 75)) {
 				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
 			}
 
@@ -67,13 +68,14 @@ void levelgen_gen_map(struct Game *game, unsigned seed) {
 
 	// Iterate over plats to place coins
 	for (auto const& i : plats) {
-    	if (chance(50)) {
+    	if (chance(&game->seed_state, 50)) {
 			set_tile(game, i.origin + i.length / 2, i.height - 1, COIN);
 		}
 	}
 
 	// Ending flag
 	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
+	game->seed_state = seed;
 }
 
 // Generate a flat region beginning at origin for length tiles
@@ -89,23 +91,23 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 	type = 0;
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
-		if (chance(15)) {
-			plat_len = randrange(3, 8);
+		if (chance(&game->seed_state, 15)) {
+			plat_len = randrange(&game->seed_state, 3, 8);
 			// Ensure platform doesnt extend past region
 			if (x + plat_len >= origin + length)
 				plat_len = origin + length - x - 1;
 
 			// Choose plat type with equal probability then set
 			// height coords based on type
-			type = BRICKS + randrange(0, 2); // if rand returns 0 then bricks, 1 top spikes, 2 bottom spikes
+			type = BRICKS + randrange(&game->seed_state, 0, 2); // if rand returns 0 then bricks, 1 top spikes, 2 bottom spikes
 			if (type == BRICKS || type == SPIKES_TOP)
-				height = randrange(base_plat + 2, base_plat + 3);
+				height = randrange(&game->seed_state, base_plat + 2, base_plat + 3);
 			else // Bottom spikes can be higher
-				height = randrange(base_plat + 2, base_plat + 4);
+				height = randrange(&game->seed_state, base_plat + 2, base_plat + 4);
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (base_plat == 0 && type == BRICKS && chance(75)) {
+				if (base_plat == 0 && type == BRICKS && chance(&game->seed_state, 75)) {
 					int t_platlen = plat_len;
 					if (t_platlen % 2 == 0)
 						t_platlen++;
@@ -158,8 +160,8 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 		// If height of prev. plat allows, or base_plat is not 0, and the plat is long enough
 		// Insert a hole
 		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && (type != SPIKES_BOTTOM || base_plat != 0)) {
-			int hole_len = randrange(2, 5);
-			int hole_origin = x + randrange(0, plat_len - hole_len + 3);
+			int hole_len = randrange(&game->seed_state, 2, 5);
+			int hole_origin = x + randrange(&game->seed_state, 0, plat_len - hole_len + 3);
 
 			if (hole_origin + hole_len >= origin + length)
 				hole_len = origin + length - hole_origin - 1;
@@ -175,9 +177,9 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 int generate_obstacle(struct Game *game, int origin) {
 	int width, height, do_pipe;
 
-	width = randrange(3, 7);
-	height = randrange(3, 5);
-	do_pipe = chance(50);
+	width = randrange(&game->seed_state, 3, 7);
+	height = randrange(&game->seed_state, 3, 5);
+	do_pipe = chance(&game->seed_state, 50);
 
 	create_stair_gap(game, origin, height, width, do_pipe);
 
@@ -306,8 +308,8 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 	create_hole(game, origin, width);
 
 	if (do_pipe) {
-		int pipe_width = randrange(2, 4);
-		int pipe_height = height + choose((7), 0, 1, 1, 2, 2, 2, 3, 3, 3, 3) * choose((2), 1, -1);
+		int pipe_width = randrange(&game->seed_state, 2, 4);
+		int pipe_height = height + choose(&game->seed_state, (7), 0, 1, 1, 2, 2, 2, 3, 3, 3, 3) * choose(&game->seed_state, (2), 1, -1);
 
 		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
@@ -344,24 +346,24 @@ void levelgen_clear_level(struct Game *game) {
 }
 
 // Return an integer where 0 <= x <= max
-int randint(int max) {
-	return random() % (max + 1);
+int randint(unsigned int *seedp, int max) {
+	return rand_r(seedp) % (max + 1);
 }
 
 // Return an integer where min <= x <= max
-int randrange(int min, int max) {
+int randrange(unsigned int *seedp, int min, int max) {
 	if (min == max)
 		return max;
-	return min + (random() % (abs(max - min) + 1));
+	return min + (rand_r(seedp) % (abs(max - min) + 1));
 }
 
 // Return 0 or 1 probabilistically
-int chance(double percent) {
-	return ((double)random() / (double)RAND_MAX) <= (percent / 100.0);
+int chance(unsigned int *seedp, double percent) {
+	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);
 }
 
 // Returns a random integer in list of integers
-int choose(int nargs...) {
+int choose(unsigned int *seedp, int nargs...) {
 	va_list args;
 	va_start(args, nargs);
 	int array[nargs];
@@ -369,5 +371,5 @@ int choose(int nargs...) {
 	for (i = 0; i < nargs; i++) {
 		array[i] = va_arg(args, int);
 	}
-	return array[randint(nargs - 1)];
+	return array[randint(seedp, nargs - 1)];
 }

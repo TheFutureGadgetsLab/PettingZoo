@@ -3,8 +3,8 @@
 
 #include <gamelogic.hpp>
 
-void levelgen_gen_map(struct Game *game, unsigned time);
+void levelgen_gen_map(struct Game *game, unsigned int seed);
 void levelgen_clear_level(struct Game *game);
-int chance(double percent);
+int chance(unsigned int *seedp, double percent);
 
 #endif
