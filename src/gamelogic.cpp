@@ -15,7 +15,6 @@ void game_setup(struct Game *game, struct Player *player, unsigned seed) {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
 	srand(seed);
-	game->frame = 0;
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;

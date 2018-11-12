@@ -1,15 +1,18 @@
 #ifndef NEURAL_NETWORK_H
 #define NEURAL_NETWORK_H
 
-#define IN_H 16
-#define IN_W 16
+#include <defs.hpp>
+
+#define IN_H 3
+#define IN_W 3
 #define BUTTON_COUNT 3
 #define HLC 2
-#define NPL 256
+#define NPL 3
 
 float vec_dot(float *a, float *b, int size);
 float sigmoid(float x);
 float soft_sign(float x);
-uint extract_from_bytes(uint8_t *bytes, uint8_t *chrom, uint8_t *buttons);
+uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed);
+
 
 #endif

@@ -40,7 +40,6 @@ struct Game {
 	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int n_enemies;
 	unsigned int seed;
-	unsigned int frame;
 	uint8_t tiles[LEVEL_SIZE];
 };
 

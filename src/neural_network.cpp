@@ -6,12 +6,14 @@
 #include <time.h>
 #include <math.h>
 #include <gamelogic.hpp>
+#include <sys/stat.h>
+#include <string.h>
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
 int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons);
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t chrom_bytes, unsigned int seed);
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
 
 // Activation functions
 float sigmoid(float x);
@@ -27,35 +29,33 @@ int main()
     uint8_t *tiles = NULL;
     struct Game game;
     struct Player player;
-    uint8_t *buttons = NULL;
+    uint8_t buttons[MAX_FRAMES];
     uint buttons_index = 0;
-    unsigned seed = time(NULL);
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
-    buttons = (uint8_t *)malloc(sizeof(uint8_t) * MAX_FRAMES);
 
     uint seed = time(NULL);
     srand(seed);
 
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
+    print_chromosome(chrom);
 
     game_setup(&game, &player, seed);
-    while (evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons) != -1) {
-        game.frame += 1;
-        continue;
+    while (evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index) != -1) {
+        buttons_index++;
     }    
 
-    printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+    // printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
 
-    struct params prms;
-    get_params(chrom, &prms);
-    write_out(buttons, MAX_FRAMES, chrom, get_chromosome_size(prms), seed);
+    write_out(buttons, MAX_FRAMES, chrom, seed);
+
+    chrom = extract_from_file("output.bin", buttons, &seed);
+    print_chromosome(chrom);
 
     free(chrom);
     free(tiles);
     free(node_outputs);
-    free(buttons);
 
     return 0;
 }
@@ -65,22 +65,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     struct params prms;
     float network_outputs[BUTTON_COUNT];
     int inputs[BUTTON_COUNT];
-    int x, y;
 
     get_params(chrom, &prms);
     get_input_tiles(game, player, tiles, prms.in_h, prms.in_w);
-
-    
-    /* for(y = 0; y < prms.in_h; y++) {
-        for(x = 0; x < prms.in_w; x++) {
-            if (tiles[y * prms.in_w + x] > 0) {
-                printf("0 ");
-            } else {
-                printf("  ");
-            }
-        }
-        puts("");
-    } */
     
     calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);
@@ -92,13 +79,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.5f;
 
     // Add pressed buttons to the buffer
-    buttons[game->frame] = (uint8_t)((inputs[BUTTON_RIGHT] << 0) & (inputs[BUTTON_LEFT] << 1) & (inputs[BUTTON_JUMP] << 2));
-
-    /* printf("----------------------------\n");
-    printf("Jump:\t%d\t%lf\n", inputs[BUTTON_JUMP], network_outputs[BUTTON_JUMP]);
-    printf("Left:\t%d\t%lf\n", inputs[BUTTON_LEFT], network_outputs[BUTTON_LEFT]);
-    printf("Right:\t%d\t%lf\n", inputs[BUTTON_RIGHT], network_outputs[BUTTON_RIGHT]);
-    printf("----------------------------\n"); */
+    *buttons = (uint8_t)((inputs[BUTTON_RIGHT] << 0) & 
+                         (inputs[BUTTON_LEFT] << 1) & 
+                         (inputs[BUTTON_JUMP] << 2));
 
     if (game_update(game, player, inputs) == PLAYER_DEAD) {
         return -1;
@@ -107,9 +90,12 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     return 0;
 }
 
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t chrom_bytes, unsigned int seed) {
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
     FILE *file = fopen("output.bin", "w");
-    size_t total_bytes = buttons_bytes + chrom_bytes + sizeof(seed);
+    struct params prms;
+
+    get_params(chrom, &prms);
+    size_t chrom_bytes = get_chromosome_size(prms);
 
     //Seed
     fwrite(&seed, sizeof(unsigned int), 1, file);
@@ -120,16 +106,43 @@ void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, size_t ch
     //Chromosome
     fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
 
-    printf("wrote %lu bytes\n", total_bytes);
     fclose(file);
 }
 
-//Extract button presses, chromosome and seed (the return value) from bytes
-uint extract_from_bytes(uint8_t *bytes, size_t nbytes, uint8_t *chrom, uint8_t *buttons) {
-    uint seed = ((unsigned int *)bytes)[0];
+/*
+ * Extracts seed, chromosome, and button presses from file.
+ * THIS FUNCTION RETURNS A POINTER TO THE EXTRACTED
+ * CHROMOSOME THAT ***YOU MUST FREE YOURSELF***
+ */
+uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed)
+{
+    FILE *file = NULL;
+    uint8_t *data = NULL;
+    uint8_t *chrom;
+    size_t file_size, chrom_size;
+    struct stat st;
 
-    buttons = bytes + sizeof(unsigned int);
-    chrom = chrom + MAX_FRAMES;
+    stat(fname, &st);
+	file_size = st.st_size;
+
+    file = fopen(fname, "r");
+
+	data = (uint8_t *)malloc(file_size);
+    fread(data, sizeof(uint8_t), file_size, file);
+
+    chrom_size = file_size - MAX_FRAMES - sizeof(uint);
+    chrom = (uint8_t *)malloc(chrom_size);
+
+    // Populate button array
+    memcpy(buttons, data + sizeof(uint), MAX_FRAMES);
+    // Populate chromosome
+    memcpy(chrom, data + sizeof(uint) + MAX_FRAMES, chrom_size);
+
+    *seed = ((unsigned int *)data)[0];
+
+    free(data);
+
+    return chrom;
 }
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
