@@ -17,17 +17,6 @@
 #define LEVEL_PIXEL_WIDTH (LEVEL_WIDTH * TILE_SIZE)
 #define LEVEL_PIXEL_HEIGHT (LEVEL_HEIGHT * TILE_SIZE)
 #define LEVEL_SIZE (LEVEL_HEIGHT * LEVEL_WIDTH)
-#define VIEW_SIZE_Y (LEVEL_PIXEL_HEIGHT + 2 * TILE_SIZE)
-#define MAX_ENEMIES 32
-#define COIN_VALUE 1000
-#define ENABLE_ENEMIES false
-#define JUMPING_ENEMIES false
-
-// Level generation parameters
-#define GROUND_HEIGHT (LEVEL_HEIGHT - 4)
-#define START_PLATLEN 5
-#define SPAWN_X 0
-#define SPAWN_Y (GROUND_HEIGHT - 1)
 
 // Sprite parameters (flat index into spritesheet)
 #define EMPTY         0
@@ -49,22 +38,9 @@
 
 #define INPUT_SIZE 16
 
-// Player physics parameters
-#define V_X 6
-#define V_JUMP 8
-#define INTERTA 1.4
-#define GRAVITY 0.3
-#define PLAYER_WIDTH 24
-#define PLAYER_HALFW (PLAYER_WIDTH / 2)
-#define PLAYER_MARGIN ((TILE_SIZE - PLAYER_WIDTH) / 2)
-#define PLAYER_RIGHT (TILE_SIZE - PLAYER_MARGIN)
-#define PLAYER_LEFT (PLAYER_MARGIN / 2)
-#define UPDATES_PS 60
-#define MAX_TIME (LEVEL_WIDTH / 4)
-#define MAX_FRAMES (MAX_TIME * UPDATES_PS)
-
 // Fitness measurement parameters
 #define FIT_TIME_WEIGHT 2.0
 #define FIT_BUTTONS_WEIGHT 0.2
+#define COIN_VALUE 1000
 
 #endif

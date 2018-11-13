@@ -30,14 +30,14 @@ void game_setup(struct Game *game, struct Player *player, unsigned int seed) {
 }
 
 //Called every frame
-int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT]) {
+int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]) {
 	int return_value = 0;
 
 	// Estimate of time
-	player->time += 1.0 / UPDATES_PS;
+	player->time += 1.0 / (float)UPDATES_PS;
 	
 	//Time limit
-	if (player->time >= MAX_TIME) {
+	if (player->time >= MAX_TIME - 1.0 / (float)UPDATES_PS) {
 		return PLAYER_TIMEOUT;
 	}
 	

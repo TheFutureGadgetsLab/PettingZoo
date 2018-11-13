@@ -30,16 +30,16 @@ int main()
     struct Player player;
     uint8_t buttons[MAX_FRAMES];
     int buttons_index, ret;
+    unsigned int seed;
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
-
-    uint seed = time(NULL);
+    
+    seed = time(NULL);
 
     chrom = generate_chromosome(IN_H, IN_W, HLC, NPL, seed);
-
     game_setup(&game, &player, seed);
-
+        
     buttons_index = 0;
     while (1) {
         ret = evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index);
@@ -50,11 +50,11 @@ int main()
     }    
 
     if (ret == PLAYER_DEAD)
-        printf("Player died:\n");
+        printf("Player died\n");
     else
-        printf("Player timed out:\n");
-
+        printf("Player timed out\n");
     printf("Fitness: %d\n", player.fitness);
+
 
     write_out(buttons, MAX_FRAMES, chrom, seed);
 
@@ -69,7 +69,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
 {
     struct params prms;
     float network_outputs[BUTTON_COUNT];
-    int inputs[BUTTON_COUNT];
+    uint8_t inputs[BUTTON_COUNT];
     int ret;
 
     get_params(chrom, &prms);
@@ -85,9 +85,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.5f;
 
     // Add pressed buttons to the buffer
-    *buttons = (uint8_t)((inputs[BUTTON_RIGHT] << 0) & 
-                         (inputs[BUTTON_LEFT] << 1) & 
-                         (inputs[BUTTON_JUMP] << 2));
+    *buttons = inputs[BUTTON_RIGHT] |
+               (inputs[BUTTON_LEFT] << 1) | 
+               (inputs[BUTTON_JUMP] << 2);
 
     ret = game_update(game, player, inputs);
 
@@ -193,7 +193,7 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
 }
 
 void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
-    FILE *file = fopen("output.bin", "w");
+    FILE *file = fopen("chrom.bin", "wb");
     struct params prms;
 
     get_params(chrom, &prms);

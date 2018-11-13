@@ -11,6 +11,24 @@
 #define COL_LEFT        2
 #define COL_RIGHT       4
 
+#define ENABLE_ENEMIES  false
+#define JUMPING_ENEMIES false
+#define MAX_ENEMIES 32
+
+// Player physics parameters
+#define V_X 6
+#define V_JUMP 8
+#define INTERTA 1.4
+#define GRAVITY 0.3
+#define PLAYER_WIDTH 24
+#define PLAYER_HALFW (PLAYER_WIDTH / 2)
+#define PLAYER_MARGIN ((TILE_SIZE - PLAYER_WIDTH) / 2)
+#define PLAYER_RIGHT (TILE_SIZE - PLAYER_MARGIN)
+#define PLAYER_LEFT (PLAYER_MARGIN / 2)
+#define UPDATES_PS 60
+#define MAX_TIME 60
+#define MAX_FRAMES (MAX_TIME * UPDATES_PS)
+
 struct Body {
 	float px;
 	float py;
@@ -52,8 +70,7 @@ struct Game {
 };
 
 void game_setup(struct Game *game, struct Player *player, unsigned int seed);
-int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT]);
+int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
 void get_input_tiles(struct Game *game, struct Player *player, uint8_t *tiles, uint8_t in_h, uint8_t in_w);
-
 
 #endif

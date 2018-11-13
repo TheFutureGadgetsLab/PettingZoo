@@ -100,7 +100,7 @@ void update_view_vars(sf::View view) {
 }
 
 //Handle the render camera
-void render_handle_camera(sf::RenderWindow &window, struct Player player) {
+void render_handle_camera(sf::RenderWindow &window, const struct Player player) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
 	sf::Vector2f target;
@@ -152,18 +152,17 @@ void render_load_assets() {
 }
 
 //Render the entire map
-void render_gen_map(struct Game game) {
+void render_gen_map(const struct Game game) {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
 //Render all entities (player, enemies)
-void render_entities(sf::RenderWindow &window, struct Game game, struct Player player) {
+void render_entities(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
 
 	uint i;
 	struct Enemy enemy;
-	if (ENABLE_ENEMIES)
 	for (i = 0; i < game.n_enemies; i++) {
 		if (!game.enemies[i].dead) {
 			enemy = game.enemies[i];
@@ -174,12 +173,12 @@ void render_entities(sf::RenderWindow &window, struct Game game, struct Player p
 }
 
 //Render the debug information overlay
-void render_debug_overlay(sf::RenderWindow &window, struct Game game, struct Player player, sf::Time frametime) {
+void render_debug_overlay(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	char overlay_text[512];
 
 	sprintf(overlay_text,
-	"Lamp pos: %0.lf, %0.lf\nFPS: %.0lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d",
-		player.body.px, player.body.py, 1.0 / frametime.asSeconds(),
+	"Lamp pos: %0.lf, %0.lf\nSeed: %u\nVelocity: %.0lf, %0.lf\nTile: %d, %d",
+		player.body.px, player.body.py,
 		game.seed, player.body.vx, player.body.vy,
 		player.body.tile_x, player.body.tile_y);
 
@@ -236,7 +235,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 }
 
 //Render the HUD
-void render_hud(sf::RenderWindow &window, struct Player player, int input[BUTTON_COUNT]) {
+void render_hud(sf::RenderWindow &window, const struct Player player, const uint8_t input[BUTTON_COUNT]) {
 	char score_text[128];
 
 	sprintf(score_text, "Score: %05d\nFitness: %05d\nTime: %0.1lf\n%s %s %s",
@@ -251,7 +250,7 @@ void render_hud(sf::RenderWindow &window, struct Player player, int input[BUTTON
 }
 
 //Render everything
-void render_draw_state(sf::RenderWindow &window, struct Game game, struct Player player) {
+void render_draw_state(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	render_other(window);
 	window.draw(map);
 	render_entities(window, game, player);
