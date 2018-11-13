@@ -7,7 +7,6 @@
 #include <math.h>
 #include <gamelogic.hpp>
 #include <sys/stat.h>
-#include <string.h>
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
@@ -30,28 +29,34 @@ int main()
     struct Game game;
     struct Player player;
     uint8_t buttons[MAX_FRAMES];
-    uint buttons_index = 0;
+    int buttons_index, ret;
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
     uint seed = time(NULL);
-    srand(seed);
 
-    chrom = generate_chromosome(IN_H, IN_W, HLC, NPL);
-    print_chromosome(chrom);
+    chrom = generate_chromosome(IN_H, IN_W, HLC, NPL, seed);
 
     game_setup(&game, &player, seed);
-    while (evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index) != -1) {
+
+    buttons_index = 0;
+    while (1) {
+        ret = evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index);
         buttons_index++;
+
+        if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
+            break;
     }    
 
-    // printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+    if (ret == PLAYER_DEAD)
+        printf("Player died:\n");
+    else
+        printf("Player timed out:\n");
+
+    printf("Fitness: %d\n", player.fitness);
 
     write_out(buttons, MAX_FRAMES, chrom, seed);
-
-    chrom = extract_from_file("output.bin", buttons, &seed);
-    print_chromosome(chrom);
 
     free(chrom);
     free(tiles);
@@ -65,6 +70,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     struct params prms;
     float network_outputs[BUTTON_COUNT];
     int inputs[BUTTON_COUNT];
+    int ret;
 
     get_params(chrom, &prms);
     get_input_tiles(game, player, tiles, prms.in_h, prms.in_w);
@@ -83,66 +89,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
                          (inputs[BUTTON_LEFT] << 1) & 
                          (inputs[BUTTON_JUMP] << 2));
 
-    if (game_update(game, player, inputs) == PLAYER_DEAD) {
-        return -1;
-    }
+    ret = game_update(game, player, inputs);
 
-    return 0;
-}
-
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
-    FILE *file = fopen("output.bin", "w");
-    struct params prms;
-
-    get_params(chrom, &prms);
-    size_t chrom_bytes = get_chromosome_size(prms);
-
-    //Seed
-    fwrite(&seed, sizeof(unsigned int), 1, file);
-
-    //Button presses
-    fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
-
-    //Chromosome
-    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
-
-    fclose(file);
-}
-
-/*
- * Extracts seed, chromosome, and button presses from file.
- * THIS FUNCTION RETURNS A POINTER TO THE EXTRACTED
- * CHROMOSOME THAT ***YOU MUST FREE YOURSELF***
- */
-uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed)
-{
-    FILE *file = NULL;
-    uint8_t *data = NULL;
-    uint8_t *chrom;
-    size_t file_size, chrom_size;
-    struct stat st;
-
-    stat(fname, &st);
-	file_size = st.st_size;
-
-    file = fopen(fname, "r");
-
-	data = (uint8_t *)malloc(file_size);
-    fread(data, sizeof(uint8_t), file_size, file);
-
-    chrom_size = file_size - MAX_FRAMES - sizeof(uint);
-    chrom = (uint8_t *)malloc(chrom_size);
-
-    // Populate button array
-    memcpy(buttons, data + sizeof(uint), MAX_FRAMES);
-    // Populate chromosome
-    memcpy(chrom, data + sizeof(uint) + MAX_FRAMES, chrom_size);
-
-    *seed = ((unsigned int *)data)[0];
-
-    free(data);
-
-    return chrom;
+    return ret;
 }
 
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
@@ -193,7 +142,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
 
     hidden_act = locate_hidden_act(chrom);
 
-    // Loop over layers, beginning at 2nd (first is handled differently)
+    // Loop over layers, beginning at 2nd (first is handled by calc_first_layer)
     for (layer = 1; layer < prms.hlc; layer++) {
         // Grab the adjacency matrix for this layer
         hidden_adj = locate_hidden_adj(chrom, layer - 1);
@@ -243,7 +192,26 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
     }
 }
 
-// sigmoid in [-1,1]
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
+    FILE *file = fopen("output.bin", "w");
+    struct params prms;
+
+    get_params(chrom, &prms);
+    size_t chrom_bytes = get_chromosome_size(prms);
+
+    //Seed
+    fwrite(&seed, sizeof(unsigned int), 1, file);
+
+    //Button presses
+    fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
+
+    //Chromosome
+    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
+
+    fclose(file);
+}
+
+// sigmoid in (-1,1)
 float sigmoid(float x)
 {
     return 2.0 / (1.0 + expf(-x)) - 1.0;
@@ -255,7 +223,7 @@ float softsign(float x)
     return x / (1.0 + abs(x));
 }
 
-// sigmoid in [0,1]
+// sigmoid in (0,1)
 float sigmoid_bounded(float x)
 {
     return 1.0 / (1.0 + expf(-x));
@@ -267,7 +235,7 @@ float softsign_bounded(float x)
     return (0.5 * x) / (1.0 + abs(x)) + 0.5;
 }
 
-// tanh(x) in [0,1]
+// tanh(x) in (0,1)
 float tanh_bounded(float x)
 {
     return 0.5 + tanh(x) * 0.5;

@@ -3,16 +3,14 @@
 
 #include <defs.hpp>
 
-#define IN_H 3
-#define IN_W 3
+#define IN_H 16
+#define IN_W 16
 #define BUTTON_COUNT 3
 #define HLC 2
-#define NPL 3
+#define NPL 256
 
 float vec_dot(float *a, float *b, int size);
 float sigmoid(float x);
 float soft_sign(float x);
-uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed);
-
 
 #endif

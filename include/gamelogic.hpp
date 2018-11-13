@@ -4,6 +4,13 @@
 #include <defs.hpp>
 #include <stdint.h>
 
+// Misc
+#define PLAYER_TIMEOUT -2
+#define PLAYER_DEAD    -1
+#define REDRAW          1
+#define COL_LEFT        2
+#define COL_RIGHT       4
+
 struct Body {
 	float px;
 	float py;

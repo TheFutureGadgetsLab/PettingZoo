@@ -3,15 +3,20 @@
 #include <chromosome.hpp>
 #include <stdint.h>
 
-float gen_random_weight();
+float gen_random_weight(struct drand48_data *buf, unsigned int *seedp);
 
-uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
+uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed)
 {
     uint8_t *chrom = NULL;
     uint8_t *cur_uint;
     float *cur_float;
     int r, c, hl;
     struct params params;
+    unsigned int seedp;
+    struct drand48_data buf;
+
+    srand48_r(seed, &buf);
+    seedp = seed;
 
     params.in_w = in_w;
     params.in_h = in_h;
@@ -30,7 +35,7 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
     // This is NOT transposed
     for (r = 0; r < in_h; r++) {
         for (c = 0; c < in_w; c++) {
-            *cur_uint = random() % 2;
+            *cur_uint = rand_r(&seedp) % 2;
             cur_uint++;
         }
     }
@@ -39,7 +44,7 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
     cur_float = locate_input_adj(chrom);
     for (r = 0; r < npl; r++) {
         for (c = 0; c < in_h * in_w; c++) {
-            *cur_float = gen_random_weight();
+            *cur_float = gen_random_weight(&buf, &seedp);
             cur_float++;
         }
     }
@@ -48,7 +53,7 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
     cur_uint = locate_hidden_act(chrom);
     for (r = 0; r < hlc; r++) {
         for (c = 0; c < npl; c++) {
-            *cur_uint = random() % 2;
+            *cur_uint = rand_r(&seedp) % 2;
             cur_uint++;
         }
     }
@@ -58,7 +63,7 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
         cur_float = locate_hidden_adj(chrom, hl);
         for (r = 0; r < npl; r++) {
             for (c = 0; c < npl; c++) {
-                *cur_float = gen_random_weight();
+                *cur_float = gen_random_weight(&buf, &seedp);
                 cur_float++;
             }
         }
@@ -68,7 +73,7 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
     cur_float = locate_out_adj(chrom);
     for (r = 0; r < BUTTON_COUNT; r++) {
         for (c = 0; c < npl; c++) {
-            *cur_float = gen_random_weight();
+            *cur_float = gen_random_weight(&buf, &seedp);
             cur_float++;
         }
     }
@@ -229,20 +234,21 @@ size_t get_chromosome_size(struct params params)
     return size;
 }
 
-float gen_random_weight()
+float gen_random_weight(struct drand48_data *buf, unsigned int *seedp)
 {
-    float weight;
+    double weight, chance;
     
-    weight = (float)drand48();
+    drand48_r(buf, &weight);
+    drand48_r(buf, &chance);
 
     // Connection is inactive
-    if ((float)drand48() > 0.9f)
+    if (chance > 0.9)
         return 0.0f;
 
-    if (random() % 2 == 0)
-        return weight * -1;
+    if (rand_r(seedp) % 2 == 0)
+        weight = weight * -1;
 
-    return weight;
+    return (float)weight;
 }
 
 void get_params(uint8_t *chrom, struct params *params)

@@ -35,7 +35,12 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 
 	// Estimate of time
 	player->time += 1.0 / UPDATES_PS;
-
+	
+	//Time limit
+	if (player->time >= MAX_TIME) {
+		return PLAYER_TIMEOUT;
+	}
+	
 	//Left and right button press
 	player->body.vx += (V_X - player->body.vx) * input[BUTTON_RIGHT];
 	player->body.vx += (-V_X - player->body.vx) * input[BUTTON_LEFT];
@@ -105,11 +110,6 @@ int game_update(struct Game *game, struct Player *player, int input[BUTTON_COUNT
 
 	//End of level
 	if (player->body.px + PLAYER_RIGHT >= (LEVEL_WIDTH - 4) * TILE_SIZE) {
-		return PLAYER_DEAD;
-	}
-
-	//Time limit
-	if (player->time >= MAX_TIME) {
 		return PLAYER_DEAD;
 	}
 

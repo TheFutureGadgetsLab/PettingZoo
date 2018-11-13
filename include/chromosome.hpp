@@ -13,7 +13,7 @@ struct params {
     uint8_t hlc;
 };
 
-uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed);
 uint8_t *locate_input_act(uint8_t *chrom);
 float *locate_input_adj(uint8_t *chrom);
 uint8_t *locate_hidden_act(uint8_t *chrom);

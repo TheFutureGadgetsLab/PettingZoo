@@ -47,8 +47,7 @@
 #define GRID          2
 #define LAMP          3
 
-// AI parameters
-#define INPUT_SIZE 12
+#define INPUT_SIZE 16
 
 // Player physics parameters
 #define V_X 6
@@ -68,9 +67,4 @@
 #define FIT_TIME_WEIGHT 2.0
 #define FIT_BUTTONS_WEIGHT 0.2
 
-// Misc
-#define REDRAW      -2
-#define PLAYER_DEAD 1
-#define COL_LEFT    2
-#define COL_RIGHT   4
 #endif

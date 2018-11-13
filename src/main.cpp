@@ -3,48 +3,35 @@
 #include <rendering.hpp>
 #include <gamelogic.hpp>
 #include <sys/stat.h>
-#include <neural_network.hpp>
 #include <time.h>
+#include <string.h>
+
+uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed);
 
 int main()
 {
 	int draw_overlay = 0;
 	int input[BUTTON_COUNT] = {0};
-	int ret = 0;
+	int ret, frame;
     sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Time frame_time;
 	sf::Clock clock;
 	sf::Color bg_color(135, 206, 235);
 	struct Game game;
 	struct Player player;
-	uint8_t curbuttons;
-	uint seed;
-	size_t nbytes;
-	uint8_t *bytes = NULL;
-	uint8_t *buttons = NULL;
-	uint8_t *chrom = NULL;
+	uint8_t buttons[MAX_FRAMES];
+	unsigned int seed;
 
-	//Get size of file
-	struct stat st;
-	stat("output.bin", &st);
-	nbytes = st.st_size;
-	bytes = (uint8_t *)malloc(nbytes);
-
-	//Read file, extract information
-	FILE *infile = fopen("output.bin", "r");
-	fread(buttons, sizeof(uint8_t), MAX_FRAMES, infile);
-	fclose(infile);
-	seed = extract_from_bytes(bytes, chrom, buttons);
+	seed = time(NULL);
 
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
-
-	seed = time(NULL);
 
 	game_setup(&game, &player, seed);
 	render_load_assets();
 	render_gen_map(game);
 
+	frame = 0;
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
@@ -90,16 +77,21 @@ int main()
 			}
 		}
 
-		//Get buttons
-		curbuttons = buttons[game.frame];
-		input[BUTTON_RIGHT] = curbuttons & 0x1;
-		input[BUTTON_LEFT] = curbuttons & 0x2;
-		input[BUTTON_JUMP] = curbuttons & 0x4;
+		// //Get buttons
+		// curbuttons = buttons[frame];
+		// input[BUTTON_RIGHT] = curbuttons & 0x1;
+		// input[BUTTON_LEFT] = curbuttons & 0x2;
+		// input[BUTTON_JUMP] = curbuttons & 0x4;
 
 		//Update game state
 		ret = game_update(&game, &player, input);
-		if (ret == PLAYER_DEAD) {
-		    printf("PLAYER DEAD\n SCORE: %d\n FITNESS: %d\n", player.score, player.fitness);
+		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
+			if (ret == PLAYER_DEAD)
+				printf("Player died:\n");
+			else
+				printf("Player timed out:\n");
+    		printf("Fitness: %d\n", player.fitness);
+
 			seed = time(NULL);
 			game_setup(&game, &player, seed);
 			render_gen_map(game);
@@ -116,9 +108,6 @@ int main()
 		//Draw background, tiles, and entities
 		render_draw_state(window, game, player);
 
-		//Increment frame
-		game.frame += 1;
-
 		//Draw debug overlay + fps
 		frame_time = clock.getElapsedTime();
 		clock.restart();
@@ -130,7 +119,44 @@ int main()
 		render_hud(window, player, input);
 
 		window.display();
+		frame++;
 	}
 
 	return 0;
+}
+
+/*
+ * Extracts seed, chromosome, and button presses from file.
+ * THIS FUNCTION RETURNS A POINTER TO THE EXTRACTED
+ * CHROMOSOME THAT ***YOU MUST FREE YOURSELF***
+ */
+uint8_t *extract_from_file(char *fname, uint8_t *buttons, uint *seed)
+{
+    FILE *file = NULL;
+    uint8_t *data = NULL;
+    uint8_t *chrom;
+    size_t file_size, chrom_size;
+    struct stat st;
+
+    stat(fname, &st);
+	file_size = st.st_size;
+
+    file = fopen(fname, "r");
+
+	data = (uint8_t *)malloc(file_size);
+    fread(data, sizeof(uint8_t), file_size, file);
+
+    chrom_size = file_size - MAX_FRAMES - sizeof(uint);
+    chrom = (uint8_t *)malloc(chrom_size);
+
+    // Populate button array
+    memcpy(buttons, data + sizeof(uint), MAX_FRAMES);
+    // Populate chromosome
+    memcpy(chrom, data + sizeof(uint) + MAX_FRAMES, chrom_size);
+
+    *seed = ((unsigned int *)data)[0];
+
+    free(data);
+
+    return chrom;
 }
