@@ -24,8 +24,8 @@ float tanh_bounded(float x);
 int main()
 {
     uint8_t *chrom = NULL;
-    float *node_outputs = NULL;
     uint8_t *tiles = NULL;
+    float *node_outputs = NULL;
     struct Game game;
     struct Player player;
     uint8_t buttons[MAX_FRAMES];
@@ -34,12 +34,13 @@ int main()
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
+    chrom = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
     
     seed = time(NULL);
 
-    chrom = generate_chromosome(IN_H, IN_W, HLC, NPL, seed);
     game_setup(&game, &player, seed);
-        
+    generate_chromosome(chrom, IN_H, IN_W, HLC, NPL, seed);
+    
     buttons_index = 0;
     while (1) {
         ret = evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index);
@@ -47,14 +48,13 @@ int main()
 
         if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
             break;
-    }    
-
+    }
+    
     if (ret == PLAYER_DEAD)
         printf("Player died\n");
     else
         printf("Player timed out\n");
     printf("Fitness: %d\n", player.fitness);
-
 
     write_out(buttons, MAX_FRAMES, chrom, seed);
 
@@ -193,11 +193,11 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
 }
 
 void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
-    FILE *file = fopen("chrom.bin", "wb");
-    struct params prms;
+    char fname[128];
+    sprintf(fname, "%d.bin", seed);
+    FILE *file = fopen(fname, "wb");
 
-    get_params(chrom, &prms);
-    size_t chrom_bytes = get_chromosome_size(prms);
+    size_t chrom_bytes = get_chromosome_size(chrom);
 
     //Seed
     fwrite(&seed, sizeof(unsigned int), 1, file);

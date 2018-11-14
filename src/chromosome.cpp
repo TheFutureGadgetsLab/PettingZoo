@@ -5,25 +5,16 @@
 
 float gen_random_weight(struct drand48_data *buf, unsigned int *seedp);
 
-uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed)
+void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed)
 {
-    uint8_t *chrom = NULL;
     uint8_t *cur_uint;
     float *cur_float;
     int r, c, hl;
-    struct params params;
     unsigned int seedp;
     struct drand48_data buf;
 
     srand48_r(seed, &buf);
     seedp = seed;
-
-    params.in_w = in_w;
-    params.in_h = in_h;
-    params.npl = npl;
-    params.hlc = hlc;
-
-    chrom = (uint8_t *)malloc(get_chromosome_size(params));
 
     chrom[0] = in_w;
     chrom[1] = in_h;
@@ -77,8 +68,6 @@ uint8_t *generate_chromosome(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t n
             cur_float++;
         }
     }
-
-    return chrom;
 }
 
 void print_chromosome(uint8_t *chrom)
@@ -147,7 +136,7 @@ void print_chromosome(uint8_t *chrom)
 
     printf("\nChromosome:\n");
     printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", params.in_h, params.in_w, params.npl, params.hlc);
-    printf("\nTotal size: %0.2lfKB\n", get_chromosome_size(params) / 1000.0f);
+    printf("\nTotal size: %0.2lfKB\n", get_chromosome_size_struct(params) / 1000.0f);
     printf("-------------------------------------------\n");
 }
 
@@ -217,7 +206,7 @@ float *locate_out_adj(uint8_t *chrom)
     return (float *)(chrom + loc);
 }
 
-size_t get_chromosome_size(struct params params)
+size_t get_chromosome_size_struct(struct params params)
 {
     size_t size;
     uint8_t in_h, in_w, hlc;
@@ -227,6 +216,33 @@ size_t get_chromosome_size(struct params params)
     in_w = params.in_w;
     npl = params.npl;
     hlc = params.hlc;
+
+    // Algebra to reduce length of this line
+    size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
+
+    return size;
+}
+
+size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
+{
+    size_t size;
+
+    // Algebra to reduce length of this line
+    size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
+
+    return size;
+}
+
+size_t get_chromosome_size(uint8_t *chrom)
+{
+    size_t size;
+    uint8_t in_w, in_h, hlc;
+    uint16_t npl;
+
+    in_w = chrom[0];
+    in_h = chrom[1];
+    npl = *((uint16_t *)chrom + 1);
+    hlc = chrom[4];
 
     // Algebra to reduce length of this line
     size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
