@@ -1,96 +1,141 @@
-#include <genetic.hpp>
 #include <stdlib.h>
-#include <chromosome.hpp>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
+#include <genetic.hpp>
+#include <chromosome.hpp>
+#include <neural_network.hpp>
+#include <gamelogic.hpp>
+#include <levelgen.hpp>
 
-#define IN_W 3
-#define IN_H 3
-#define HLC  3
-#define NPL  5
+#define GEN_SIZE    10
+#define GENERATIONS 20
 
 int rand_range(unsigned int *seedp, int min, int max);
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
-int chance(unsigned int *seedp, double percent);
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE]);
+int chance_gen(unsigned int *seedp, double percent);
+void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed);
+void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state);
 
 int main()
 {
-    uint8_t *parentA = NULL;
-    uint8_t *parentB = NULL;
-    uint8_t *childA = NULL;
-    uint8_t *childB = NULL;
+    int game;
+    struct Game games[GEN_SIZE];
+    struct Player players[GEN_SIZE];
+    uint8_t *genA[GEN_SIZE];
+    uint8_t *genB[GEN_SIZE];
+    float fitnesses[GEN_SIZE];
+    uint8_t **cur_gen, **next_gen;
+    uint8_t **tmp;
+    unsigned int seed, cur_seed;
 
-    parentA = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
-    parentB = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
-    childA = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
-    childB = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
+    seed = (unsigned int)time(NULL);
 
-    generate_chromosome(parentA, IN_H, IN_W, HLC, NPL, 10);
-    generate_chromosome(parentB, IN_H, IN_W, HLC, NPL, 27);
+    srand(seed);
 
-    puts("#########################################");
-    puts("Parent A");
-    print_chromosome(parentA);
-    puts("Parent B");
-    print_chromosome(parentB);
-    puts("#########################################");
+    printf("Generating %d chromosomes and games...\n", GEN_SIZE);    
+    for (game = 0; game < GEN_SIZE; game++) {
+        genA[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
+        genB[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
+        generate_chromosome(genA[game], IN_H, IN_W, HLC, NPL, rand());
+    }
 
-    single_point_breed(parentA, parentB, childA, childB, 12);
+    cur_gen = genA;
+    next_gen = genB;
+    for (int gen = 0; gen < GENERATIONS; gen++) {
+        float avg_fitness = 0;
+        cur_seed = rand();
 
-    puts("+++++++++++++++++++++++++++++++++++++++++");
-    puts("Child A");
-    print_chromosome(childA);
-    puts("Child B");
-    print_chromosome(childB);
-    puts("+++++++++++++++++++++++++++++++++++++++++");
+        for (game = 0; game < GEN_SIZE; game++) {
+            game_setup(&games[game], &players[game], cur_seed);
+        }
     
-    free(parentA);
-    free(parentB);
-    free(childA);
-    free(childB);
+        printf("Running generation %d\n", gen);
+        run_generation(games, players, cur_gen, fitnesses);
+
+        for(game = 0; game < GEN_SIZE; game++) {
+            avg_fitness += fitnesses[game] / GEN_SIZE;
+            printf("Player %d fitness: %lf\n", game, fitnesses[game]);
+        }
+
+        printf("%% timeout=%f\n%% died=%f\navg fitness=%.0f\n",
+            0.0f, 0.0f, avg_fitness);
+
+        printf("Breedng\n");
+        select_and_breed(cur_gen, fitnesses, next_gen, rand());
+
+        tmp = cur_gen;
+        cur_gen = next_gen;    
+        next_gen = tmp;
+    }
     
     return 0;   
 }
 
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], 
+    float fitnesses[GEN_SIZE])
+{
+    int game, buttons_index, ret;
+    uint8_t *input_tiles;
+    float *node_outputs;
+    uint8_t buttons[MAX_FRAMES];
+    
+    input_tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
+    node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
+
+    for (game = 0; game < GEN_SIZE; game++) {                
+        buttons_index = 0;
+        while (1) {
+            ret = evaluate_frame(&games[game], &players[game], generation[game], input_tiles, node_outputs, buttons + buttons_index);
+            buttons_index++;
+
+            if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
+                break;
+        }
+        fitnesses[game] = players[game].fitness;
+    }
+
+    return 0;
+}
 // Select the best from a generation, then breed them into a new generation
-void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, size_t gen_size, uint seed)
+void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed)
 {
     int i;
-    float worst, best, average;
-    uint8_t *survivors[gen_size / 2];
-    size_t n_survivors = 0;
+    float best;
+    uint8_t *survivors[GEN_SIZE / 2];
+    int n_survivors = 0;
     uint seed_state = seed;
 
     //Find the worst and best score
-    worst = best = fitnesses[0];
-    for (i = 0; i < gen_size; i++) {
-        if (fitnesses[i] < worst) {
-            worst = fitnesses[i];
-        }
+    best = fitnesses[0];
+    for (i = 0; i < GEN_SIZE; i++) {
         if (fitnesses[i] > best) {
             best = fitnesses[i];
         }
     }
-    average = (best - worst) / 2;
 
     //Select survivors
-    while (n_survivors < gen_size / 2) {
-        i = rand_r(&seed_state) % gen_size;
-        if (chance(&seed_state, fitnesses[i] / best)) {
+    while (n_survivors < GEN_SIZE / 2) {
+        i = rand_r(&seed_state) % GEN_SIZE;
+        if (chance_gen(&seed_state, fitnesses[i] / best)) {
             survivors[n_survivors] = generation[i];
             n_survivors += 1;
         }
     }
 
     //Breed
-    //TODO
+    for (i = 0; i < GEN_SIZE / 2; i++) {
+        single_point_breed(survivors[i], survivors[(i + 1) % (GEN_SIZE / 2)],
+            new_generation[i * 2], new_generation[i * 2 + 1], &seed_state);
+    }
 }
 
 // Chooses as single point in each section of the chromosomes and childA is set up as
 // ParentA | Parent B, while childB is set up as ParentB | ParentA
-void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int seed)
-{   
-    unsigned int seed_state = seed;
+void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state)
+{
     size_t section_size;
     int split_loc, hl, npl;
     struct params parentA_p, parentB_p, childA_p, childB_p;
@@ -114,30 +159,30 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
 
     // Cross input layers
     section_size = (uint8_t *)parentA_p.input_adj - parentA_p.input_act;
-    split_loc = rand_r(&seed_state) % (section_size + 1);
+    split_loc = rand_r(seed_state) % (section_size + 1);
     split(parentA_p.input_act, parentB_p.input_act, childA_p.input_act, childB_p.input_act, section_size, split_loc);
 
     // Cross input adj layers
     section_size = parentA_p.hidden_act - (uint8_t *)parentA_p.input_adj;
-    split_loc = rand_r(&seed_state) % ((section_size + 1) / 4);
+    split_loc = rand_r(seed_state) % ((section_size + 1) / 4);
     split(parentA_p.input_adj, parentB_p.input_adj, childA_p.input_adj, childB_p.input_adj, section_size, split_loc * sizeof(float));
 
     // Cross hidden act layer
     section_size = (uint8_t *)parentA_p.hidden_adj - parentA_p.hidden_act;
-    split_loc = rand_r(&seed_state) % (section_size + 1);
+    split_loc = rand_r(seed_state) % (section_size + 1);
     split(parentA_p.hidden_act, parentB_p.hidden_act, childA_p.hidden_act, childB_p.hidden_act, section_size, split_loc);
     
     // Cross hidden layers
     section_size = npl * npl;
     for (hl = 0; hl < parentA_p.hlc - 1; hl++) {
-        split_loc = rand_r(&seed_state) % (section_size + 1);
+        split_loc = rand_r(seed_state) % (section_size + 1);
         split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl, 
               childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
     }
 
     // Cross output adj layer
     section_size = parentA_p.size - ((uint8_t *)parentA_p.out_adj - parentA);
-    split_loc = rand_r(&seed_state) % ((section_size + 1) / 4);
+    split_loc = rand_r(seed_state) % ((section_size + 1) / 4);
     split(parentA_p.out_adj, parentB_p.out_adj, childA_p.out_adj, childB_p.out_adj, section_size, split_loc * sizeof(float));
 }
 
@@ -151,6 +196,7 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 }
 
 // Return 0 or 1 probabilistically
-int chance(unsigned int *seedp, double percent) {
+int chance_gen(unsigned int *seedp, double percent)
+{
 	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);
 }

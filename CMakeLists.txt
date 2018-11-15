@@ -32,23 +32,23 @@ target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
 
-###############################################################
-#
-#                           Neural Network
-#
-###############################################################
-# Load NN sources
-set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
+# ###############################################################
+# #
+# #                           Neural Network
+# #
+# ###############################################################
+# # Load NN sources
+# set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
 
-# Compile neural network
-add_executable(neural_network ${NN_SOURCES})
+# # Compile neural network
+# add_executable(neural_network ${NN_SOURCES})
 
-# Link libraries
-target_link_libraries(neural_network m)
+# # Link libraries
+# target_link_libraries(neural_network m)
 
-# Set the location for library installation -- i.e., /usr/lib
-# Use "sudo make install" to apply
-#install(TARGETS pettingzoo DESTINATION /usr/lib)
+# # Set the location for library installation -- i.e., /usr/lib
+# # Use "sudo make install" to apply
+# #install(TARGETS pettingzoo DESTINATION /usr/lib)
 
 ###############################################################
 #
@@ -56,7 +56,7 @@ target_link_libraries(neural_network m)
 #
 ###############################################################
 # Load NN sources
-set(CHROM_SOURCES src/genetic.cpp src/chromosome.cpp)
+set(CHROM_SOURCES src/genetic.cpp src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
 
 # Compile neural network
 add_executable(genetic ${CHROM_SOURCES})

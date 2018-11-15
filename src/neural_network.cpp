@@ -11,7 +11,6 @@
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
-int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons);
 void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
 
 // Activation functions
@@ -21,7 +20,7 @@ float sigmoid_bounded(float x);
 float softsign_bounded(float x);
 float tanh_bounded(float x);
 
-int main()
+/* int main()
 {
     uint8_t *chrom = NULL;
     uint8_t *tiles = NULL;
@@ -68,7 +67,7 @@ int main()
     free(node_outputs);
 
     return 0;
-}
+} */
 
 int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons)
 {
