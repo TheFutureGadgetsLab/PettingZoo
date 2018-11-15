@@ -37,6 +37,7 @@ int main()
     chrom = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
     
     seed = time(NULL);
+    printf("Seed = %u\n", seed);
 
     game_setup(&game, &player, seed);
     generate_chromosome(chrom, IN_H, IN_W, HLC, NPL, seed);

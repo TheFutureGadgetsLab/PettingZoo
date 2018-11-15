@@ -185,6 +185,10 @@ float *locate_hidden_adj(uint8_t *chrom, int num)
     npl = *((uint16_t *)chrom + 1);
     hlc = chrom[4];
 
+    if (num > hlc - 1) {
+        return NULL;
+    }
+
     loc = 5 + in_h * in_w + in_h * in_w * npl * 4 + npl * hlc + num * (npl * npl) * 4;
 
     return (float *)(chrom + loc);

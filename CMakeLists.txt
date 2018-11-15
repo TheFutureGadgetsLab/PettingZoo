@@ -49,3 +49,21 @@ target_link_libraries(neural_network m)
 # Set the location for library installation -- i.e., /usr/lib
 # Use "sudo make install" to apply
 #install(TARGETS pettingzoo DESTINATION /usr/lib)
+
+###############################################################
+#
+#                           Chromosome
+#
+###############################################################
+# Load NN sources
+set(CHROM_SOURCES src/genetic.cpp src/chromosome.cpp)
+
+# Compile neural network
+add_executable(genetic ${CHROM_SOURCES})
+
+# Link libraries
+target_link_libraries(genetic m)
+
+# Set the location for library installation -- i.e., /usr/lib
+# Use "sudo make install" to apply
+#install(TARGETS pettingzoo DESTINATION /usr/lib)
