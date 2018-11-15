@@ -44,6 +44,11 @@ int main()
     print_chromosome(childB);
     puts("+++++++++++++++++++++++++++++++++++++++++");
     
+    free(parentA);
+    free(parentB);
+    free(childA);
+    free(childB);
+    
     return 0;   
 }
 
