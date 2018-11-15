@@ -31,6 +31,7 @@ int main()
     uint8_t buttons[MAX_FRAMES];
     int buttons_index, ret;
     unsigned int seed;
+    char resp;
 
     tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
@@ -57,7 +58,10 @@ int main()
         printf("Player timed out\n");
     printf("Fitness: %d\n", player.fitness);
 
-    write_out(buttons, MAX_FRAMES, chrom, seed);
+    printf("Would you like to write this out (y/n)?: ");
+    resp = getchar();
+    if (resp == 'y')
+        write_out(buttons, MAX_FRAMES, chrom, seed);
 
     free(chrom);
     free(tiles);
@@ -86,7 +90,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.5f;
 
     // Add pressed buttons to the buffer
-    *buttons = inputs[BUTTON_RIGHT] |
+    *buttons = inputs[BUTTON_RIGHT]       |
                (inputs[BUTTON_LEFT] << 1) | 
                (inputs[BUTTON_JUMP] << 2);
 
@@ -99,22 +103,16 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
 {
     int node, weight;
     float sum;
-    float *input_adj;
-    uint8_t *input_act, *hidden_act;
     struct params prms;
 
     get_params(chrom, &prms);
-
-    input_adj = locate_input_adj(chrom);
-    input_act = locate_input_act(chrom);
-    hidden_act = locate_hidden_act(chrom);
 
     // Loop over nodes in the first hidden layer
     for (node = 0; node < prms.npl; node++) {
         sum = 0.0f;
 
         // If the node isn't active its output defaults to 0
-        if (!hidden_act[node]) {
+        if (!prms.hidden_act[node]) {
             node_outputs[node] = 0.0f;
             continue;
         }
@@ -123,8 +121,8 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
         for (weight = 0; weight < prms.in_h * prms.in_w; weight++) {
             // Branchless input. If input tile is inactive, the weight
             // gets multiplied by 0, otherwise by 1.
-            sum += input_adj[node * prms.in_h * prms.in_w + weight] * 
-                   inputs[weight] * input_act[weight];
+            sum += prms.input_adj[node * prms.in_h * prms.in_w + weight] * 
+                   inputs[weight] * prms.input_act[weight];
         }
 
         node_outputs[node] = sigmoid_bounded(sum);
@@ -136,24 +134,22 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
     int node, weight, layer, cur_node;
     float sum;
     float *hidden_adj;
-    uint8_t *hidden_act;
     struct params prms;
 
     get_params(chrom, &prms);
 
-    hidden_act = locate_hidden_act(chrom);
-
     // Loop over layers, beginning at 2nd (first is handled by calc_first_layer)
     for (layer = 1; layer < prms.hlc; layer++) {
         // Grab the adjacency matrix for this layer
-        hidden_adj = locate_hidden_adj(chrom, layer - 1);
+        // hidden_adj = locate_hidden_adj(chrom, layer - 1);
+        hidden_adj = prms.hidden_adj + (layer - 1) * prms.npl * prms.npl;
         // Loop over nodes in this layer
         for (node = 0; node < prms.npl; node++) {
             sum = 0.0f;
             cur_node = layer * prms.npl + node;
 
             // If the node isn't active its output defaults to 0
-            if (!hidden_act[cur_node]) {
+            if (!prms.hidden_act[cur_node]) {
                 node_outs[cur_node] = 0.0f;
                 continue;
             }
@@ -173,19 +169,16 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
     float sum;
-    float *out_adj;
     struct params prms;
 
     get_params(chrom, &prms);
-
-    out_adj = locate_out_adj(chrom);
 
     // Loop over buttons
     for (bttn = 0; bttn < BUTTON_COUNT; bttn++) {
         sum = 0.0f;
         // Linear sum
         for (weight = 0; weight < prms.npl; weight++) {
-            sum += out_adj[bttn * prms.npl + weight] * 
+            sum += prms.out_adj[bttn * prms.npl + weight] * 
                    node_outs[(prms.hlc - 1) * prms.npl + weight];
         }
 

@@ -7,21 +7,22 @@
 #define BUTTON_COUNT 3
 
 struct params {
+    uint8_t *input_act;
+    float *input_adj;
+    uint8_t *hidden_act;
+    float *hidden_adj;
+    float *out_adj;
+
     uint16_t npl;
     uint8_t in_w;
     uint8_t in_h;
     uint8_t hlc;
+    size_t size;
 };
 
 void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed);
-uint8_t *locate_input_act(uint8_t *chrom);
-float *locate_input_adj(uint8_t *chrom);
-uint8_t *locate_hidden_act(uint8_t *chrom);
-size_t get_chromosome_size_struct(struct params params);
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
 size_t get_chromosome_size(uint8_t *chrom);
-float *locate_hidden_adj(uint8_t *chrom, int num);
-float *locate_out_adj(uint8_t *chrom);
 void print_chromosome(uint8_t *chrom);
 void get_params(uint8_t *chrom, struct params *params);
 

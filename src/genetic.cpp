@@ -87,9 +87,8 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
 {   
     unsigned int seed_state = seed;
     size_t section_size;
-    int split_loc, hl;
-    uint8_t *cur_section_u, *next_section_u;
-    float *cur_section_f, *next_section_f;
+    int split_loc, hl, npl;
+    struct params parentA_p, parentB_p, childA_p, childB_p;
 
     // Set chrom headers
     childA[0] = parentA[0];
@@ -101,50 +100,40 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
     childA[4] = parentA[4];
     childB[4] = parentA[4];
 
+    get_params(parentA, &parentA_p);
+    get_params(parentB, &parentB_p);
+    get_params(childA, &childA_p);
+    get_params(childB, &childB_p);
+
+    npl = parentA_p.npl;
+
     // Cross input layers
-    cur_section_u = locate_input_act(parentA);
-    next_section_f = locate_input_adj(parentA);
-    section_size = (uint8_t*)next_section_f - cur_section_u;
+    section_size = (uint8_t *)parentA_p.input_adj - parentA_p.input_act;
     split_loc = rand_r(&seed_state) % (section_size + 1);
-    split(locate_input_act(parentA), locate_input_act(parentB), 
-          locate_input_act(childA),  locate_input_act(childB), section_size, split_loc);
+    split(parentA_p.input_act, parentB_p.input_act, childA_p.input_act, childB_p.input_act, section_size, split_loc);
 
     // Cross input adj layers
-    cur_section_f = locate_input_adj(parentA);
-    next_section_u = locate_hidden_act(parentA);
-    section_size = next_section_u - (uint8_t*)cur_section_f;
+    section_size = parentA_p.hidden_act - (uint8_t *)parentA_p.input_adj;
     split_loc = rand_r(&seed_state) % ((section_size + 1) / 4);
-    split(locate_input_adj(parentA), locate_input_adj(parentB), 
-            locate_input_adj(childA), locate_input_adj(childB), section_size, split_loc * 4);
+    split(parentA_p.input_adj, parentB_p.input_adj, childA_p.input_adj, childB_p.input_adj, section_size, split_loc * sizeof(float));
 
     // Cross hidden act layer
-    cur_section_u = locate_hidden_act(parentA);
-    next_section_f = locate_hidden_adj(parentA, 0);
-    section_size = (uint8_t*)next_section_f - cur_section_u;
+    section_size = (uint8_t *)parentA_p.hidden_adj - parentA_p.hidden_act;
     split_loc = rand_r(&seed_state) % (section_size + 1);
-    split(locate_hidden_act(parentA), locate_hidden_act(parentB), 
-          locate_hidden_act(childA),  locate_hidden_act(childB), section_size, split_loc);
+    split(parentA_p.hidden_act, parentB_p.hidden_act, childA_p.hidden_act, childB_p.hidden_act, section_size, split_loc);
     
     // Cross hidden layers
-    for (hl = 0; hl < parentA[4] - 1; hl++) {
-        cur_section_f = locate_hidden_adj(parentA, hl);
-        next_section_f = locate_hidden_adj(parentA, hl + 1);
-        if (next_section_f == NULL)
-            next_section_f = locate_out_adj(parentA);
-        section_size = (uint8_t*)next_section_f - (uint8_t*)cur_section_f;
-        split_loc = rand_r(&seed_state) % ((section_size + 1) / 4);
-        split(locate_hidden_adj(parentA, hl), locate_hidden_adj(parentB, hl), 
-                locate_hidden_adj(childA, hl), locate_hidden_adj(childB, hl), section_size, split_loc * 4);
+    section_size = npl * npl;
+    for (hl = 0; hl < parentA_p.hlc - 1; hl++) {
+        split_loc = rand_r(&seed_state) % (section_size + 1);
+        split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl, 
+              childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
     }
 
-    // Cross final section
-    cur_section_f = locate_out_adj(parentA);
-    next_section_u = parentA + get_chromosome_size(parentA);
-    section_size = next_section_u - (uint8_t*)cur_section_f;
+    // Cross output adj layer
+    section_size = parentA_p.size - ((uint8_t *)parentA_p.out_adj - parentA);
     split_loc = rand_r(&seed_state) % ((section_size + 1) / 4);
-    printf("Split loc: %d\n", split_loc);
-    split(locate_out_adj(parentA), locate_out_adj(parentB), 
-            locate_out_adj(childA), locate_out_adj(childB), section_size, split_loc * 4);
+    split(parentA_p.out_adj, parentB_p.out_adj, childA_p.out_adj, childB_p.out_adj, section_size, split_loc * sizeof(float));
 }
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
