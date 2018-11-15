@@ -31,7 +31,8 @@ struct platform {
 std::list<struct platform> plats;
 
 //Generate a new map from given seed
-void levelgen_gen_map(struct Game *game, unsigned int seed) {
+void levelgen_gen_map(struct Game *game, unsigned int seed)
+{
 	int x;
 	bool flat_region;
 
@@ -79,7 +80,8 @@ void levelgen_gen_map(struct Game *game, unsigned int seed) {
 }
 
 // Generate a flat region beginning at origin for length tiles
-void generate_flat_region(struct Game *game, int origin, int length) {
+void generate_flat_region(struct Game *game, int origin, int length)
+{
 	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
 	bool allow_hole = false;
@@ -174,7 +176,8 @@ void generate_flat_region(struct Game *game, int origin, int length) {
 }
 
 // Generates an obstacle and returns the length of the obstacle
-int generate_obstacle(struct Game *game, int origin) {
+int generate_obstacle(struct Game *game, int origin)
+{
 	int width, height, do_pipe;
 
 	width = randrange(&game->seed_state, 3, 7);
@@ -188,7 +191,8 @@ int generate_obstacle(struct Game *game, int origin) {
 
 // Insert a floor to the bottom of the level beginning at 'origin' with
 // at y level 'ground' and of length 'length'
-void insert_floor(struct Game *game, int origin, int ground, int length) {
+void insert_floor(struct Game *game, int origin, int ground, int length)
+{
 	int x, y, val;
 	for (x = origin; x < origin + length; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -204,7 +208,8 @@ void insert_floor(struct Game *game, int origin, int ground, int length) {
 }
 
 // Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
-void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append) {
+void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append)
+{
 	int x, base;
 
 	base = GROUND_HEIGHT - height - 1;
@@ -224,7 +229,8 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 }
 
 // Insert Tee
-void insert_tee(struct Game *game, int origin, int height, int length) {
+void insert_tee(struct Game *game, int origin, int height, int length)
+{
 	int y, top;
 	top = GROUND_HEIGHT - height;
 
@@ -236,7 +242,8 @@ void insert_tee(struct Game *game, int origin, int height, int length) {
 }
 
 // Insert enemy at tile position
-void insert_enemy(struct Game *game, int x, int y, int type) {
+void insert_enemy(struct Game *game, int x, int y, int type)
+{
 	if (!ENABLE_ENEMIES)
 		return;
 	struct Enemy enemy;
@@ -251,7 +258,8 @@ void insert_enemy(struct Game *game, int x, int y, int type) {
 }
 
 // Insert hole in the ground at 'origin' with width 'width'
-void create_hole(struct Game *game, int origin, int width) {
+void create_hole(struct Game *game, int origin, int width)
+{
 	int x, y;
 	for (x = origin; x < origin + width; x++) {
 		for (y = GROUND_HEIGHT; y < LEVEL_HEIGHT; y++) {
@@ -261,7 +269,8 @@ void create_hole(struct Game *game, int origin, int width) {
 }
 
 // Create a pipe at 'origin', opens at 'height' tiles from the ground with a gap of 'width' tiles
-void create_pipe(struct Game *game, int origin, int width, int height) {
+void create_pipe(struct Game *game, int origin, int width, int height)
+{
 	int y;
 
 	for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -286,7 +295,8 @@ void create_pipe(struct Game *game, int origin, int width, int height) {
 // Create a stair gap. 'height' describes the # of steps in the stairs and
 // 'width' describes the width of the gap
 // If 'do_pipe' is true, 'width' will be set to next greatest odd if even
-void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe) {
+void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe)
+{
 	int x, y;
 
 	if (do_pipe && width % 2 == 0) {
@@ -327,7 +337,8 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 }
 
 // Set tile to given type at (x, y)
-void set_tile(struct Game *game, int x, int y, unsigned char val) {
+void set_tile(struct Game *game, int x, int y, unsigned char val)
+{
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
 		return;
 	}
@@ -335,7 +346,8 @@ void set_tile(struct Game *game, int x, int y, unsigned char val) {
 }
 
 // Zero out level
-void levelgen_clear_level(struct Game *game) {
+void levelgen_clear_level(struct Game *game)
+{
 	int x, y;
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
@@ -346,24 +358,28 @@ void levelgen_clear_level(struct Game *game) {
 }
 
 // Return an integer where 0 <= x <= max
-int randint(unsigned int *seedp, int max) {
+int randint(unsigned int *seedp, int max)
+{
 	return rand_r(seedp) % (max + 1);
 }
 
 // Return an integer where min <= x <= max
-int randrange(unsigned int *seedp, int min, int max) {
+int randrange(unsigned int *seedp, int min, int max)
+{
 	if (min == max)
 		return max;
 	return min + (rand_r(seedp) % (abs(max - min) + 1));
 }
 
 // Return 0 or 1 probabilistically
-int chance(unsigned int *seedp, double percent) {
+int chance(unsigned int *seedp, double percent)
+{
 	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);
 }
 
 // Returns a random integer in list of integers
-int choose(unsigned int *seedp, int nargs...) {
+int choose(unsigned int *seedp, int nargs...)
+{
 	va_list args;
 	va_start(args, nargs);
 	int array[nargs];

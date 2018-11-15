@@ -186,7 +186,8 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
     }
 }
 
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed) {
+void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed)
+{
     char fname[128];
     sprintf(fname, "%d.bin", seed);
     FILE *file = fopen(fname, "wb");

@@ -11,7 +11,8 @@ unsigned int physics_sim(struct Game *game, struct Body* body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
-void game_setup(struct Game *game, struct Player *player, unsigned int seed) {
+void game_setup(struct Game *game, struct Player *player, unsigned int seed)
+{
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
 
@@ -20,17 +21,21 @@ void game_setup(struct Game *game, struct Player *player, unsigned int seed) {
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
 	player->body.vy = 0;
+	player->body.tile_x = player->body.px / TILE_SIZE;
+	player->body.tile_y = player->body.py / TILE_SIZE;
+	player->body.immune = false;
 	player->body.canjump = false;
+	player->body.isjump = false;
 	player->body.standing = false;
 	player->score = 0;
 	player->fitness = 0;
 	player->time = 0;
 	player->buttonpresses = 0;
-	player->body.immune = false;
 }
 
 //Called every frame
-int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]) {
+int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT])
+{
 	int return_value = 0;
 
 	// Estimate of time
@@ -117,7 +122,8 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 }
 
 //Physics simulation for any body
-unsigned int physics_sim(struct Game *game, struct Body* body, bool jump) {
+unsigned int physics_sim(struct Game *game, struct Body* body, bool jump)
+{
 	unsigned int return_value = 0;
 
 	//Jumping
@@ -202,14 +208,16 @@ unsigned int physics_sim(struct Game *game, struct Body* body, bool jump) {
 }
 
 //Return the tile at given tile position
-int tile_at(struct Game *game, int x, int y) {
+int tile_at(struct Game *game, int x, int y)
+{
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
 		return 0;
 	return game->tiles[y * LEVEL_WIDTH + x];
 }
 
 //Return if the tile at the given tile position is solid
-int tile_solid(struct Game *game, int x, int y) {
+int tile_solid(struct Game *game, int x, int y)
+{
 	int tile = tile_at(game, x, y);
 	switch(tile) {
 		case EMPTY:
@@ -223,7 +231,8 @@ int tile_solid(struct Game *game, int x, int y) {
 }
 
 // Set tile to given type at (x, y)
-void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
+void game_set_tile(struct Game *game, int x, int y, unsigned char val)
+{
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
 		return;
 	}
@@ -231,7 +240,8 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val) {
 }
 
 //Basic distance function
-float dist(float x1, float y1, float x2, float y2) {
+float dist(float x1, float y1, float x2, float y2)
+{
 	return sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0));
 }
 
