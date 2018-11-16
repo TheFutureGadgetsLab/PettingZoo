@@ -95,6 +95,15 @@ int main()
     }
     puts("----------------------------");
     
+    for (game = 0; game < GEN_SIZE; game++) {
+        free(genA[game]);
+        free(genB[game]);
+    }
+
+    free(games);
+    free(players);
+
+
     return 0;   
 }
 
@@ -110,7 +119,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
     for (game = 0; game < GEN_SIZE; game++) {
-        printf("\r%d/%d", game, GEN_SIZE);
+        printf("\33[2K\r"); // Clears line
+        printf("%d/%d", game, GEN_SIZE);
         fflush(stdout);
 
         buttons_index = 0;
@@ -123,8 +133,11 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
         }
         fitnesses[game] = players[game].fitness;
     }
-    printf("\r");
+    printf("\33[2K\r");
     fflush(stdout);
+
+    free(input_tiles);
+    free(node_outputs);
 
     return 0;
 }

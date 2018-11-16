@@ -69,10 +69,8 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
 
         // Calculate linear sum of outputs and weights
         for (weight = 0; weight < prms.in_h * prms.in_w; weight++) {
-            // Branchless input. If input tile is inactive, the weight
-            // gets multiplied by 0, otherwise by 1.
-            sum += prms.input_adj[node * prms.in_h * prms.in_w + weight] * 
-                   inputs[weight] * prms.input_act[weight];
+            if (prms.input_act[weight])
+                sum += prms.input_adj[node * prms.in_h * prms.in_w + weight] * inputs[weight];
         }
 
         node_outputs[node] = sigmoid_bounded(sum);
@@ -91,7 +89,6 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
     // Loop over layers, beginning at 2nd (first is handled by calc_first_layer)
     for (layer = 1; layer < prms.hlc; layer++) {
         // Grab the adjacency matrix for this layer
-        // hidden_adj = locate_hidden_adj(chrom, layer - 1);
         hidden_adj = prms.hidden_adj + (layer - 1) * prms.npl * prms.npl;
         // Loop over nodes in this layer
         for (node = 0; node < prms.npl; node++) {
@@ -106,8 +103,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
 
             // Calculate linear sum of outputs and weights
             for (weight = 0; weight < prms.npl; weight++) {
-                sum += hidden_adj[node * prms.npl + weight] * 
-                       node_outs[(layer - 1) * prms.npl + weight];
+                sum += hidden_adj[node * prms.npl + weight] * node_outs[(layer - 1) * prms.npl + weight];
             }
 
             node_outs[cur_node] = sigmoid_bounded(sum);
@@ -128,8 +124,7 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
         sum = 0.0f;
         // Linear sum
         for (weight = 0; weight < prms.npl; weight++) {
-            sum += prms.out_adj[bttn * prms.npl + weight] * 
-                   node_outs[(prms.hlc - 1) * prms.npl + weight];
+            sum += prms.out_adj[bttn * prms.npl + weight] * node_outs[(prms.hlc - 1) * prms.npl + weight];
         }
 
         net_outs[bttn] = sigmoid_bounded(sum);

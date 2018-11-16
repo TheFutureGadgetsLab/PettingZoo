@@ -6,9 +6,9 @@
 #define IN_W 16
 #define BUTTON_COUNT 3
 #define HLC 2
-#define NPL 256
+#define NPL 512
 
-#define GEN_SIZE    50
+#define GEN_SIZE    10
 #define GENERATIONS 10
 
 

@@ -1,19 +1,19 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pettingzoo)
  
+# Set march
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+if(COMPILER_SUPPORTS_MARCH_NATIVE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif()
+
 # Locate headers
 include_directories(include)
 
 # Add extra compiler flags
 if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-endif()
-
-# Set march
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-if(COMPILER_SUPPORTS_MARCH_NATIVE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
 
 ###############################################################
@@ -55,3 +55,17 @@ target_link_libraries(genetic m)
 # Set the location for library installation -- i.e., /usr/lib
 # Use "sudo make install" to apply
 #install(TARGETS pettingzoo DESTINATION /usr/lib)
+
+###############################################################
+#
+#                       Debug Program
+#
+###############################################################
+# Load sources
+set(DEBUG_SOURCES src/debug_prog.cpp src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
+
+# Compile
+add_executable(debug ${DEBUG_SOURCES})
+
+# Link libraries
+target_link_libraries(debug m)
