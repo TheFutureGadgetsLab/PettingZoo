@@ -9,8 +9,8 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 
-#define GEN_SIZE    10
-#define GENERATIONS 20
+#define GEN_SIZE    50
+#define GENERATIONS 10
 
 int rand_range(unsigned int *seedp, int min, int max);
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
@@ -21,19 +21,20 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
 
 int main()
 {
-    int game;
-    struct Game games[GEN_SIZE];
-    struct Player players[GEN_SIZE];
+    struct Game *games;
+    struct Player *players;
     uint8_t *genA[GEN_SIZE];
     uint8_t *genB[GEN_SIZE];
     float fitnesses[GEN_SIZE];
-    uint8_t **cur_gen, **next_gen;
-    uint8_t **tmp;
-    unsigned int seed, cur_seed;
-
+    uint8_t **cur_gen, **next_gen, **tmp;
+    unsigned int seed, level_seed, game;
+        
     seed = (unsigned int)time(NULL);
 
     srand(seed);
+        
+    games = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
+    players = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
 
     printf("Generating %d chromosomes and games...\n", GEN_SIZE);    
     for (game = 0; game < GEN_SIZE; game++) {
@@ -46,10 +47,10 @@ int main()
     next_gen = genB;
     for (int gen = 0; gen < GENERATIONS; gen++) {
         float avg_fitness = 0;
-        cur_seed = rand();
+        level_seed = rand();
 
         for (game = 0; game < GEN_SIZE; game++) {
-            game_setup(&games[game], &players[game], cur_seed);
+            game_setup(&games[game], &players[game], level_seed);
         }
     
         printf("Running generation %d\n", gen);
@@ -57,7 +58,7 @@ int main()
 
         for(game = 0; game < GEN_SIZE; game++) {
             avg_fitness += fitnesses[game] / GEN_SIZE;
-            printf("Player %d fitness: %lf\n", game, fitnesses[game]);
+            printf("Player %d fitness: %d\n", game, (int)fitnesses[game]);
         }
 
         printf("%% timeout=%f\n%% died=%f\navg fitness=%.0f\n",
