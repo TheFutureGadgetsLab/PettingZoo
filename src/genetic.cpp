@@ -109,7 +109,10 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
     input_tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
-    for (game = 0; game < GEN_SIZE; game++) {                
+    for (game = 0; game < GEN_SIZE; game++) {
+        printf("\r%d/%d", game, GEN_SIZE);
+        fflush(stdout);
+
         buttons_index = 0;
         while (1) {
             ret = evaluate_frame(&games[game], &players[game], generation[game], input_tiles, node_outputs, buttons + buttons_index);
@@ -120,6 +123,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
         }
         fitnesses[game] = players[game].fitness;
     }
+    printf("\r");
+    fflush(stdout);
 
     return 0;
 }
