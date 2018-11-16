@@ -9,10 +9,6 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 
-#define GEN_SIZE    50
-#define GENERATIONS 10
-
-int rand_range(unsigned int *seedp, int min, int max);
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE]);
 int chance_gen(unsigned int *seedp, double percent);
@@ -23,9 +19,10 @@ int main()
 {
     struct Game *games;
     struct Player *players;
-    uint8_t *genA[GEN_SIZE];
-    uint8_t *genB[GEN_SIZE];
+    uint8_t *genA[GEN_SIZE], *genB[GEN_SIZE];
     float fitnesses[GEN_SIZE];
+    float avg_fitness, max, min;
+    int completed, timedout, died;
     uint8_t **cur_gen, **next_gen, **tmp;
     unsigned int seed, level_seed, game;
         
@@ -46,31 +43,57 @@ int main()
     cur_gen = genA;
     next_gen = genB;
     for (int gen = 0; gen < GENERATIONS; gen++) {
-        float avg_fitness = 0;
+        puts("----------------------------");
+        printf("Running generation %d\n", gen);
+
+        avg_fitness = 0;
+        timedout = 0;
+        completed = 0;
+        died = 0;
+
         level_seed = rand();
 
         for (game = 0; game < GEN_SIZE; game++) {
             game_setup(&games[game], &players[game], level_seed);
         }
     
-        printf("Running generation %d\n", gen);
         run_generation(games, players, cur_gen, fitnesses);
 
+        max = fitnesses[0];
+        min = fitnesses[0];
         for(game = 0; game < GEN_SIZE; game++) {
-            avg_fitness += fitnesses[game] / GEN_SIZE;
-            printf("Player %d fitness: %d\n", game, (int)fitnesses[game]);
+            avg_fitness += fitnesses[game];
+
+            if (fitnesses[game] > max)
+                max = fitnesses[game];
+            else if (fitnesses[game] < max)
+                min = fitnesses[game];
+
+            if (players[game].death_type == PLAYER_COMPLETE)
+                completed++;
+            else if (players[game].death_type == PLAYER_TIMEOUT)
+                timedout++;
+            else if (players[game].death_type == PLAYER_DEAD)
+                died++;
+
+            printf("Player %d fitness: %0.2lf\n", game, fitnesses[game]);
         }
 
-        printf("%% timeout=%f\n%% died=%f\navg fitness=%.0f\n",
-            0.0f, 0.0f, avg_fitness);
+        avg_fitness /= GEN_SIZE;
 
-        printf("Breedng\n");
+        printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
+                (float)died / (float)GEN_SIZE * 100, (float)timedout / (float)GEN_SIZE * 100,
+                (float)completed / (float)GEN_SIZE * 100, avg_fitness);
+        printf("Max fitness: %.2lf\n", max);
+        printf("Min fitness: %.2lf\n", min);
+
         select_and_breed(cur_gen, fitnesses, next_gen, rand());
 
         tmp = cur_gen;
         cur_gen = next_gen;    
         next_gen = tmp;
     }
+    puts("----------------------------");
     
     return 0;   
 }

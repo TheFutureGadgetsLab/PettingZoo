@@ -9,6 +9,13 @@ if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif()
 
+# Set march
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+if(COMPILER_SUPPORTS_MARCH_NATIVE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif()
+
 ###############################################################
 #
 #                           Petting zoo
@@ -28,37 +35,18 @@ add_executable(pettingzoo ${GAME_SOURCES})
 # Link libraries
 target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
-target_link_libraries(pettingzoo "${SFML_AUDIO_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
 
-# ###############################################################
-# #
-# #                           Neural Network
-# #
-# ###############################################################
-# # Load NN sources
-# set(NN_SOURCES src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
-
-# # Compile neural network
-# add_executable(neural_network ${NN_SOURCES})
-
-# # Link libraries
-# target_link_libraries(neural_network m)
-
-# # Set the location for library installation -- i.e., /usr/lib
-# # Use "sudo make install" to apply
-# #install(TARGETS pettingzoo DESTINATION /usr/lib)
-
 ###############################################################
 #
-#                           Chromosome
+#                       Genetic Algorithm
 #
 ###############################################################
-# Load NN sources
+# Load sources
 set(CHROM_SOURCES src/genetic.cpp src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
 
-# Compile neural network
+# Compile
 add_executable(genetic ${CHROM_SOURCES})
 
 # Link libraries

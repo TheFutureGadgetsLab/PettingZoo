@@ -43,6 +43,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	
 	//Time limit
 	if (player->time >= MAX_TIME - 1.0 / (float)UPDATES_PS) {
+		player->death_type = PLAYER_TIMEOUT;
 		return PLAYER_TIMEOUT;
 	}
 	
@@ -55,6 +56,9 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 
 	//Physics sim for player
 	return_value = physics_sim(game, &player->body, input[BUTTON_JUMP]);
+	if (return_value == PLAYER_DEAD) {
+		player->death_type = PLAYER_DEAD;
+	}
 
 	//Collisions with coin
 	if (tile_at(game, player->body.tile_x, player->body.tile_y) == COIN) {
@@ -65,6 +69,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 
 	//Lower bound
 	if (player->body.py > LEVEL_PIXEL_HEIGHT) {
+		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
 	}
 
@@ -101,6 +106,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 
 			//Kill player
 			if (dist(player->body.px, player->body.py, enemy->body.px, enemy->body.py) < 32) {
+				player->death_type = PLAYER_DEAD;
 				return PLAYER_DEAD;
 			}
 		}
@@ -115,6 +121,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 
 	//End of level
 	if (player->body.px + PLAYER_RIGHT >= (LEVEL_WIDTH - 4) * TILE_SIZE) {
+		player->death_type = PLAYER_COMPLETE;
 		return PLAYER_DEAD;
 	}
 

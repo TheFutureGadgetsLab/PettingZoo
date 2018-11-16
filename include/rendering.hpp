@@ -4,6 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <defs.hpp>
 
+// Camera parameters
+#define CAMERA_INTERP 0.1
+
 class View {
     public:
 	sf::Vector2f center;

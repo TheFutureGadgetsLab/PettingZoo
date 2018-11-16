@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <chromosome.hpp>
 #include <stdint.h>
+#include <defs.hpp>
 
 float gen_random_weight(struct drand48_data *buf, unsigned int *seedp);
 

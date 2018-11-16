@@ -4,12 +4,18 @@
 #include <defs.hpp>
 #include <stdint.h>
 
+// Fitness measurement parameters
+#define FIT_TIME_WEIGHT 2.0
+#define FIT_BUTTONS_WEIGHT 0.2
+#define COIN_VALUE 1000
+
 // Misc
-#define PLAYER_TIMEOUT -2
-#define PLAYER_DEAD    -1
-#define REDRAW          1
-#define COL_LEFT        2
-#define COL_RIGHT       4
+#define PLAYER_COMPLETE -3
+#define PLAYER_TIMEOUT  -2
+#define PLAYER_DEAD     -1
+#define REDRAW           1
+#define COL_LEFT         2
+#define COL_RIGHT        4
 
 #define ENABLE_ENEMIES  false
 #define JUMPING_ENEMIES false
@@ -45,12 +51,10 @@ struct Body {
 struct Player {
 	struct Body body;
 	float time;
-	int left;
-	int right;
-	int jump;
 	int score;
 	int buttonpresses;
-	int fitness;
+	float fitness;
+	int death_type;
 };
 
 struct Enemy {

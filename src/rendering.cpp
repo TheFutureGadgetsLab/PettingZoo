@@ -238,7 +238,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 void render_hud(sf::RenderWindow &window, const struct Player player, const uint8_t input[BUTTON_COUNT]) {
 	char score_text[128];
 
-	sprintf(score_text, "Score: %05d\nFitness: %05d\nTime: %0.1lf\n%s %s %s",
+	sprintf(score_text, "Score: %05d\nFitness: %0.2lf\nTime: %0.1lf\n%s %s %s",
 	player.score, player.fitness, player.time,
 	(input[BUTTON_LEFT] > 0) ? "Left" : "     ",
 	(input[BUTTON_RIGHT] > 0) ? "Right" : "     ",

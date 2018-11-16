@@ -1,14 +1,22 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+// AI parameters
+#define IN_H 16
+#define IN_W 16
+#define BUTTON_COUNT 3
+#define HLC 2
+#define NPL 256
+
+#define GEN_SIZE    50
+#define GENERATIONS 10
+
+
 // Button parameters
 #define BUTTON_COUNT 3
 #define BUTTON_LEFT 0
 #define BUTTON_RIGHT 1
 #define BUTTON_JUMP 2
-
-// Camera parameters
-#define CAMERA_INTERP 0.1
 
 // Level parameters
 #define LEVEL_HEIGHT 32
@@ -37,10 +45,5 @@
 #define LAMP          3
 
 #define INPUT_SIZE 16
-
-// Fitness measurement parameters
-#define FIT_TIME_WEIGHT 2.0
-#define FIT_BUTTONS_WEIGHT 0.2
-#define COIN_VALUE 1000
 
 #endif

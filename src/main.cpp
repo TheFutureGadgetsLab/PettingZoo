@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 				printf("Player died\n");
 			else
 				printf("Player timed out\n");
-    		printf("Fitness: %d\n", player.fitness);
+    		printf("Fitness: %0.2lf\n", player.fitness);
 
 			frame = 0;
 			reset_game(&game, &player, seed, replay_ai);

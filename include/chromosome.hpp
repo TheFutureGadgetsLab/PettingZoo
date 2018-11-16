@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define BUTTON_COUNT 3
-
 struct params {
     uint8_t *input_act;
     float *input_adj;
