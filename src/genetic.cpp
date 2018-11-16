@@ -66,7 +66,7 @@ int main()
 
             if (fitnesses[game] > max)
                 max = fitnesses[game];
-            else if (fitnesses[game] < max)
+            else if (fitnesses[game] < min)
                 min = fitnesses[game];
 
             if (players[game].death_type == PLAYER_COMPLETE)
