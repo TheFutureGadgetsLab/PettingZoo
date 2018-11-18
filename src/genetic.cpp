@@ -22,27 +22,32 @@ int main()
     uint8_t *genA[GEN_SIZE], *genB[GEN_SIZE];
     float fitnesses[GEN_SIZE];
     float avg_fitness, max, min;
-    int completed, timedout, died;
+    int completed, timedout, died, gen;
     uint8_t **cur_gen, **next_gen, **tmp;
     unsigned int seed, level_seed, game;
-        
-    seed = (unsigned int)time(NULL);
 
+    seed = (unsigned int)time(NULL);
+    seed = 10;
     srand(seed);
-        
+
+    // Arrays for game and player structures
     games = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
     players = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
 
-    printf("Generating %d chromosomes and games...\n", GEN_SIZE);    
+    printf("Generating %d chromosomes and games...\n", GEN_SIZE);
+
+    // Allocate space for genA and genB chromosomes
     for (game = 0; game < GEN_SIZE; game++) {
         genA[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
         genB[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
+        // Generate chromosome and give it a random seed
         generate_chromosome(genA[game], IN_H, IN_W, HLC, NPL, rand());
     }
 
+    // Initially point current gen to genA, then swap next gen
     cur_gen = genA;
     next_gen = genB;
-    for (int gen = 0; gen < GENERATIONS; gen++) {
+    for (gen = 0; gen < GENERATIONS; gen++) {
         puts("----------------------------");
         printf("Running generation %d\n", gen);
 
@@ -51,14 +56,15 @@ int main()
         completed = 0;
         died = 0;
 
+        // Generate seed for this gens levels and generate them
         level_seed = rand();
-
         for (game = 0; game < GEN_SIZE; game++) {
             game_setup(&games[game], &players[game], level_seed);
         }
-    
+
         run_generation(games, players, cur_gen, fitnesses);
 
+        // Get stats from run
         max = fitnesses[0];
         min = fitnesses[0];
         for(game = 0; game < GEN_SIZE; game++) {
@@ -87,14 +93,16 @@ int main()
         printf("Max fitness: %.2lf\n", max);
         printf("Min fitness: %.2lf\n", min);
 
+        // Usher in the new generation
         select_and_breed(cur_gen, fitnesses, next_gen, rand());
 
+        // Point current gen to new chromosome and next gen to old
         tmp = cur_gen;
-        cur_gen = next_gen;    
+        cur_gen = next_gen;
         next_gen = tmp;
     }
     puts("----------------------------");
-    
+
     for (game = 0; game < GEN_SIZE; game++) {
         free(genA[game]);
         free(genB[game]);
@@ -103,27 +111,39 @@ int main()
     free(games);
     free(players);
 
-
-    return 0;   
+    return 0;
 }
 
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], 
+/*
+ * This function takes an array of games, players, and chromosomes to be evaluated.
+ * The fitnesses are written out into the float fitnesses array.
+ */
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
     float fitnesses[GEN_SIZE])
 {
     int game, buttons_index, ret;
     uint8_t *input_tiles;
     float *node_outputs;
     uint8_t buttons[MAX_FRAMES];
-    
+
+    /*
+     * input_tiles holds the tiles around the player the NN sees.
+     * node_outputs holds the outputs of the nodes. Currently only
+     * one is allocated per generation because everything runs in
+     * serial. This will need to change when running on the GPU
+     */
     input_tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
+    // Loop over the entire generation
     for (game = 0; game < GEN_SIZE; game++) {
-        printf("\33[2K\r"); // Clears line
+        printf("\33[2K\r"); // Clears line, moves cursor to the beginning
         printf("%d/%d", game, GEN_SIZE);
         fflush(stdout);
 
         buttons_index = 0;
+
+        // Run game loop until player dies
         while (1) {
             ret = evaluate_frame(&games[game], &players[game], generation[game], input_tiles, node_outputs, buttons + buttons_index);
             buttons_index++;
@@ -141,7 +161,13 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
     return 0;
 }
-// Select the best from a generation, then breed them into a new generation
+
+/*
+ * This selection function normalizes a chromosomes fitness with the maximum fitness of that generation
+ * (so all values are in the range [0, 1]) and then uses that value as a probability for being selected
+ * to breed. Once (GEN_SIZE / 2) parents have been selected the first is bred with the second, second
+ * with the third, and so on (the first is also bred with the last to ensure each chrom breeds twice).
+ */
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed)
 {
     int i;
@@ -174,30 +200,24 @@ void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_gene
     }
 }
 
-// Chooses as single point in each section of the chromosomes and childA is set up as
-// ParentA | Parent B, while childB is set up as ParentB | ParentA
+/*
+ * Chooses as single point in each section of the chromosomes and childA is set up as
+ * ParentA | Parent B, while childB is set up as ParentB | ParentA
+ */
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state)
 {
     size_t section_size;
-    int split_loc, hl, npl;
+    int split_loc, hl;
     struct params parentA_p, parentB_p, childA_p, childB_p;
 
     // Set chrom headers
-    childA[0] = parentA[0];
-    childB[0] = parentA[0];
-    childA[1] = parentA[1];
-    childB[1] = parentA[1];
-    *((uint16_t *)childA + 1) = *((uint16_t *)parentA + 1);
-    *((uint16_t *)childB + 1) = *((uint16_t *)parentA + 1);
-    childA[4] = parentA[4];
-    childB[4] = parentA[4];
+    memcpy(childA, parentA, HEADER_SIZE);
+    memcpy(childB, parentA, HEADER_SIZE);
 
     get_params(parentA, &parentA_p);
     get_params(parentB, &parentB_p);
     get_params(childA, &childA_p);
     get_params(childB, &childB_p);
-
-    npl = parentA_p.npl;
 
     // Cross input layers
     section_size = (uint8_t *)parentA_p.input_adj - parentA_p.input_act;
@@ -213,12 +233,12 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
     section_size = (uint8_t *)parentA_p.hidden_adj - parentA_p.hidden_act;
     split_loc = rand_r(seed_state) % (section_size + 1);
     split(parentA_p.hidden_act, parentB_p.hidden_act, childA_p.hidden_act, childB_p.hidden_act, section_size, split_loc);
-    
+
     // Cross hidden layers
-    section_size = npl * npl;
+    section_size = parentA_p.npl * parentA_p.npl;
     for (hl = 0; hl < parentA_p.hlc - 1; hl++) {
         split_loc = rand_r(seed_state) % (section_size + 1);
-        split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl, 
+        split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl,
               childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
     }
 
@@ -228,6 +248,11 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
     split(parentA_p.out_adj, parentB_p.out_adj, childA_p.out_adj, childB_p.out_adj, section_size, split_loc * sizeof(float));
 }
 
+/* 
+ * Copies 'split' bytes into childA from parentA, then after that copies the rest of the section
+ * into childA from parentB. This is then done with childB, but the copy order is reversed
+ * (parentB first then parentA).
+ */
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
 {
     memcpy(childA, parentA, split);
@@ -237,7 +262,7 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
     memcpy((uint8_t *)childB + split, (uint8_t *)parentA + split, length - split);
 }
 
-// Return 0 or 1 probabilistically
+// Return 1 if random number is <= percent, otherwise 0
 int chance_gen(unsigned int *seedp, double percent)
 {
 	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);

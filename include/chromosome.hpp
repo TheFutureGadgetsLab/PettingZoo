@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define HEADER_SIZE 5
+
 struct params {
     uint8_t *input_act;
     float *input_adj;
@@ -11,10 +13,12 @@ struct params {
     float *hidden_adj;
     float *out_adj;
 
+    // Header of chromosome
     uint16_t npl;
     uint8_t in_w;
     uint8_t in_h;
     uint8_t hlc;
+
     size_t size;
 };
 

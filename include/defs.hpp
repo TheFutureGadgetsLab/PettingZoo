@@ -4,9 +4,9 @@
 // AI parameters
 #define IN_H 16
 #define IN_W 16
-#define BUTTON_COUNT 3
 #define HLC 2
 #define NPL 512
+#define BUTTON_COUNT 3
 
 #define GEN_SIZE    10
 #define GENERATIONS 10
@@ -14,14 +14,14 @@
 
 // Button parameters
 #define BUTTON_COUNT 3
-#define BUTTON_LEFT 0
+#define BUTTON_LEFT  0
 #define BUTTON_RIGHT 1
-#define BUTTON_JUMP 2
+#define BUTTON_JUMP  2
 
 // Level parameters
 #define LEVEL_HEIGHT 32
-#define LEVEL_WIDTH 256
-#define TILE_SIZE 32
+#define LEVEL_WIDTH  256
+#define TILE_SIZE    32
 #define LEVEL_PIXEL_WIDTH (LEVEL_WIDTH * TILE_SIZE)
 #define LEVEL_PIXEL_HEIGHT (LEVEL_HEIGHT * TILE_SIZE)
 #define LEVEL_SIZE (LEVEL_HEIGHT * LEVEL_WIDTH)
@@ -44,6 +44,6 @@
 #define GRID          2
 #define LAMP          3
 
-#define INPUT_SIZE 16
+#define INPUT_SIZE    16
 
 #endif
