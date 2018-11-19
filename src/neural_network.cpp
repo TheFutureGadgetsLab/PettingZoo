@@ -154,29 +154,29 @@ void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned 
 // sigmoid in (-1,1)
 float sigmoid(float x)
 {
-    return 2.0 / (1.0 + expf(-x)) - 1.0;
+    return 2.0f / (1.0f + expf(-x)) - 1.0;
 }
 
 // x/(1+|x|) in [-1,1]
 float softsign(float x)
 {
-    return x / (1.0 + abs(x));
+    return x / (1.0f + fabs(x));
 }
 
 // sigmoid in (0,1)
 float sigmoid_bounded(float x)
 {
-    return 1.0 / (1.0 + expf(-x));
+    return 1.0f / (1.0f + expf(-x));
 }
 
 // x/(1+|x|) in [0,1]
 float softsign_bounded(float x)
 {
-    return (0.5 * x) / (1.0 + abs(x)) + 0.5;
+    return (0.5f * x) / (1.0f + fabs(x)) + 0.5;
 }
 
 // tanh(x) in (0,1)
 float tanh_bounded(float x)
 {
-    return 0.5 + tanh(x) * 0.5;
+    return 0.5f + tanhf(x) * 0.5f;
 }

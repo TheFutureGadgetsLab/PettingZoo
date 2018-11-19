@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <defs.hpp>
 
-float gen_random_weight(struct drand48_data *buf, unsigned int *seedp);
+float gen_random_weight(unsigned int *seedp);
 
 void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed)
 {
@@ -12,10 +12,8 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     float *cur_float;
     int r, c, hl;
     unsigned int seedp;
-    struct drand48_data buf;
     struct params params;
 
-    srand48_r(seed, &buf);
     seedp = seed;
 
     chrom[0] = in_w;
@@ -39,7 +37,7 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     cur_float = params.input_adj;
     for (r = 0; r < npl; r++) {
         for (c = 0; c < in_h * in_w; c++) {
-            *cur_float = gen_random_weight(&buf, &seedp);
+            *cur_float = gen_random_weight(&seedp);
             cur_float++;
         }
     }
@@ -58,7 +56,7 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     for (hl = 0; hl < hlc - 1; hl++) {
         for (r = 0; r < npl; r++) {
             for (c = 0; c < npl; c++) {
-                *cur_float = gen_random_weight(&buf, &seedp);
+                *cur_float = gen_random_weight(&seedp);
                 cur_float++;
             }
         }
@@ -68,7 +66,7 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     cur_float = params.out_adj;
     for (r = 0; r < BUTTON_COUNT; r++) {
         for (c = 0; c < npl; c++) {
-            *cur_float = gen_random_weight(&buf, &seedp);
+            *cur_float = gen_random_weight(&seedp);
             cur_float++;
         }
     }
@@ -171,21 +169,22 @@ size_t get_chromosome_size(uint8_t *chrom)
     return size;
 }
 
-float gen_random_weight(struct drand48_data *buf, unsigned int *seedp)
+float gen_random_weight(unsigned int *seedp)
 {
-    double weight, chance;
+    float weight, chance;
     
-    drand48_r(buf, &weight);
-    drand48_r(buf, &chance);
-
+    weight = (float)rand_r(seedp) / RAND_MAX;
+    chance = (float)rand_r(seedp) / RAND_MAX;
+    
     // Connection is inactive
-    if (chance > 0.9)
+    if (chance > 0.9f)
         return 0.0f;
 
+    // Flip sign on even
     if (rand_r(seedp) % 2 == 0)
         weight = weight * -1;
 
-    return (float)weight;
+    return weight;
 }
 
 void get_params(uint8_t *chrom, struct params *params)

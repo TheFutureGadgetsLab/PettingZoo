@@ -1,42 +1,33 @@
 #include <stdlib.h>
 #include <math.h>
 #include <defs.hpp>
+#include <cstdarg>
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
-#include <cstdarg>
-#include <list>
 
 int randint(unsigned int *seedp, int max);
 int randrange(unsigned int *seedp, int min, int max);
-int chance(unsigned int *seedp, double percent);
-int choose(unsigned int *seedp, int nargs...);
+int choose(unsigned int *seedp, int nargs, ...);
 void set_tile(struct Game *game, int x, int y, unsigned char val);
 void create_hole(struct Game *game, int origin, int width);
 void create_pipe(struct Game *game, int origin, int width, int height);
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe);
-void generate_flat_region(struct Game *game, int origin, int length);
+void generate_flat_region(struct Game *game, struct plat *plats, int origin, int length);
 void insert_floor(struct Game *game, int origin, int ground, int length);
-void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append);
-void insert_tee(struct Game *game, int origin, int height, int length);
+void insert_platform(struct Game *game, struct plat *plats, int origin, int height, int length, int type, int can_coin);
+void insert_tee(struct Game *game, struct plat *plats, int origin, int height, int length);
 void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
-
-struct platform {
-	int origin;
-	int height;
-	int length;
-	int type;
-};
-
-std::list<struct platform> plats;
 
 //Generate a new map from given seed
 void levelgen_gen_map(struct Game *game, unsigned int seed)
 {
-	int x;
-	bool flat_region;
+	int x, flat_region;
+	struct plat plats[LEVEL_WIDTH];
 
-	plats.clear();
+	for (x = 0; x < LEVEL_WIDTH; x++) {
+		plats[x].used = false;
+	}
 
 	game->seed = seed;
 	game->seed_state = seed;
@@ -44,7 +35,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
 
-	flat_region = true;
+	flat_region = 1;
 	for (x = START_PLATLEN; x < LEVEL_WIDTH - 20; x++) {
 		if (flat_region) {
 			int length = randrange(&game->seed_state, 20, 50);
@@ -52,26 +43,28 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 			if (x + length >= LEVEL_WIDTH - START_PLATLEN)
 				length = (LEVEL_WIDTH - START_PLATLEN) - x;
 
-			generate_flat_region(game, x, length);
+			generate_flat_region(game, plats, x, length);
 
 			if (chance(&game->seed_state, 75)) {
 				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
 			}
 
 			x += length;
-			flat_region = false;
+			flat_region = 0;
 		} else {
 			int length = generate_obstacle(game, x);
 			x += length;
-			flat_region = true;
+			flat_region = 1;
 		}
 	}
 
 	// Iterate over plats to place coins
-	for (auto const& i : plats) {
+	x = 0;
+	while(plats[x].used == true) {
     	if (chance(&game->seed_state, 50)) {
-			set_tile(game, i.origin + i.length / 2, i.height - 1, COIN);
+			set_tile(game, plats[x].origin + plats[x].length / 2, plats[x].height - 1, COIN);
 		}
+		x++;
 	}
 
 	// Ending flag
@@ -80,11 +73,11 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 }
 
 // Generate a flat region beginning at origin for length tiles
-void generate_flat_region(struct Game *game, int origin, int length)
+void generate_flat_region(struct Game *game, struct plat *plats, int origin, int length)
 {
 	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
-	bool allow_hole = false;
+	int allow_hole = 0;
 	int type;
 
 	plat_len = 0;
@@ -115,20 +108,20 @@ void generate_flat_region(struct Game *game, int origin, int length)
 						t_platlen++;
 
 					if (t_platlen < 0) {
-						insert_platform(game, x, height, plat_len, type, true);
-						allow_hole = true;
+						insert_platform(game, plats, x, height, plat_len, type, 1);
+						allow_hole = 1;
 					} else {
 						int tee_height = height - base_plat - 1;
 						if (tee_height > 3)
 							tee_height = 3;
-						insert_tee(game, x, tee_height, t_platlen);
-						allow_hole = true;
+						insert_tee(game, plats, x, tee_height, t_platlen);
+						allow_hole = 1;
 						plat_len = t_platlen;
 						height = tee_height;
 					}
 				} else {
-					insert_platform(game, x, height, plat_len, type, true);
-					allow_hole = true;
+					insert_platform(game, plats, x, height, plat_len, type, 1);
+					allow_hole = 1;
 				}
 
 				// If the plat is not a top spike and height allows
@@ -170,7 +163,7 @@ void generate_flat_region(struct Game *game, int origin, int length)
 
 			create_hole(game, hole_origin, hole_len);
 			// Prevent multiple holes under a plat
-			allow_hole = false;
+			allow_hole = 0;
 		}
 	}
 }
@@ -208,9 +201,14 @@ void insert_floor(struct Game *game, int origin, int ground, int length)
 }
 
 // Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
-void insert_platform(struct Game *game, int origin, int height, int length, int type, bool append)
+void insert_platform(struct Game *game, struct plat *plats, int origin, int height, int length, int type, int can_coin)
 {
-	int x, base;
+	int x, base, plat;
+
+	plat = 0;
+	while (plats[plat].used == true) {
+		plat++;
+	}
 
 	base = GROUND_HEIGHT - height - 1;
 
@@ -218,23 +216,21 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 		set_tile(game, x, base, type);
 	}
 
-	if (append && type != SPIKES_TOP) {
-		struct platform tmp;
-		tmp.height = base;
-		tmp.length = length;
-		tmp.origin = origin;
-		tmp.type = type;
-		plats.push_back(tmp);
+	if (can_coin && type != SPIKES_TOP) {
+		plats[plat].height = base;
+		plats[plat].length = length;
+		plats[plat].origin = origin;
+		plats[plat].used = true;
 	}
 }
 
 // Insert Tee
-void insert_tee(struct Game *game, int origin, int height, int length)
+void insert_tee(struct Game *game, struct plat *plats, int origin, int height, int length)
 {
 	int y, top;
 	top = GROUND_HEIGHT - height;
 
-	insert_platform(game, origin, height, length, BRICKS, false);
+	insert_platform(game, plats, origin, height, length, BRICKS, 0);
 
 	for (y = top; y < GROUND_HEIGHT; y++) {
 		set_tile(game, origin + (length / 2), y, BRICKS);
@@ -250,7 +246,7 @@ void insert_enemy(struct Game *game, int x, int y, int type)
 	enemy.body.px = x * TILE_SIZE;
 	enemy.body.py = y * TILE_SIZE;
 	enemy.type = type;
-	enemy.dead = false;
+	enemy.dead = true;
 	enemy.body.immune = true;
 	enemy.direction = 3;
 	game->enemies[game->n_enemies] = enemy;
@@ -372,13 +368,13 @@ int randrange(unsigned int *seedp, int min, int max)
 }
 
 // Return 0 or 1 probabilistically
-int chance(unsigned int *seedp, double percent)
+int chance(unsigned int *seedp, float percent)
 {
-	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);
+	return ((float)rand_r(seedp) / (float)RAND_MAX) <= (percent / 100.0f);
 }
 
 // Returns a random integer in list of integers
-int choose(unsigned int *seedp, int nargs...)
+int choose(unsigned int *seedp, int nargs, ...)
 {
 	va_list args;
 	va_start(args, nargs);

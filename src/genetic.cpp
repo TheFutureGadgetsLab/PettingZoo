@@ -11,7 +11,7 @@
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE]);
-int chance_gen(unsigned int *seedp, double percent);
+int chance_gen(unsigned int *seedp, float percent);
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed);
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state);
 
@@ -263,7 +263,7 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 }
 
 // Return 1 if random number is <= percent, otherwise 0
-int chance_gen(unsigned int *seedp, double percent)
+int chance_gen(unsigned int *seedp, float percent)
 {
-	return ((double)rand_r(seedp) / (double)RAND_MAX) <= (percent / 100.0);
+	return ((float)rand_r(seedp) / (float)RAND_MAX) <= (percent / 100.0f);
 }

@@ -39,10 +39,10 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	int return_value = 0;
 
 	// Estimate of time
-	player->time += 1.0 / (float)UPDATES_PS;
+	player->time += 1.0f / (float)UPDATES_PS;
 	
 	//Time limit
-	if (player->time >= MAX_TIME - 1.0 / (float)UPDATES_PS) {
+	if (player->time >= MAX_TIME - 1.0f / (float)UPDATES_PS) {
 		player->death_type = PLAYER_TIMEOUT;
 		return PLAYER_TIMEOUT;
 	}
@@ -143,7 +143,7 @@ unsigned int physics_sim(struct Game *game, struct Body* body, bool jump)
 	if (!jump && body->isjump)
 		body->isjump = false;
 	if (body->isjump) {
-		body->vy -= 1.5;
+		body->vy -= 1.5f;
 		if (body->vy <= -V_JUMP) {
 			body->isjump = false;
 			body->vy = -V_JUMP;
@@ -249,7 +249,7 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 //Basic distance function
 float dist(float x1, float y1, float x2, float y2)
 {
-	return sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0));
+	return sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
 }
 
 void get_input_tiles(struct Game *game, struct Player *player, uint8_t *tiles, uint8_t in_h, uint8_t in_w)

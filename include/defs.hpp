@@ -5,7 +5,7 @@
 #define IN_H 16
 #define IN_W 16
 #define HLC 2
-#define NPL 512
+#define NPL 256
 #define BUTTON_COUNT 3
 
 #define GEN_SIZE    10

@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 // Fitness measurement parameters
-#define FIT_TIME_WEIGHT 2.0
-#define FIT_BUTTONS_WEIGHT 0.2
+#define FIT_TIME_WEIGHT 2.0f
+#define FIT_BUTTONS_WEIGHT 0.2f
 #define COIN_VALUE 1000
 
 // Misc
@@ -24,8 +24,8 @@
 // Player physics parameters
 #define V_X 6
 #define V_JUMP 8
-#define INTERTA 1.4
-#define GRAVITY 0.3
+#define INTERTA 1.4f
+#define GRAVITY 0.3f
 #define PLAYER_WIDTH 24
 #define PLAYER_HALFW (PLAYER_WIDTH / 2)
 #define PLAYER_MARGIN ((TILE_SIZE - PLAYER_WIDTH) / 2)
