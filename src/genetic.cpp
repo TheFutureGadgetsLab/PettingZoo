@@ -14,6 +14,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 int chance_gen(unsigned int *seedp, float percent);
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed);
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state);
+void mutate_u(uint8_t *data, size_t length, unsigned int *seed_state);
+void mutate_f(float *data, size_t length, unsigned int *seed_state);
 
 int main()
 {
@@ -223,16 +225,22 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
     section_size = (uint8_t *)parentA_p.input_adj - parentA_p.input_act;
     split_loc = rand_r(seed_state) % (section_size + 1);
     split(parentA_p.input_act, parentB_p.input_act, childA_p.input_act, childB_p.input_act, section_size, split_loc);
+    mutate_u(childA_p.input_act, section_size, seed_state);
+    mutate_u(childB_p.input_act, section_size, seed_state);
 
     // Cross input adj layers
     section_size = parentA_p.hidden_act - (uint8_t *)parentA_p.input_adj;
     split_loc = rand_r(seed_state) % ((section_size + 1) / 4);
     split(parentA_p.input_adj, parentB_p.input_adj, childA_p.input_adj, childB_p.input_adj, section_size, split_loc * sizeof(float));
+    mutate_f(childA_p.input_adj, section_size / 4, seed_state);
+    mutate_f(childB_p.input_adj, section_size / 4, seed_state);
 
     // Cross hidden act layer
     section_size = (uint8_t *)parentA_p.hidden_adj - parentA_p.hidden_act;
     split_loc = rand_r(seed_state) % (section_size + 1);
     split(parentA_p.hidden_act, parentB_p.hidden_act, childA_p.hidden_act, childB_p.hidden_act, section_size, split_loc);
+    mutate_u(childA_p.hidden_act, section_size, seed_state);
+    mutate_u(childB_p.hidden_act, section_size, seed_state);
 
     // Cross hidden layers
     section_size = parentA_p.npl * parentA_p.npl;
@@ -240,12 +248,16 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
         split_loc = rand_r(seed_state) % (section_size + 1);
         split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl,
               childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
+        mutate_f(childA_p.input_adj + section_size * hl, section_size, seed_state);
+        mutate_f(childB_p.input_adj + section_size * hl, section_size, seed_state);
     }
 
     // Cross output adj layer
     section_size = parentA_p.size - ((uint8_t *)parentA_p.out_adj - parentA);
     split_loc = rand_r(seed_state) % ((section_size + 1) / 4);
     split(parentA_p.out_adj, parentB_p.out_adj, childA_p.out_adj, childB_p.out_adj, section_size, split_loc * sizeof(float));
+    mutate_f(childA_p.out_adj, section_size / 4, seed_state);
+    mutate_f(childB_p.out_adj, section_size / 4, seed_state);
 }
 
 /* 
@@ -266,4 +278,23 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 int chance_gen(unsigned int *seedp, float percent)
 {
 	return ((float)rand_r(seedp) / (float)RAND_MAX) <= (percent / 100.0f);
+}
+
+// Mutation
+void mutate_u(uint8_t *data, size_t length, unsigned int *seed_state)
+{
+    size_t i;
+    for (i = 0; i < length; i++) {
+        if (chance_gen(seed_state, MUTATE_CHANCE))
+            data[i] = !data[i];
+    }
+}
+
+void mutate_f(float *data, size_t length, unsigned int *seed_state)
+{
+    size_t i;
+    for (i = 0; i < length; i++) {
+        if (chance_gen(seed_state, MUTATE_CHANCE))
+            data[i] *= ((double)rand_r(seed_state) / (double)RAND_MAX) * 2.0;
+    }
 }

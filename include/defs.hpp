@@ -8,7 +8,8 @@
 #define NPL 256
 #define BUTTON_COUNT 3
 
-#define GEN_SIZE    10
+#define MUTATE_CHANCE 15.0
+#define GEN_SIZE    20
 #define GENERATIONS 10
 
 
