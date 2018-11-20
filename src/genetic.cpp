@@ -12,7 +12,7 @@
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
     float fitnesses[GEN_SIZE], struct RecordedChromosome *winner);
-int chance_gen(unsigned int *seedp, float percent);
+int chance_gen(float percent);
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation);
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB);
 void mutate_u(uint8_t *data, size_t length);
