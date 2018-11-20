@@ -10,12 +10,20 @@
 #include <levelgen.hpp>
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE]);
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
+    float fitnesses[GEN_SIZE], struct RecordedChromosome *winner);
 int chance_gen(unsigned int *seedp, float percent);
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation, unsigned int seed);
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB, unsigned int *seed_state);
 void mutate_u(uint8_t *data, size_t length, unsigned int *seed_state);
 void mutate_f(float *data, size_t length, unsigned int *seed_state);
+
+struct RecordedChromosome {
+    uint8_t *chrom;
+    uint8_t *buttons;
+    float fitness;
+    struct Game *game;
+};
 
 int main()
 {
@@ -27,9 +35,12 @@ int main()
     int completed, timedout, died, gen;
     uint8_t **cur_gen, **next_gen, **tmp;
     unsigned int seed, level_seed, game;
+    uint8_t buttons[MAX_FRAMES];
+    struct RecordedChromosome winner;
+    winner.buttons = buttons;
+    winner.fitness = 0;
 
     seed = (unsigned int)time(NULL);
-    seed = 10;
     srand(seed);
 
     // Arrays for game and player structures
@@ -64,7 +75,7 @@ int main()
             game_setup(&games[game], &players[game], level_seed);
         }
 
-        run_generation(games, players, cur_gen, fitnesses);
+        run_generation(games, players, cur_gen, fitnesses, &winner);
 
         // Get stats from run
         max = fitnesses[0];
@@ -105,6 +116,9 @@ int main()
     }
     puts("----------------------------");
 
+    printf("fitness: %f, seed: %u\n", winner.fitness, winner.game->seed);
+    write_out(winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
+
     for (game = 0; game < GEN_SIZE; game++) {
         free(genA[game]);
         free(genB[game]);
@@ -121,7 +135,7 @@ int main()
  * The fitnesses are written out into the float fitnesses array.
  */
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
-    float fitnesses[GEN_SIZE])
+    float fitnesses[GEN_SIZE], struct RecordedChromosome *winner)
 {
     int game, buttons_index, ret;
     uint8_t *input_tiles;
@@ -147,14 +161,25 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(&games[game], &players[game], generation[game], input_tiles, node_outputs, buttons + buttons_index);
+            ret = evaluate_frame(&games[game], &players[game], generation[game], 
+                input_tiles, node_outputs, buttons + buttons_index);
             buttons_index++;
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
         }
         fitnesses[game] = players[game].fitness;
-    }
+
+        //Is best?
+        if (fitnesses[game] > winner->fitness) {
+            winner->chrom = generation[game];
+            memcpy(winner->buttons, buttons, MAX_FRAMES);
+            winner->buttons = buttons;
+            winner->fitness = fitnesses[game];
+            winner->game = &games[game];
+        }
+    }    
+
     printf("\33[2K\r");
     fflush(stdout);
 

@@ -11,7 +11,6 @@
 void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
 
 // Activation functions
 float sigmoid(float x);
@@ -73,7 +72,7 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
                 sum += prms.input_adj[node * prms.in_h * prms.in_w + weight] * inputs[weight];
         }
 
-        node_outputs[node] = sigmoid_bounded(sum);
+        node_outputs[node] = softsign_bounded(sum);
     }
 }
 
@@ -106,7 +105,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
                 sum += hidden_adj[node * prms.npl + weight] * node_outs[(layer - 1) * prms.npl + weight];
             }
 
-            node_outs[cur_node] = sigmoid_bounded(sum);
+            node_outs[cur_node] = softsign_bounded(sum);
         }
     }
 }
@@ -127,7 +126,7 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
             sum += prms.out_adj[bttn * prms.npl + weight] * node_outs[(prms.hlc - 1) * prms.npl + weight];
         }
 
-        net_outs[bttn] = sigmoid_bounded(sum);
+        net_outs[bttn] = softsign_bounded(sum);
     }
 }
 
