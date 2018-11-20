@@ -51,7 +51,7 @@ int main()
     next_gen = genB;
     for (gen = 0; gen < GENERATIONS; gen++) {
         puts("----------------------------");
-        printf("Running generation %d\n", gen);
+        printf("Running generation %d/%d\n", gen, GENERATIONS);
 
         avg_fitness = 0;
         timedout = 0;
@@ -84,7 +84,7 @@ int main()
             else if (players[game].death_type == PLAYER_DEAD)
                 died++;
 
-            printf("Player %d fitness: %0.2lf\n", game, fitnesses[game]);
+            // printf("Player %d fitness: %0.2lf\n", game, fitnesses[game]);
         }
 
         avg_fitness /= GEN_SIZE;
@@ -137,8 +137,7 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
     // Loop over the entire generation
     for (game = 0; game < GEN_SIZE; game++) {
-        printf("\33[2K\r"); // Clears line, moves cursor to the beginning
-        printf("%d/%d", game, GEN_SIZE);
+        printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
         fflush(stdout);
 
         buttons_index = 0;
@@ -188,11 +187,10 @@ void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_gene
 
     //Select survivors
     while (n_survivors < GEN_SIZE / 2) {
-        for (i = 0; i < GEN_SIZE; i++) {
-            if (chance_gen(fitnesses[i] / sum)) {
-                survivors[n_survivors] = generation[i];
-                n_survivors += 1;
-            }
+        i = rand() % GEN_SIZE;
+        if (chance_gen(fitnesses[i] / best)) {
+            survivors[n_survivors] = generation[i];
+            n_survivors += 1;
         }
     }
 
@@ -243,6 +241,7 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
         split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl,
               childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
     }
+
     // Cross output adj layer
     section_size = parentA_p.size - ((uint8_t *)parentA_p.out_adj - parentA);
     split_loc = rand() % ((section_size + 1) / 4);
@@ -251,11 +250,12 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
 
 /*
  * Copies 'split' bytes into childA from parentA, then after that copies the rest of the section
- * into childA from parentB. This is then done with childB, but the copy order is reversed
- * (parentB first then parentA).
+ * (length - split) into childA from parentB. This is then done with childB, but the copy order 
+ * is reversed (parentB first then parentA).
  */
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
 {
+    // Must cast for pointer arithmetic
     memcpy(childA, parentA, split);
     memcpy((uint8_t *)childA + split, (uint8_t *)parentB + split, length - split);
 

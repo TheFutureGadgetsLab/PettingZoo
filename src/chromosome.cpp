@@ -28,7 +28,8 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     // This is NOT transposed
     for (r = 0; r < in_h; r++) {
         for (c = 0; c < in_w; c++) {
-            *cur_uint = rand_r(&seedp) % 2;
+            // *cur_uint = rand_r(&seedp) % 2;
+            *cur_uint = 1;
             cur_uint++;
         }
     }
@@ -46,7 +47,8 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     cur_uint = params.hidden_act;
     for (r = 0; r < hlc; r++) {
         for (c = 0; c < npl; c++) {
-            *cur_uint = rand_r(&seedp) % 2;
+            // *cur_uint = rand_r(&seedp) % 2;
+            *cur_uint = 1;
             cur_uint++;
         }
     }
@@ -177,8 +179,8 @@ float gen_random_weight(unsigned int *seedp)
     chance = (float)rand_r(seedp) / RAND_MAX;
     
     // Connection is inactive
-    if (chance > 0.9f)
-        return 0.0f;
+    // if (chance > 0.9f)
+    //     return 0.0f;
 
     // Flip sign on even
     if (rand_r(seedp) % 2 == 0)

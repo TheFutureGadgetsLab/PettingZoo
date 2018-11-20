@@ -258,6 +258,7 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 	int tile_x2, tile_y2;
 	int x, y;
 	float *tmp;
+	uint8_t tile;
 
 	tmp = tiles;
 
@@ -270,15 +271,40 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 	//Loop over tiles and draw them
 	for (y = tile_y1; y < tile_y2; y++) {
 		for (x = tile_x1; x < tile_x2; x++) {
+			tile = game->tiles[y * LEVEL_WIDTH + x];
 			// Report walls on left and right side of level
 			if (x < 0 || x >= LEVEL_WIDTH)
-				*tmp = (float)BRICKS;
+				tile = BRICKS;
 			else if (y < 0 || y >= LEVEL_HEIGHT)
-				*tmp = (float)EMPTY;
-			else 
-				*tmp = (float)game->tiles[y * LEVEL_WIDTH + x];
+				tile = EMPTY;
 
-			*tmp = *tmp / 11.0f;
+			switch(tile) {
+			case EMPTY:
+				*tmp = 0.0f;
+				break;
+			case PIPE_BOTTOM:
+			case PIPE_MIDDLE:
+			case PIPE_TOP:
+			case GRASS:
+			case DIRT:
+			case BRICKS:
+				*tmp = 0.25f;
+				break;
+			case COIN:
+				*tmp = 0.5f;
+				break;
+			case SPIKES_TOP:
+				*tmp = 0.75f;
+				break;
+			case SPIKES_BOTTOM:
+				*tmp = 1.0f;
+				break;
+			default:
+				printf("Unexpected tile ID in get_input_tiles!\n");
+				exit(EXIT_FAILURE);
+				break;
+			}
+
 			tmp++;
 		}
 	}

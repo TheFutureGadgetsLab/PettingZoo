@@ -25,7 +25,6 @@ int main()
     chrom = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
     
     seed = time(NULL);
-    seed = 10;
     printf("Seed = %u\n", seed);
 
     game_setup(&game, &player, seed);
@@ -36,12 +35,31 @@ int main()
         ret = evaluate_frame(&game, &player, chrom, tiles, node_outputs, buttons + buttons_index);
         buttons_index++;
 
+        // for (int row = 0; row < IN_H; row++) {
+        //     for (int col = 0; col < IN_W; col++) {
+        //         if (tiles[row * IN_W + col] == 0) {
+        //             printf("  ");
+        //         } else if (tiles[row * IN_W + col] == 0.25f) {
+        //             printf("# ");
+        //         } else if (tiles[row * IN_W + col] == 0.5f) {
+        //             printf("C ");
+        //         } else if (tiles[row * IN_W + col] == 0.75f) {
+        //             printf("T ");
+        //         } else if (tiles[row * IN_W + col] == 1.0f) {
+        //             printf("B ");
+        //         } 
+        //     }
+        //     puts("");
+        // }
+        // puts("");
+
         for (int row = 0; row < NPL; row++) {
             for (int col = 0; col < HLC; col++) {
-                printf("%lf ", node_outputs[row * HLC + col]);
+                printf("% 05.4lf ", node_outputs[row * HLC + col]);
             }
             puts("");
         }
+        puts("");
 
         if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
             break;
