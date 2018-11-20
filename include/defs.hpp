@@ -8,6 +8,7 @@
 #define NPL          256
 #define GEN_SIZE     1000
 #define GENERATIONS  200
+#define MUTATE_RATE  15.0
 
 // Button parameters
 #define BUTTON_COUNT 3

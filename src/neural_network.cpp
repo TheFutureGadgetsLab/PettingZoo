@@ -11,7 +11,6 @@
 void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
-void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
 
 // Activation functions
 float sigmoid(float x);

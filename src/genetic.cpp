@@ -10,10 +10,20 @@
 #include <levelgen.hpp>
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE]);
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
+    float fitnesses[GEN_SIZE], struct RecordedChromosome *winner);
 int chance_gen(float percent);
 void select_and_breed(uint8_t **generation, float *fitnesses, uint8_t **new_generation);
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB);
+void mutate_u(uint8_t *data, size_t length);
+void mutate_f(float *data, size_t length);
+
+struct RecordedChromosome {
+    uint8_t *chrom;
+    uint8_t *buttons;
+    float fitness;
+    struct Game *game;
+};
 
 int main()
 {
@@ -25,6 +35,10 @@ int main()
     int completed, timedout, died, gen;
     uint8_t **cur_gen, **next_gen, **tmp;
     unsigned int seed, level_seed, game;
+    uint8_t buttons[MAX_FRAMES];
+    struct RecordedChromosome winner;
+    winner.buttons = buttons;
+    winner.fitness = 0;
 
     seed = (unsigned int)time(NULL);
     srand(seed);
@@ -63,7 +77,7 @@ int main()
             game_setup(&games[game], &players[game], level_seed);
         }
 
-        run_generation(games, players, cur_gen, fitnesses);
+        run_generation(games, players, cur_gen, fitnesses, &winner);
 
         // Get stats from run
         max = fitnesses[0];
@@ -104,6 +118,9 @@ int main()
     }
     puts("----------------------------");
 
+    printf("fitness: %f, seed: %u\n", winner.fitness, winner.game->seed);
+    write_out(winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
+
     for (game = 0; game < GEN_SIZE; game++) {
         free(genA[game]);
         free(genB[game]);
@@ -119,7 +136,8 @@ int main()
  * This function takes an array of games, players, and chromosomes to be evaluated.
  * The fitnesses are written out into the float fitnesses array.
  */
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], float fitnesses[GEN_SIZE])
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE],
+    float fitnesses[GEN_SIZE], struct RecordedChromosome *winner)
 {
     int game, buttons_index, ret;
     float *input_tiles;
@@ -144,14 +162,25 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(&games[game], &players[game], generation[game], input_tiles, node_outputs, buttons + buttons_index);
+            ret = evaluate_frame(&games[game], &players[game], generation[game], 
+                input_tiles, node_outputs, buttons + buttons_index);
             buttons_index++;
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
         }
         fitnesses[game] = players[game].fitness;
-    }
+
+        //Is best?
+        if (fitnesses[game] > winner->fitness) {
+            winner->chrom = generation[game];
+            memcpy(winner->buttons, buttons, MAX_FRAMES);
+            winner->buttons = buttons;
+            winner->fitness = fitnesses[game];
+            winner->game = &games[game];
+        }
+    }    
+
     printf("\33[2K\r");
     fflush(stdout);
 
@@ -224,28 +253,38 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
     section_size = (uint8_t *)parentA_p.input_adj - parentA_p.input_act;
     split_loc = rand() % (section_size + 1);
     split(parentA_p.input_act, parentB_p.input_act, childA_p.input_act, childB_p.input_act, section_size, split_loc);
+    mutate_u(childA_p.input_act, section_size);
+    mutate_u(childB_p.input_act, section_size);
 
     // Cross input adj layers
     section_size = parentA_p.hidden_act - (uint8_t *)parentA_p.input_adj;
     split_loc = rand() % ((section_size + 1) / 4);
     split(parentA_p.input_adj, parentB_p.input_adj, childA_p.input_adj, childB_p.input_adj, section_size, split_loc * sizeof(float));
+    mutate_f(childA_p.input_adj, section_size / 4);
+    mutate_f(childB_p.input_adj, section_size / 4);
 
     // Cross hidden act layer
     section_size = (uint8_t *)parentA_p.hidden_adj - parentA_p.hidden_act;
     split_loc = rand() % (section_size + 1);
     split(parentA_p.hidden_act, parentB_p.hidden_act, childA_p.hidden_act, childB_p.hidden_act, section_size, split_loc);
+    mutate_u(childA_p.hidden_act, section_size);
+    mutate_u(childB_p.hidden_act, section_size);
 
     section_size = parentA_p.npl * parentA_p.npl;
     for (hl = 0; hl < parentA_p.hlc - 1; hl++) {
         split_loc = rand() % (section_size + 1);
         split(parentA_p.hidden_adj + section_size * hl, parentB_p.hidden_adj + section_size * hl,
               childA_p.hidden_adj + section_size * hl, childB_p.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
+        mutate_f(childA_p.input_adj + section_size * hl, section_size);
+        mutate_f(childB_p.input_adj + section_size * hl, section_size);
     }
 
     // Cross output adj layer
     section_size = parentA_p.size - ((uint8_t *)parentA_p.out_adj - parentA);
     split_loc = rand() % ((section_size + 1) / 4);
     split(parentA_p.out_adj, parentB_p.out_adj, childA_p.out_adj, childB_p.out_adj, section_size, split_loc * sizeof(float));
+    mutate_f(childA_p.out_adj, section_size / 4);
+    mutate_f(childB_p.out_adj, section_size / 4);
 }
 
 /*
@@ -267,4 +306,23 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 int chance_gen(float percent)
 {
 	return ((float)rand() / (float)RAND_MAX) <= (percent / 100.0f);
+}
+
+// Mutation
+void mutate_u(uint8_t *data, size_t length)
+{
+    size_t i;
+    for (i = 0; i < length; i++) {
+        if (chance_gen(MUTATE_CHANCE))
+            data[i] = !data[i];
+    }
+}
+
+void mutate_f(float *data, size_t length)
+{
+    size_t i;
+    for (i = 0; i < length; i++) {
+        if (chance_gen(MUTATE_CHANCE))
+            data[i] *= ((double)rand() / (double)RAND_MAX) * 2.0;
+    }
 }
