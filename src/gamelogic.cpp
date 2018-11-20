@@ -252,12 +252,12 @@ float dist(float x1, float y1, float x2, float y2)
 	return sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
 }
 
-void get_input_tiles(struct Game *game, struct Player *player, uint8_t *tiles, uint8_t in_h, uint8_t in_w)
+void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w)
 {
 	int tile_x1, tile_y1;
 	int tile_x2, tile_y2;
 	int x, y;
-	uint8_t *tmp;
+	float *tmp;
 
 	tmp = tiles;
 
@@ -272,12 +272,13 @@ void get_input_tiles(struct Game *game, struct Player *player, uint8_t *tiles, u
 		for (x = tile_x1; x < tile_x2; x++) {
 			// Report walls on left and right side of level
 			if (x < 0 || x >= LEVEL_WIDTH)
-				*tmp = BRICKS;
+				*tmp = (float)BRICKS;
 			else if (y < 0 || y >= LEVEL_HEIGHT)
-				*tmp = EMPTY;
+				*tmp = (float)EMPTY;
 			else 
-				*tmp = game->tiles[y * LEVEL_WIDTH + x];
-	
+				*tmp = (float)game->tiles[y * LEVEL_WIDTH + x];
+
+			*tmp = *tmp / 11.0f;
 			tmp++;
 		}
 	}

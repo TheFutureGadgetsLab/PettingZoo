@@ -6,7 +6,6 @@
 #define IN_W 16
 #define HLC 2
 #define NPL 256
-#define BUTTON_COUNT 3
 
 #define MUTATE_CHANCE 15.0
 #define GEN_SIZE    20

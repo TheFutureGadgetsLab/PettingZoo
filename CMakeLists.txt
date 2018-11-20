@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pettingzoo)
- 
+
+# Locate headers
+include_directories(include)
+
 # Set march
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
 if(COMPILER_SUPPORTS_MARCH_NATIVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
-
-# Locate headers
-include_directories(include)
 
 # Add extra compiler flags
 if ( CMAKE_COMPILER_IS_GNUCC )
