@@ -8,7 +8,7 @@
 #include <gamelogic.hpp>
 #include <sys/stat.h>
 
-void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs);
+void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs);
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
 void write_out(uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
@@ -20,7 +20,7 @@ float sigmoid_bounded(float x);
 float softsign_bounded(float x);
 float tanh_bounded(float x);
 
-int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons)
+int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, float *tiles, float *node_outputs, uint8_t *buttons)
 {
     struct params prms;
     float network_outputs[BUTTON_COUNT];
@@ -35,9 +35,9 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     calc_output(chrom, node_outputs, network_outputs);
 
     // Assign button presses based on output probability
-    inputs[BUTTON_RIGHT] = network_outputs[BUTTON_RIGHT] > 0.5f;
-    inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.5f;
-    inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.5f;
+    inputs[BUTTON_RIGHT] = network_outputs[BUTTON_RIGHT] > 0.0f;
+    inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.0f;
+    inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.0f;
 
     // Add pressed buttons to the buffer
     *buttons = inputs[BUTTON_RIGHT]       |
@@ -49,7 +49,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uin
     return ret;
 }
 
-void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
+void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
     float sum;
@@ -73,7 +73,7 @@ void calc_first_layer(uint8_t *chrom, uint8_t *inputs, float *node_outputs)
                 sum += prms.input_adj[node * prms.in_h * prms.in_w + weight] * inputs[weight];
         }
 
-        node_outputs[node] = sigmoid_bounded(sum);
+        node_outputs[node] = softsign(sum);
     }
 }
 
@@ -106,7 +106,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
                 sum += hidden_adj[node * prms.npl + weight] * node_outs[(layer - 1) * prms.npl + weight];
             }
 
-            node_outs[cur_node] = sigmoid_bounded(sum);
+            node_outs[cur_node] = softsign(sum);
         }
     }
 }
@@ -127,7 +127,7 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
             sum += prms.out_adj[bttn * prms.npl + weight] * node_outs[(prms.hlc - 1) * prms.npl + weight];
         }
 
-        net_outs[bttn] = sigmoid_bounded(sum);
+        net_outs[bttn] = softsign(sum);
     }
 }
 

@@ -12,7 +12,7 @@
 int main()
 {
     uint8_t *chrom = NULL;
-    uint8_t *tiles = NULL;
+    float *tiles = NULL;
     float *node_outputs = NULL;
     struct Game game;
     struct Player player;
@@ -20,7 +20,7 @@ int main()
     int buttons_index, ret;
     unsigned int seed;
 
-    tiles = (uint8_t *)malloc(sizeof(uint8_t) * IN_W * IN_H);
+    tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
     chrom = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
     

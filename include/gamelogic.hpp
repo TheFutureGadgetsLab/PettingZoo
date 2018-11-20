@@ -75,6 +75,6 @@ struct Game {
 
 void game_setup(struct Game *game, struct Player *player, unsigned int seed);
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
-void get_input_tiles(struct Game *game, struct Player *player, uint8_t *tiles, uint8_t in_h, uint8_t in_w);
+void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w);
 
 #endif

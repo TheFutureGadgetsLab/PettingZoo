@@ -4,6 +4,6 @@
 float vec_dot(float *a, float *b, int size);
 float sigmoid(float x);
 float soft_sign(float x);
-int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, uint8_t *tiles, float *node_outputs, uint8_t *buttons);
+int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, float *tiles, float *node_outputs, uint8_t *buttons);
 
 #endif
