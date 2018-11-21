@@ -179,8 +179,9 @@ float gen_random_weight(unsigned int *seedp)
     chance = (float)rand_r(seedp) / RAND_MAX;
     
     // Connection is inactive
-    // if (chance > 0.9f)
-    //     return 0.0f;
+    // THIS IS CURRENTLY NOT IN USE
+    if (chance > 2.0f)
+        return 0.0f;
 
     // Flip sign on even
     if (rand_r(seedp) % 2 == 0)

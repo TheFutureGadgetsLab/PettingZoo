@@ -370,7 +370,7 @@ int randrange(unsigned int *seedp, int min, int max)
 // Return 0 or 1 probabilistically
 int chance(unsigned int *seedp, float percent)
 {
-	return ((float)rand_r(seedp) / (float)RAND_MAX) <= (percent / 100.0f);
+	return ((float)rand_r(seedp) / (float)RAND_MAX) < (percent / 100.0f);
 }
 
 // Returns a random integer in list of integers

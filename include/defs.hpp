@@ -5,10 +5,10 @@
 #define IN_H         12
 #define IN_W         12
 #define HLC          2
-#define NPL          256
+#define NPL          128
 #define GEN_SIZE     1000
 #define GENERATIONS  200
-#define MUTATE_RATE  15.0
+#define MUTATE_RATE  0.0f
 
 // Button parameters
 #define BUTTON_COUNT 3
