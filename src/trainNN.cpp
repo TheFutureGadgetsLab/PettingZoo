@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <genetic.hpp>
 #include <chromosome.hpp>
 #include <neural_network.hpp>
@@ -9,7 +10,7 @@
 
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
-void write_out_header(FILE *fh);
+FILE* create_output_dir(unsigned int seed);
 
 int main()
 {
@@ -21,16 +22,14 @@ int main()
     unsigned int seed, level_seed;
     struct RecordedChromosome winner;
     FILE *out_file;
-    char fname[4069];
+    char fname[4096];
 
     winner.fitness = 0;
 
     seed = (unsigned int)time(NULL);
     srand(seed);
 
-    sprintf(fname, "%d.txt", seed);
-    out_file = fopen(fname, "w+");
-    write_out_header(out_file);
+    out_file = create_output_dir(seed);
 
     // Arrays for game and player structures
     games = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
@@ -84,7 +83,10 @@ int main()
 
     printf("Best chromosome:\n");
     printf("  Fitness: %f\n  Seed: %u\n", winner.fitness, winner.game->seed);
-    write_out(winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
+
+    // Write out best chromosome
+    sprintf(fname, "./%d/best.bin", seed);
+    write_out(fname, winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
 
     for (game = 0; game < GEN_SIZE; game++) {
         free(genA[game]);
@@ -169,8 +171,21 @@ void write_out_progress(FILE *fh, struct Player players[GEN_SIZE])
     fflush(fh);
 }
 
-void write_out_header(FILE *fh)
+FILE* create_output_dir(unsigned int seed)
 {
-    fprintf(fh, "%d, %d, %d, %d, %d, %d, %lf\n", IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE);
-    fflush(fh);
+    FILE* out_file;
+    char name[4069];
+
+    sprintf(name, "./%d", seed);
+
+    mkdir(name, S_IRWXU | S_IRWXG | S_IRWXO);
+
+    sprintf(name, "./%d/run_data.txt", seed);
+    out_file = fopen(name, "w+");
+
+    // Write out header data
+    fprintf(out_file, "%d, %d, %d, %d, %d, %d, %lf\n", IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE);
+    fflush(out_file);
+
+    return out_file;
 }
