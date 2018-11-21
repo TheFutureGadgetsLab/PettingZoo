@@ -40,17 +40,17 @@ target_link_libraries(pettingzoo m)
 
 ###############################################################
 #
-#                       Genetic Algorithm
+#                       Train NN
 #
 ###############################################################
 # Load sources
-set(CHROM_SOURCES src/genetic.cpp src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
+set(CHROM_SOURCES src/trainNN.cpp src/genetic.cpp src/chromosome.cpp src/neural_network.cpp src/gamelogic.cpp src/levelgen.cpp)
 
 # Compile
-add_executable(genetic ${CHROM_SOURCES})
+add_executable(trainNN ${CHROM_SOURCES})
 
 # Link libraries
-target_link_libraries(genetic m)
+target_link_libraries(trainNN m)
 
 # Set the location for library installation -- i.e., /usr/lib
 # Use "sudo make install" to apply
