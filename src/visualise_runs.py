@@ -2,6 +2,8 @@ from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from sys import argv, exit
 from getopt import getopt, GetoptError
+from tkinter import TclError
+import matplotlib
 
 def main():
     try:
@@ -16,6 +18,8 @@ def main():
         usage()
         exit(2)
     
+    indices = {'completed': 0, 'timedout': 1, 'died': 2, 'average': 3, 'max': 4, 'min': 5}
+
     average = False
     timedout = False
     completed = False
@@ -34,19 +38,40 @@ def main():
             died = True 
         else:
             assert False, "unhandled option"
-
+    
     runs, run_headers = load_data(args)
 
-    if average:
-        plot_avg_fit(runs, run_headers, 1)
-    if timedout:
-        plot_timeout(runs, run_headers, 2)
-    if completed:
-        plot_completed(runs, run_headers, 3)
-    if died:
-        plot_died(runs, run_headers, 4)
-
+    plt.ion()
     plt.show()
+            
+    if average:
+        plot_avg_fit(runs, run_headers, indices['average'])
+    if timedout:
+        plot_timeout(runs, run_headers, indices['timedout'])
+    if completed:
+        plot_completed(runs, run_headers, indices['completed'])
+    if died:
+        plot_died(runs, run_headers, indices['died'])
+
+    while len(plt.get_fignums()) > 0:
+        # Data is re-read every loop (1 second), probably unnecessary but not super expensive
+        runs, run_headers = load_data(args)
+
+        if average:
+            update_plot(runs, run_headers, indices['average'])
+        if timedout:
+            update_plot(runs, run_headers, indices['timedout'])
+        if completed:
+            update_plot(runs, run_headers, indices['completed'])
+        if died:
+            update_plot(runs, run_headers, indices['died'])
+
+        # Try block to handle user closing figure during pause
+        try:
+            # This will pause (not blocking GUI loop) and update plots
+            mypause(1)
+        except TclError:
+            pass
 
 def load_data(run_files):
     run_headers = []
@@ -55,10 +80,8 @@ def load_data(run_files):
     try:
         for run in run_files:
             # Populate header list
-            # Cols: IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE
             run_headers.append(genfromtxt(f'./{run}/run_data.txt', delimiter=',', max_rows = 1, dtype=int))
             # Populate data list
-            # Cols: completed, timed out, died, average, max, min
             runs.append(genfromtxt(f'./{run}/run_data.txt', delimiter=',', skip_header=1, dtype=None))
     except IOError as err:
         print(err)
@@ -66,8 +89,8 @@ def load_data(run_files):
 
     return runs, run_headers
 
-def plot_completed(runs, run_headers, n):
-    plt.figure(n)
+def plot_completed(runs, run_headers, index):
+    plt.figure(index)
 
     plt.xlabel('Generations')
     plt.ylabel('Completed')
@@ -78,12 +101,10 @@ def plot_completed(runs, run_headers, n):
         plt.plot([point[0] for point in run], label=run_label)
 
     plt.legend(loc='best')
-
-    plt.xlim(left=0)
     plt.grid(True)
 
-def plot_timeout(runs, run_headers, n):
-    plt.figure(n)
+def plot_timeout(runs, run_headers, index):
+    plt.figure(index)
 
     plt.xlabel('Generations')
     plt.ylabel('Timed Out')
@@ -94,12 +115,10 @@ def plot_timeout(runs, run_headers, n):
         plt.plot([point[1] for point in run], label=run_label)
 
     plt.legend(loc='best')
-
-    plt.xlim(left=0)
     plt.grid(True)
 
-def plot_died(runs, run_headers, n):
-    plt.figure(n)
+def plot_died(runs, run_headers, index):
+    plt.figure(index)
 
     plt.xlabel('Generations')
     plt.ylabel('Died')
@@ -110,12 +129,10 @@ def plot_died(runs, run_headers, n):
         plt.plot([point[2] for point in run], label=run_label)
 
     plt.legend(loc='best')
-
-    plt.xlim(left=0)
     plt.grid(True)
 
-def plot_avg_fit(runs, run_headers, n):
-    plt.figure(n)
+def plot_avg_fit(runs, run_headers, index):
+    plt.figure(index)
 
     plt.xlabel('Generations')
     plt.ylabel('Average fitness')
@@ -126,19 +143,36 @@ def plot_avg_fit(runs, run_headers, n):
         plt.plot([point[3] for point in run], label=run_label)
 
     plt.legend(loc='best')
-
-    plt.xlim(left=0)
     plt.grid(True)
-
-def update_avg_fit(runs, run_headers, n):
-    plt.figure(n)
-
-    # Grab each line in the current axis and update its y data
-    for run, line in zip(runs, plt.gca().get_lines()):
-        line.set_ydata([point[3] for point in run])
 
 def usage():
     print(f'Usage: python3 {argv[0]}')
+
+def mypause(interval):
+    "Similar to plt.pause(), however, it does not bring fig into foreground."
+    
+    backend = plt.rcParams['backend']
+    if backend in matplotlib.rcsetup.interactive_bk:
+        figManager = matplotlib._pylab_helpers.Gcf.get_active()
+        if figManager is not None:
+            canvas = figManager.canvas
+            if canvas.figure.stale:
+                canvas.draw()
+            canvas.start_event_loop(interval)
+            return
+
+def update_plot(runs, run_headers, index):
+    plt.figure(index)
+
+    # Grab each line in the current axis and update its y data
+    for run, line in zip(runs, plt.gca().get_lines()):
+        line.set_ydata([point[index] for point in run])
+        line.set_xdata(range(len(run)))
+    
+    ax = plt.gca()
+    ax.relim()
+    ax.autoscale_view()
+    plt.autoscale(enable=True)
 
 if __name__ == "__main__":
     main()
