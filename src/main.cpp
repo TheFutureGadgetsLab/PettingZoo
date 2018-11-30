@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
+#include <levelgen.hpp>
 
 #define RIGHT(x) ((x >> 0) & 0x1)
 #define LEFT(x)  ((x >> 1) & 0x1)
@@ -50,7 +51,8 @@ int main(int argc, char **argv)
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 		
-	game_setup(&game, &player, seed);
+	game_setup(&player);
+	levelgen_gen_map(&game, seed);
 	render_load_assets();
 	render_gen_map(game);
 
@@ -165,7 +167,8 @@ void reset_game(struct Game *game, struct Player *player, unsigned int seed, boo
 	if (!replay_ai)
 		seed = time(NULL);
 	
-	game_setup(game, player, seed);
+	game_setup(player);
+	levelgen_gen_map(game, seed);
 	render_gen_map(*game);
 }
 

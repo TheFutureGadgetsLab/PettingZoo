@@ -7,6 +7,7 @@
 #include <chromosome.hpp>
 #include <neural_network.hpp>
 #include <gamelogic.hpp>
+#include <levelgen.hpp>
 
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
@@ -60,7 +61,8 @@ int main()
 
         // Generate seed for this gens levels and generate them
         for (game = 0; game < GEN_SIZE; game++) {
-            game_setup(&games[game], &players[game], level_seed);
+            game_setup(&players[game]);
+            levelgen_gen_map(&games[game], level_seed);
         }
 
         run_generation(games, players, cur_gen, &winner);

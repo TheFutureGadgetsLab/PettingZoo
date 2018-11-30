@@ -8,6 +8,7 @@
 #include <gamelogic.hpp>
 #include <sys/stat.h>
 #include <defs.hpp>
+#include <levelgen.hpp>
 
 int main()
 {
@@ -27,7 +28,8 @@ int main()
     seed = time(NULL);
     printf("Seed = %u\n", seed);
 
-    game_setup(&game, &player, seed);
+    game_setup(&player);
+    levelgen_gen_map(&game, seed);
     generate_chromosome(chrom, IN_H, IN_W, HLC, NPL, seed);
     
     buttons_index = 0;

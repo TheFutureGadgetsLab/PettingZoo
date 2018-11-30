@@ -3,13 +3,6 @@
 
 #include <gamelogic.hpp>
 
-struct plat {
-	int origin;
-	int height;
-	int length;
-	bool used;
-};
-
 // Level generation parameters
 #define GROUND_HEIGHT (LEVEL_HEIGHT - 4)
 #define START_PLATLEN 5
@@ -17,7 +10,6 @@ struct plat {
 #define SPAWN_Y (GROUND_HEIGHT - 1)
 
 void levelgen_gen_map(struct Game *game, unsigned int seed);
-void levelgen_clear_level(struct Game *game);
 int chance(unsigned int *seedp, float percent);
 
 #endif

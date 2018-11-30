@@ -12,11 +12,6 @@ def main():
         print(err)
         usage()
         exit(2)
-
-    if len(args) == 0:
-        print("Please supply at least one run directory!")
-        usage()
-        exit(2)
     
     indices = {'completed': 0, 'timedout': 1, 'died': 2, 'average': 3, 'max': 4, 'min': 5}
 
@@ -39,6 +34,11 @@ def main():
         else:
             assert False, "unhandled option"
     
+    if len(args) == 0:
+        print("Please supply at least one run directory!")
+        usage()
+        exit(2)
+
     runs, run_headers = load_data(args)
 
     plt.ion()
@@ -145,8 +145,25 @@ def plot_avg_fit(runs, run_headers, index):
     plt.legend(loc='best')
     plt.grid(True)
 
+def update_plot(runs, run_headers, index):
+    plt.figure(index)
+
+    # Grab each line in the current axis and update its y data
+    for run, line in zip(runs, plt.gca().get_lines()):
+        line.set_ydata([point[index] for point in run])
+        line.set_xdata(range(len(run)))
+    
+    ax = plt.gca()
+    ax.relim()
+    ax.autoscale_view()
+    plt.autoscale(enable=True)
+
 def usage():
-    print(f'Usage: python3 {argv[0]}')
+    print('Usage: python3 visualise_runs.py [-a] [-d] [-t] [-c] rundir1 [rundir2]...')
+    print('  -a, --average      Display plot of average fitness per generation')
+    print('  -d, --died         Display plot of death count per generation')
+    print('  -t, --timedout     Display plot of timedout runs per generation')
+    print('  -c, --completed    Display plot of completed runs per generation')
 
 def mypause(interval):
     "Similar to plt.pause(), however, it does not bring fig into foreground."
@@ -160,19 +177,6 @@ def mypause(interval):
                 canvas.draw()
             canvas.start_event_loop(interval)
             return
-
-def update_plot(runs, run_headers, index):
-    plt.figure(index)
-
-    # Grab each line in the current axis and update its y data
-    for run, line in zip(runs, plt.gca().get_lines()):
-        line.set_ydata([point[index] for point in run])
-        line.set_xdata(range(len(run)))
-    
-    ax = plt.gca()
-    ax.relim()
-    ax.autoscale_view()
-    plt.autoscale(enable=True)
 
 if __name__ == "__main__":
     main()

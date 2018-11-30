@@ -12,29 +12,20 @@ void set_tile(struct Game *game, int x, int y, unsigned char val);
 void create_hole(struct Game *game, int origin, int width);
 void create_pipe(struct Game *game, int origin, int width, int height);
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe);
-void generate_flat_region(struct Game *game, struct plat *plats, int origin, int length);
+void generate_flat_region(struct Game *game, int origin, int length);
 void insert_floor(struct Game *game, int origin, int ground, int length);
-void insert_platform(struct Game *game, struct plat *plats, int origin, int height, int length, int type, int can_coin);
-void insert_tee(struct Game *game, struct plat *plats, int origin, int height, int length);
+void insert_platform(struct Game *game, int origin, int height, int length, int type);
+void insert_tee(struct Game *game, int origin, int height, int length);
 void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
-
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
-// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+void levelgen_clear_level(struct Game *game);
 
 //Generate a new map from given seed
 void levelgen_gen_map(struct Game *game, unsigned int seed)
 {
 	int x, flat_region;
-	struct plat plats[LEVEL_WIDTH];
 
-	for (x = 0; x < LEVEL_WIDTH; x++) {
-		plats[x].used = false;
-	}
+	levelgen_clear_level(game);
 
 	game->seed = seed;
 	game->seed_state = seed;
@@ -50,7 +41,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 			if (x + length >= LEVEL_WIDTH - START_PLATLEN)
 				length = (LEVEL_WIDTH - START_PLATLEN) - x;
 
-			generate_flat_region(game, plats, x, length);
+			generate_flat_region(game, x, length);
 
 			if (chance(&game->seed_state, 75)) {
 				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
@@ -71,7 +62,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 }
 
 // Generate a flat region beginning at origin for length tiles
-void generate_flat_region(struct Game *game, struct plat *plats, int origin, int length)
+void generate_flat_region(struct Game *game, int origin, int length)
 {
 	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
@@ -106,19 +97,19 @@ void generate_flat_region(struct Game *game, struct plat *plats, int origin, int
 						t_platlen++;
 
 					if (t_platlen < 0) {
-						insert_platform(game, plats, x, height, plat_len, type, 1);
+						insert_platform(game, x, height, plat_len, type);
 						allow_hole = 1;
 					} else {
 						int tee_height = height - base_plat - 1;
 						if (tee_height > 3)
 							tee_height = 3;
-						insert_tee(game, plats, x, tee_height, t_platlen);
+						insert_tee(game, x, tee_height, t_platlen);
 						allow_hole = 1;
 						plat_len = t_platlen;
 						height = tee_height;
 					}
 				} else {
-					insert_platform(game, plats, x, height, plat_len, type, 1);
+					insert_platform(game, x, height, plat_len, type);
 					allow_hole = 1;
 				}
 
@@ -199,36 +190,24 @@ void insert_floor(struct Game *game, int origin, int ground, int length)
 }
 
 // Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
-void insert_platform(struct Game *game, struct plat *plats, int origin, int height, int length, int type, int can_coin)
+void insert_platform(struct Game *game, int origin, int height, int length, int type)
 {
-	int x, base, plat;
-
-	plat = 0;
-	while (plats[plat].used == true) {
-		plat++;
-	}
+	int x, base;
 
 	base = GROUND_HEIGHT - height - 1;
 
 	for (x = origin; x < origin + length; x++) {
 		set_tile(game, x, base, type);
 	}
-
-	if (can_coin && type != SPIKES_TOP) {
-		plats[plat].height = base;
-		plats[plat].length = length;
-		plats[plat].origin = origin;
-		plats[plat].used = true;
-	}
 }
 
 // Insert Tee
-void insert_tee(struct Game *game, struct plat *plats, int origin, int height, int length)
+void insert_tee(struct Game *game, int origin, int height, int length)
 {
 	int y, top;
 	top = GROUND_HEIGHT - height;
 
-	insert_platform(game, plats, origin, height, length, BRICKS, 0);
+	insert_platform(game, origin, height, length, BRICKS);
 
 	for (y = top; y < GROUND_HEIGHT; y++) {
 		set_tile(game, origin + (length / 2), y, BRICKS);
@@ -240,7 +219,9 @@ void insert_enemy(struct Game *game, int x, int y, int type)
 {
 	if (!ENABLE_ENEMIES)
 		return;
+
 	struct Enemy enemy;
+
 	enemy.body.px = x * TILE_SIZE;
 	enemy.body.py = y * TILE_SIZE;
 	enemy.type = type;
@@ -378,8 +359,10 @@ int choose(unsigned int *seedp, int nargs, ...)
 	va_start(args, nargs);
 	int array[nargs];
 	int i;
+
 	for (i = 0; i < nargs; i++) {
 		array[i] = va_arg(args, int);
 	}
+	
 	return array[randint(seedp, nargs - 1)];
 }

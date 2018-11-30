@@ -6,7 +6,7 @@
 #define IN_W         12
 #define HLC          2
 #define NPL          64
-#define GEN_SIZE     10
+#define GEN_SIZE     100
 #define GENERATIONS  10
 #define MUTATE_RATE  0.0f
 

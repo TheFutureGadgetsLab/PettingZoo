@@ -11,11 +11,8 @@ unsigned int physics_sim(struct Game *game, struct Body* body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
-void game_setup(struct Game *game, struct Player *player, unsigned int seed)
+void game_setup(struct Player *player)
 {
-	levelgen_clear_level(game);
-	levelgen_gen_map(game, seed);
-
 	// Reset parameters
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
