@@ -8,17 +8,26 @@
 #include <gamelogic.hpp>
 #include <sys/stat.h>
 
+__host__ __device__
 void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs);
+__host__ __device__
 void calc_hidden_layers(uint8_t *chrom, float *node_outputs);
+__host__ __device__
 void calc_output(uint8_t *chrom, float *node_outputs, float *network_outputs);
 
 // Activation functions
+__host__ __device__
 float sigmoid(float x);
+__host__ __device__
 float softsign(float x);
+__host__ __device__
 float sigmoid_bounded(float x);
+__host__ __device__
 float softsign_bounded(float x);
+__host__ __device__
 float tanh_bounded(float x);
 
+__host__ __device__
 int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, float *tiles, float *node_outputs, uint8_t *buttons)
 {
     struct params prms;
@@ -48,6 +57,7 @@ int evaluate_frame(struct Game *game, struct Player *player, uint8_t *chrom, flo
     return ret;
 }
 
+__host__ __device__
 void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
@@ -76,6 +86,7 @@ void calc_first_layer(uint8_t *chrom, float *inputs, float *node_outputs)
     }
 }
 
+__host__ __device__
 void calc_hidden_layers(uint8_t *chrom, float *node_outs)
 {
     int node, weight, layer, cur_node;
@@ -110,6 +121,7 @@ void calc_hidden_layers(uint8_t *chrom, float *node_outs)
     }
 }
 
+__host__ __device__
 void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
@@ -130,49 +142,36 @@ void calc_output(uint8_t *chrom, float *node_outs, float *net_outs)
     }
 }
 
-void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed)
-{
-    FILE *file = fopen(name, "wb");
-
-    size_t chrom_bytes = get_chromosome_size(chrom);
-
-    //Seed
-    fwrite(&seed, sizeof(unsigned int), 1, file);
-
-    //Button presses
-    fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
-
-    //Chromosome
-    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
-
-    fclose(file);
-}
-
 // sigmoid in (-1,1)
+__host__ __device__
 float sigmoid(float x)
 {
     return 2.0f / (1.0f + expf(-x)) - 1.0;
 }
 
 // x/(1+|x|) in [-1,1]
+__host__ __device__
 float softsign(float x)
 {
     return x / (1.0f + fabs(x));
 }
 
 // sigmoid in (0,1)
+__host__ __device__
 float sigmoid_bounded(float x)
 {
     return 1.0f / (1.0f + expf(-x));
 }
 
 // x/(1+|x|) in [0,1]
+__host__ __device__
 float softsign_bounded(float x)
 {
     return (0.5f * x) / (1.0f + fabs(x)) + 0.5;
 }
 
 // tanh(x) in (0,1)
+__host__ __device__
 float tanh_bounded(float x)
 {
     return 0.5f + tanhf(x) * 0.5f;

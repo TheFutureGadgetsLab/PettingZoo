@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <cuda_runtime.h>
 
 #define HEADER_SIZE 5
 
@@ -23,9 +24,12 @@ struct params {
 };
 
 void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed);
+__host__ __device__
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+__host__ __device__
 size_t get_chromosome_size(uint8_t *chrom);
 void print_chromosome(uint8_t *chrom);
+__host__ __device__
 void get_params(uint8_t *chrom, struct params *params);
 
 /*

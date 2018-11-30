@@ -3,14 +3,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <cuda_runtime.h>
 
+__host__ __device__
 int tile_at(struct Game *game, int x, int y);
+__host__ __device__
 int tile_solid(struct Game *game, int x, int y);
+__host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
-unsigned int physics_sim(struct Game *game, struct Body* body, bool jump);
+__host__ __device__
+int physics_sim(struct Game *game, struct Body* body, bool jump);
+__host__ __device__
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
+__host__ __device__
 void game_setup(struct Player *player)
 {
 	// Reset parameters
@@ -55,6 +62,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	return_value = physics_sim(game, &player->body, input[BUTTON_JUMP]);
 	if (return_value == PLAYER_DEAD) {
 		player->death_type = PLAYER_DEAD;
+		return PLAYER_DEAD;
 	}
 
 	//Lower bound
@@ -119,9 +127,9 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 }
 
 //Physics simulation for any body
-unsigned int physics_sim(struct Game *game, struct Body* body, bool jump)
+int physics_sim(struct Game *game, struct Body* body, bool jump)
 {
-	unsigned int return_value = 0;
+	int return_value = 0;
 
 	//Jumping
 	if (jump && body->canjump) {
@@ -205,6 +213,7 @@ unsigned int physics_sim(struct Game *game, struct Body* body, bool jump)
 }
 
 //Return the tile at given tile position
+__host__ __device__
 int tile_at(struct Game *game, int x, int y)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
@@ -213,6 +222,7 @@ int tile_at(struct Game *game, int x, int y)
 }
 
 //Return if the tile at the given tile position is solid
+__host__ __device__
 int tile_solid(struct Game *game, int x, int y)
 {
 	int tile = tile_at(game, x, y);
@@ -220,8 +230,6 @@ int tile_solid(struct Game *game, int x, int y)
 		case EMPTY:
 		case FLAG:
 			return false;
-		case COIN:
-			exit(EXIT_FAILURE);
 		default:
 			break;
 	}
@@ -229,6 +237,7 @@ int tile_solid(struct Game *game, int x, int y)
 }
 
 // Set tile to given type at (x, y)
+__host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
@@ -238,11 +247,13 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 }
 
 //Basic distance function
+__host__ __device__
 float dist(float x1, float y1, float x2, float y2)
 {
 	return sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
 }
 
+__host__ __device__
 void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w)
 {
 	int tile_x1, tile_y1;
@@ -295,7 +306,6 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 					break;
 				default:
 					printf("Unexpected tile ID in get_input_tiles!\n");
-					exit(EXIT_FAILURE);
 					break;
 			}
 

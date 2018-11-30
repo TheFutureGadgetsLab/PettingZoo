@@ -6,17 +6,24 @@
 #include <chromosome.hpp>
 #include <neural_network.hpp>
 #include <gamelogic.hpp>
+#include <cuda_runtime.h>
 
+__host__ __device__
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
+__host__ __device__
 int chance_gen(float percent);
+__host__ __device__
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB);
+__host__ __device__
 void mutate_u(uint8_t *data, size_t length);
+__host__ __device__
 void mutate_f(float *data, size_t length);
 
 /*
  * This function takes an array of games, players, and chromosomes to be evaluated.
  * The fitnesses are written out into the float fitnesses array.
  */
+__host__ __device__
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], uint8_t *generation[GEN_SIZE], struct RecordedChromosome *winner)
 {
     int game, buttons_index, ret;
@@ -35,8 +42,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
     // Loop over the entire generation
     for (game = 0; game < GEN_SIZE; game++) {
-        printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
-        fflush(stdout);
+        // printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
+        // fflush(stdout);
 
         buttons_index = 0;
 
@@ -60,8 +67,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
     }
 
     // Clear line so progress indicator is removed
-    printf("\33[2K\r");
-    fflush(stdout);
+    // printf("\33[2K\r");
+    // fflush(stdout);
 
     free(input_tiles);
     free(node_outputs);
@@ -75,6 +82,7 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
  * have been selected the first is bred with the second, second with the third, and so on (the first is 
  * also bred with the last to ensure each chrom breeds twice).
  */
+__host__ __device__
 void select_and_breed(struct Player players[GEN_SIZE], uint8_t **generation, uint8_t **new_generation)
 {
     int game;
@@ -112,6 +120,7 @@ void select_and_breed(struct Player players[GEN_SIZE], uint8_t **generation, uin
  * Chooses as single point in each section of the chromosomes and childA is set up as
  * ParentA | Parent B, while childB is set up as ParentB | ParentA
  */
+__host__ __device__
 void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uint8_t *childB)
 {
     size_t section_size;
@@ -171,6 +180,7 @@ void single_point_breed(uint8_t *parentA, uint8_t *parentB, uint8_t *childA, uin
  * (length - split) into childA from parentB. This is then done with childB, but the copy order 
  * is reversed (parentB first then parentA).
  */
+__host__ __device__
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
 {
     // Must cast for pointer arithmetic
@@ -182,12 +192,14 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 }
 
 // Return 1 if random number is <= percent, otherwise 0
+__host__ __device__
 int chance_gen(float percent)
 {
 	return ((float)rand() / (float)RAND_MAX) < (percent / 100.0f);
 }
 
 // Mutation
+__host__ __device__
 void mutate_u(uint8_t *data, size_t length)
 {
     if (MUTATE_RATE == 0.0f)
@@ -200,6 +212,7 @@ void mutate_u(uint8_t *data, size_t length)
     }
 }
 
+__host__ __device__
 void mutate_f(float *data, size_t length)
 {
     if (MUTATE_RATE == 0.0f)

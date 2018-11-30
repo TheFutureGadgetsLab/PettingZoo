@@ -12,6 +12,7 @@
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
 FILE* create_output_dir(unsigned int seed);
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
 
 int main()
 {
@@ -190,4 +191,22 @@ FILE* create_output_dir(unsigned int seed)
     fflush(out_file);
 
     return out_file;
+}
+
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed)
+{
+    FILE *file = fopen(name, "wb");
+
+    size_t chrom_bytes = get_chromosome_size(chrom);
+
+    //Seed
+    fwrite(&seed, sizeof(unsigned int), 1, file);
+
+    //Button presses
+    fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
+
+    //Chromosome
+    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
+
+    fclose(file);
 }
