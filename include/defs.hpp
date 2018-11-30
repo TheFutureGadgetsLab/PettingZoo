@@ -2,12 +2,12 @@
 #define DEFS_H
 
 // AI parameters
-#define IN_H         12
-#define IN_W         12
-#define HLC          2
-#define NPL          64
-#define GEN_SIZE     100
-#define GENERATIONS  10
+#define IN_H         16
+#define IN_W         16
+#define HLC          4
+#define NPL          256
+#define GEN_SIZE     20
+#define GENERATIONS  5
 #define MUTATE_RATE  0.0f
 
 // Button parameters

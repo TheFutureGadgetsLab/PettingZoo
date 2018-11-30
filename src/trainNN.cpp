@@ -12,14 +12,14 @@
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
 FILE* create_output_dir(unsigned int seed);
-void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed);
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct chromosome *chrom, unsigned int seed);
 
 int main()
 {
     struct Game *games;
     struct Player *players;
-    uint8_t *genA[GEN_SIZE], *genB[GEN_SIZE];
-    uint8_t **cur_gen, **next_gen, **tmp;
+    struct chromosome genA[GEN_SIZE], genB[GEN_SIZE];
+    struct chromosome *cur_gen, *next_gen, *tmp;
     int gen, game;
     unsigned int seed, level_seed;
     struct RecordedChromosome winner;
@@ -29,6 +29,7 @@ int main()
     winner.fitness = 0;
 
     seed = (unsigned int)time(NULL);
+    seed = 10;
     srand(seed);
 
     out_file = create_output_dir(seed);
@@ -44,10 +45,11 @@ int main()
 
     // Allocate space for genA and genB chromosomes
     for (game = 0; game < GEN_SIZE; game++) {
-        genA[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
-        genB[game] = (uint8_t *)malloc(sizeof(uint8_t) * get_chromosome_size_params(IN_H, IN_W, HLC, NPL));
+        initialize_chromosome(&genA[game], IN_H, IN_W, HLC, NPL);
+        initialize_chromosome(&genB[game], IN_H, IN_W, HLC, NPL);
+        
         // Generate random chromosomes
-        generate_chromosome(genA[game],  IN_H, IN_W, HLC, NPL, rand());
+        generate_chromosome(&genA[game], rand());
     }
 
     // Level seed for entire run
@@ -92,8 +94,8 @@ int main()
     write_out(fname, winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
 
     for (game = 0; game < GEN_SIZE; game++) {
-        free(genA[game]);
-        free(genB[game]);
+        free_chromosome(&genA[game]);
+        free_chromosome(&genB[game]);
     }
 
     free(games);
@@ -193,11 +195,9 @@ FILE* create_output_dir(unsigned int seed)
     return out_file;
 }
 
-void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chrom, unsigned int seed)
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct chromosome *chrom, unsigned int seed)
 {
     FILE *file = fopen(name, "wb");
-
-    size_t chrom_bytes = get_chromosome_size(chrom);
 
     //Seed
     fwrite(&seed, sizeof(unsigned int), 1, file);
@@ -206,7 +206,7 @@ void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, uint8_t *chro
     fwrite(buttons, sizeof(uint8_t), buttons_bytes, file);
 
     //Chromosome
-    fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
+    //fwrite(chrom, sizeof(uint8_t), chrom_bytes, file);
 
     fclose(file);
 }

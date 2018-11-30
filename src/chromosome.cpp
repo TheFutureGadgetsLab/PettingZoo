@@ -7,28 +7,55 @@
 
 float gen_random_weight(unsigned int *seedp);
 
-void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed)
+void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
+{
+    chrom->in_h = in_h;
+    chrom->in_w = in_w;
+    chrom->hlc = hlc;
+    chrom->npl = npl;
+
+    chrom->input_act = NULL;
+    chrom->input_adj = NULL;
+    chrom->hidden_act = NULL;
+    chrom->hidden_adj = NULL;
+    chrom->out_adj = NULL;
+
+    chrom->input_act_size = in_h * in_w;
+    chrom->input_adj_size = (in_h * in_w) * npl;
+    chrom->hidden_act_size = (hlc * npl);
+    chrom->hidden_adj_size = (hlc - 1) * (npl * npl);
+    chrom->out_adj_size = BUTTON_COUNT * npl;
+
+    chrom->input_act = (uint8_t *)malloc(sizeof(uint8_t) * chrom->input_act_size);
+    chrom->input_adj = (float *)malloc(sizeof(float) * chrom->input_adj_size);
+    chrom->hidden_act = (uint8_t *)malloc(sizeof(uint8_t) * chrom->hidden_act_size);
+    chrom->hidden_adj = (float *)malloc(sizeof(float) * chrom->hidden_adj_size);
+    chrom->out_adj = (float *)malloc(sizeof(float) * chrom->out_adj_size);
+}
+
+void free_chromosome(struct chromosome *chrom)
+{
+    free(chrom->input_act);
+    free(chrom->input_adj);
+    free(chrom->hidden_act);
+    free(chrom->hidden_adj);
+    free(chrom->out_adj);
+}
+
+void generate_chromosome(struct chromosome *chrom, unsigned int seed)
 {
     uint8_t *cur_uint;
     float *cur_float;
     int r, c, hl;
     unsigned int seedp;
-    struct params params;
 
     seedp = seed;
 
-    chrom[0] = in_w;
-    chrom[1] = in_h;
-    *((uint16_t *)chrom + 1) = npl; // Bytes 2-3
-    chrom[4] = hlc;
-    
-    get_params(chrom, &params);
-
-    cur_uint = params.input_act;
+    cur_uint = chrom->input_act;
     // Generate input act matrix
     // This is NOT transposed
-    for (r = 0; r < in_h; r++) {
-        for (c = 0; c < in_w; c++) {
+    for (r = 0; r < chrom->in_h; r++) {
+        for (c = 0; c < chrom->in_w; c++) {
             // *cur_uint = rand_r(&seedp) % 2;
             *cur_uint = 1;
             cur_uint++;
@@ -36,18 +63,18 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     }
 
     // Generate input adj matrix
-    cur_float = params.input_adj;
-    for (r = 0; r < npl; r++) {
-        for (c = 0; c < in_h * in_w; c++) {
+    cur_float = chrom->input_adj;
+    for (r = 0; r < chrom->npl; r++) {
+        for (c = 0; c < chrom->in_h * chrom->in_w; c++) {
             *cur_float = gen_random_weight(&seedp);
             cur_float++;
         }
     }
 
     // Generate hidden act matrix
-    cur_uint = params.hidden_act;
-    for (r = 0; r < hlc; r++) {
-        for (c = 0; c < npl; c++) {
+    cur_uint = chrom->hidden_act;
+    for (r = 0; r < chrom->hlc; r++) {
+        for (c = 0; c < chrom->npl; c++) {
             // *cur_uint = rand_r(&seedp) % 2;
             *cur_uint = 1;
             cur_uint++;
@@ -55,10 +82,10 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     }
 
     // Generate hidden adj matrices
-    cur_float = params.hidden_adj;
-    for (hl = 0; hl < hlc - 1; hl++) {
-        for (r = 0; r < npl; r++) {
-            for (c = 0; c < npl; c++) {
+    cur_float = chrom->hidden_adj;
+    for (hl = 0; hl < chrom->hlc - 1; hl++) {
+        for (r = 0; r < chrom->npl; r++) {
+            for (c = 0; c < chrom->npl; c++) {
                 *cur_float = gen_random_weight(&seedp);
                 cur_float++;
             }
@@ -66,29 +93,26 @@ void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc
     }
 
     // Generate out adj matrix
-    cur_float = params.out_adj;
+    cur_float = chrom->out_adj;
     for (r = 0; r < BUTTON_COUNT; r++) {
-        for (c = 0; c < npl; c++) {
+        for (c = 0; c < chrom->npl; c++) {
             *cur_float = gen_random_weight(&seedp);
             cur_float++;
         }
     }
 }
 
-void print_chromosome(uint8_t *chrom)
+void print_chromosome(struct chromosome *chrom)
 {
     printf("-------------------------------------------\n");
     uint8_t *cur_uint;
     float *cur_float;
     int r, c, hl;
-    struct params params;
-
-    get_params(chrom, &params);
 
     printf("Input activation:\n");
-    cur_uint = params.input_act;
-    for (r = 0; r < params.in_h; r++) {
-        for (c = 0; c < params.in_w; c++) {
+    cur_uint = chrom->input_act;
+    for (r = 0; r < chrom->in_h; r++) {
+        for (c = 0; c < chrom->in_w; c++) {
             printf("%d\t", *cur_uint);
             cur_uint++;
         }
@@ -96,9 +120,9 @@ void print_chromosome(uint8_t *chrom)
     }
 
     printf("\nInput to first hidden layer adj:\n");
-    cur_float = params.input_adj;
-    for (r = 0; r < params.npl; r++) {
-        for (c = 0; c < params.in_h * params.in_w; c++) {
+    cur_float = chrom->input_adj;
+    for (r = 0; r < chrom->npl; r++) {
+        for (c = 0; c < chrom->in_h * chrom->in_w; c++) {
             printf("%*.3lf\t", 6, *cur_float);
             cur_float++;
         }
@@ -106,9 +130,9 @@ void print_chromosome(uint8_t *chrom)
     }
 
     printf("\nHidden layers activation:\n");
-    cur_uint = params.hidden_act;
-    for (r = 0; r < params.hlc; r++) {
-        for (c = 0; c < params.npl; c++) {
+    cur_uint = chrom->hidden_act;
+    for (r = 0; r < chrom->hlc; r++) {
+        for (c = 0; c < chrom->npl; c++) {
             printf("%d\t", *cur_uint);
             cur_uint++;
         }
@@ -116,11 +140,11 @@ void print_chromosome(uint8_t *chrom)
     }
 
     puts("");
-    cur_float = params.hidden_adj;
-    for (hl = 0; hl < params.hlc - 1; hl++) {
+    cur_float = chrom->hidden_adj;
+    for (hl = 0; hl < chrom->hlc - 1; hl++) {
         printf("Hidden layer %d to %d act:\n", hl + 1, hl + 2);
-        for (r = 0; r < params.npl; r++) {
-            for (c = 0; c < params.npl; c++) {
+        for (r = 0; r < chrom->npl; r++) {
+            for (c = 0; c < chrom->npl; c++) {
                 printf("%*.3lf\t", 6, *cur_float);
                 cur_float++;
             }
@@ -129,10 +153,10 @@ void print_chromosome(uint8_t *chrom)
         puts("");
     }
 
-    printf("Hidden layer %d to output act:\n", params.hlc);
-    cur_float = params.out_adj;
+    printf("Hidden layer %d to output act:\n", chrom->hlc);
+    cur_float = chrom->out_adj;
     for (r = 0; r < BUTTON_COUNT; r++) {
-        for (c = 0; c < params.npl; c++) {
+        for (c = 0; c < chrom->npl; c++) {
             printf("%*.3lf\t", 6, *cur_float);
             cur_float++;
         }
@@ -140,8 +164,7 @@ void print_chromosome(uint8_t *chrom)
     }
 
     printf("\nChromosome:\n");
-    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", params.in_h, params.in_w, params.npl, params.hlc);
-    printf("\nTotal size: %0.2lfKB\n", params.size / 1000.0f);
+    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", chrom->in_h, chrom->in_w, chrom->npl, chrom->hlc);
     printf("-------------------------------------------\n");
 }
 
@@ -149,24 +172,6 @@ __host__ __device__
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
 {
     size_t size;
-
-    // Algebra to reduce length of this line
-    size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
-
-    return size;
-}
-
-__host__ __device__
-size_t get_chromosome_size(uint8_t *chrom)
-{
-    size_t size;
-    uint8_t in_w, in_h, hlc;
-    uint16_t npl;
-
-    in_w = chrom[0];
-    in_h = chrom[1];
-    npl = *((uint16_t *)chrom + 1);
-    hlc = chrom[4];
 
     // Algebra to reduce length of this line
     size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
@@ -193,26 +198,3 @@ float gen_random_weight(unsigned int *seedp)
     return weight;
 }
 
-__host__ __device__
-void get_params(uint8_t *chrom, struct params *params)
-{
-    uint8_t in_w, in_h, hlc;
-    uint16_t npl;
-
-    in_w = chrom[0];
-    in_h = chrom[1];
-    npl = *((uint16_t *)chrom + 1);
-    hlc = chrom[4];
-
-    params->in_w = in_w;
-    params->in_h = in_h;
-    params->npl = npl;
-    params->hlc = hlc;
-
-    params->input_act = chrom + 5;
-    params->input_adj = (float *)(chrom + 5 + in_h * in_w);
-    params->hidden_act = chrom + 5 + in_h * in_w + in_h * in_w * npl * 4;
-    params->hidden_adj = (float *)(chrom + 5 + in_h * in_w + in_h * in_w * npl * 4 + npl * hlc);
-    params->out_adj = (float *)(chrom + 5 + in_h * in_w + in_h * in_w * npl * 4 + npl * hlc + (hlc - 1) * (npl * npl) * 4);
-    params->size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
-}

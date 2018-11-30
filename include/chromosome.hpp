@@ -5,32 +5,32 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-#define HEADER_SIZE 5
-
-struct params {
+struct chromosome {
     uint8_t *input_act;
     float *input_adj;
     uint8_t *hidden_act;
     float *hidden_adj;
     float *out_adj;
 
-    // Header of chromosome
+    size_t input_act_size;
+    size_t input_adj_size;
+    size_t hidden_act_size;
+    size_t hidden_adj_size;
+    size_t out_adj_size;
+
     uint16_t npl;
     uint8_t in_w;
     uint8_t in_h;
     uint8_t hlc;
-
-    size_t size;
 };
 
-void generate_chromosome(uint8_t *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl, unsigned int seed);
+void free_chromosome(struct chromosome *chrom);
+void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+void generate_chromosome(struct chromosome *chrom, unsigned int seed);
 __host__ __device__
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
 __host__ __device__
-size_t get_chromosome_size(uint8_t *chrom);
 void print_chromosome(uint8_t *chrom);
-__host__ __device__
-void get_params(uint8_t *chrom, struct params *params);
 
 /*
 
