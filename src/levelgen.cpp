@@ -19,6 +19,13 @@ void insert_tee(struct Game *game, struct plat *plats, int origin, int height, i
 void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
 
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+// NO LONGER HAVE TO SAVE PLATS BECAUSE COINS ARE REMOVED
+
 //Generate a new map from given seed
 void levelgen_gen_map(struct Game *game, unsigned int seed)
 {
@@ -56,15 +63,6 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 			x += length;
 			flat_region = 1;
 		}
-	}
-
-	// Iterate over plats to place coins
-	x = 0;
-	while(plats[x].used == true) {
-    	if (chance(&game->seed_state, 50)) {
-			set_tile(game, plats[x].origin + plats[x].length / 2, plats[x].height - 1, COIN);
-		}
-		x++;
 	}
 
 	// Ending flag

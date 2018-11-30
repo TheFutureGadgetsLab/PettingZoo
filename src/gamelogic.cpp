@@ -60,13 +60,6 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 		player->death_type = PLAYER_DEAD;
 	}
 
-	//Collisions with coin
-	if (tile_at(game, player->body.tile_x, player->body.tile_y) == COIN) {
-		game_set_tile(game, player->body.tile_x, player->body.tile_y, EMPTY);
-		player->score += COIN_VALUE;
-		return_value = REDRAW;
-	}
-
 	//Lower bound
 	if (player->body.py > LEVEL_PIXEL_HEIGHT) {
 		player->death_type = PLAYER_DEAD;
@@ -84,7 +77,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 		if (!enemy->dead) {
 			//Enemy physics simulation
 			enemy->body.vx = enemy->direction;
-			ret = physics_sim(game, &(enemy->body), JUMPING_ENEMIES ? chance(&game->seed_state, 75) : false);
+			ret = physics_sim(game, &(enemy->body), false);
 			if (ret == PLAYER_DEAD) {
 				enemy->dead = true;
 			}
@@ -228,9 +221,10 @@ int tile_solid(struct Game *game, int x, int y)
 	int tile = tile_at(game, x, y);
 	switch(tile) {
 		case EMPTY:
-		case COIN:
 		case FLAG:
 			return false;
+		case COIN:
+			exit(EXIT_FAILURE);
 		default:
 			break;
 	}
@@ -278,31 +272,34 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 			else if (y < 0 || y >= LEVEL_HEIGHT)
 				tile = EMPTY;
 
+			//Converting tile types to something the chromosome can understand
 			switch(tile) {
-			case EMPTY:
-				*tmp = 0.0f;
-				break;
-			case PIPE_BOTTOM:
-			case PIPE_MIDDLE:
-			case PIPE_TOP:
-			case GRASS:
-			case DIRT:
-			case BRICKS:
-				*tmp = 0.25f;
-				break;
-			case COIN:
-				*tmp = 0.5f;
-				break;
-			case SPIKES_TOP:
-				*tmp = 0.75f;
-				break;
-			case SPIKES_BOTTOM:
-				*tmp = 1.0f;
-				break;
-			default:
-				printf("Unexpected tile ID in get_input_tiles!\n");
-				exit(EXIT_FAILURE);
-				break;
+				//Empty
+				case EMPTY:
+					*tmp = 0.0f;
+					break;
+				
+				//Solid tiles
+				case PIPE_BOTTOM:
+				case PIPE_MIDDLE:
+				case PIPE_TOP:
+				case GRASS:
+				case DIRT:
+				case BRICKS:
+					*tmp = (1.0f / 3.0f);
+					break;
+				
+				//Hazards
+				case SPIKES_TOP:
+					*tmp = (2.0f / 3.0f);
+					break;
+				case SPIKES_BOTTOM:
+					*tmp = 1.0f;
+					break;
+				default:
+					printf("Unexpected tile ID in get_input_tiles!\n");
+					exit(EXIT_FAILURE);
+					break;
 			}
 
 			tmp++;
