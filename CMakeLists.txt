@@ -4,6 +4,8 @@ project(pettingzoo LANGUAGES CXX CUDA)
 
 # Locate headers
 include_directories(include)
+# Workaround for ben
+include_directories(/opt/cuda/include/)
 
 # Set march
 include(CheckCXXCompilerFlag)
@@ -16,8 +18,6 @@ endif()
 if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
-
-set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS} –x cu -g -f")
 
 ###############################################################
 #
@@ -46,13 +46,13 @@ target_link_libraries(pettingzoo m)
 
 ###############################################################
 #
-#                       Train NN
+#                       CPU Program
 #
 ###############################################################
 # Compile
 add_executable(
-    trainNN
-    src/trainNN.cpp
+    trainCPU
+    src/trainCPU.cpp
     src/genetic.cpp
     src/chromosome.cpp
     src/neural_network.cpp
@@ -61,41 +61,57 @@ add_executable(
 )
 
 # Link libraries
-target_link_libraries(trainNN m)
-
-# Set the location for library installation -- i.e., /usr/lib
-# Use "sudo make install" to apply
-#install(TARGETS pettingzoo DESTINATION /usr/lib)
+target_link_libraries(trainCPU m)
 
 ###############################################################
 #
-#                       Debug Program
+#                       Debug
+#
+###############################################################
+# Compile
+add_executable(
+    debug
+    src/debug.cpp
+    src/genetic.cpp
+    src/chromosome.cpp
+    src/neural_network.cpp
+    src/gamelogic.cpp
+    src/levelgen.cpp
+)
+
+# Link libraries
+target_link_libraries(debug m)
+
+###############################################################
+#
+#                       GPU Program
 #
 ###############################################################
 # Configure CUDA flags (-x cu tells nvcc to interpret cpp files as having CPU/GPU code)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} –x cu -g -G")
 
-#set_source_files_properties(
-#    src/chromosome.cpp
-#    src/gamelogic.cpp
-#    src/genetic.cpp
-#    src/neural_network.cpp
-#    src/test.cpp
-#    PROPERTIES LANGUAGE CUDA
-#)
-#
-## Compile
-#add_executable(
-#    test_cuda
-#    src/test.cpp
-#    src/chromosome.cpp
-#    src/gamelogic.cpp
-#    src/genetic.cpp
-#    src/levelgen.cpp
-#    src/neural_network.cpp
-#)
-#
-## Enable separate compilation for CUDA
-#set_target_properties(test_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-#
-## Link libraries
-#target_link_libraries(test_cuda m)
+set_source_files_properties(
+   src/chromosome.cpp
+   src/gamelogic.cpp
+   src/genetic.cpp
+   src/neural_network.cpp
+   src/trainGPU.cpp
+   PROPERTIES LANGUAGE CUDA
+)
+
+# Compile
+add_executable(
+   trainGPU
+   src/trainGPU.cpp
+   src/chromosome.cpp
+   src/gamelogic.cpp
+   src/genetic.cpp
+   src/levelgen.cpp
+   src/neural_network.cpp
+)
+
+# Enable separate compilation for CUDA
+set_target_properties(trainGPU PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+# Link libraries
+target_link_libraries(trainGPU m)

@@ -11,7 +11,8 @@ struct chromosome {
     uint8_t *hidden_act;
     float *hidden_adj;
     float *out_adj;
-
+    
+    // Sizes are number of elements, not bytes
     size_t input_act_size;
     size_t input_adj_size;
     size_t hidden_act_size;
@@ -24,8 +25,11 @@ struct chromosome {
     uint8_t hlc;
 };
 
+__host__
 void free_chromosome(struct chromosome *chrom);
+__host__
 void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+__host__
 void generate_chromosome(struct chromosome *chrom, unsigned int seed);
 __host__ __device__
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);

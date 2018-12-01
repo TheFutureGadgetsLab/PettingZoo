@@ -24,7 +24,7 @@ void mutate_f(float *data, size_t length);
  * The fitnesses are written out into the float fitnesses array.
  */
 __host__ __device__
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct chromosome *generation, struct RecordedChromosome *winner)
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct chromosome generation[GEN_SIZE], struct RecordedChromosome *winner)
 {
     int game, buttons_index, ret;
     float *input_tiles;
@@ -42,8 +42,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
     // Loop over the entire generation
     for (game = 0; game < GEN_SIZE; game++) {
-        printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
-        fflush(stdout);
+        // printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
+        // fflush(stdout);
 
         buttons_index = 0;
 
@@ -67,8 +67,8 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
     }
 
     // Clear line so progress indicator is removed
-    printf("\33[2K\r");
-    fflush(stdout);
+    // printf("\33[2K\r");
+    // fflush(stdout);
 
     free(input_tiles);
     free(node_outputs);
@@ -82,7 +82,7 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
  * have been selected the first is bred with the second, second with the third, and so on (the first is
  * also bred with the last to ensure each chrom breeds twice).
  */
-__host__ __device__
+__host__
 void select_and_breed(struct Player players[GEN_SIZE], struct chromosome *generation, struct chromosome *new_generation)
 {
     int game;

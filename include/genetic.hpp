@@ -13,8 +13,8 @@ struct RecordedChromosome {
 };
 
 __host__ __device__
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct chromosome *generation, struct RecordedChromosome *winner);
-__host__ __device__
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct chromosome generation[GEN_SIZE], struct RecordedChromosome *winner);
+__host__
 void select_and_breed(struct Player players[GEN_SIZE], struct chromosome *generation, struct chromosome *new_generation);
 
 #endif
