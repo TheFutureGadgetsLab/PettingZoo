@@ -73,11 +73,11 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	}
 
 	//Enemies
-	int ret;
-	uint i, y;
-	bool empty_below;
-	struct Enemy *enemy;
-	for (i = 0; i < game->n_enemies; i++) {
+	for (int i = 0; i < game->n_enemies; i++) {
+		struct Enemy *enemy;
+		bool empty_below;
+		int ret;
+
 		enemy = &game->enemies[i];
 		empty_below = true;
 		if (!enemy->dead) {
@@ -89,7 +89,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 			}
 
 			//Check if empty below
-			for (y = enemy->body.tile_y; y < LEVEL_HEIGHT; y++) {
+			for (int y = enemy->body.tile_y; y < LEVEL_HEIGHT; y++) {
 				if (tile_solid(game, enemy->body.tile_x, y))
 					empty_below = false;
 			}

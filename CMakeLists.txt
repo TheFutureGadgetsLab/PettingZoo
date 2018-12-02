@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9.0)
 project(pettingzoo LANGUAGES CXX CUDA)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Locate headers
 include_directories(include)
@@ -88,7 +88,7 @@ target_link_libraries(debug m)
 #
 ###############################################################
 # Configure CUDA flags (-x cu tells nvcc to interpret cpp files as having CPU/GPU code)
-set(CUDA_NVCC_FLAGS "${CMAKE_CUDA_FLAGS} -Xptxas -dlcm=ca -v -O3 -arch=sm_61 -Xcompiler -O3")
+# set(CUDA_NVCC_FLAGS "${CMAKE_CUDA_FLAGS} -Xptxas -dlcm=ca -v -O3 -arch=sm_61 -Xcompiler -O3")
 
 set_source_files_properties(
    src/gamelogic.cpp
@@ -101,11 +101,11 @@ set_source_files_properties(
 add_executable(
    trainGPU
    src/trainGPU.cpp
-   src/chromosome.cpp
    src/gamelogic.cpp
+   src/neural_network.cpp
+   src/chromosome.cpp
    src/genetic.cpp
    src/levelgen.cpp
-   src/neural_network.cpp
 )
 
 # Enable separate compilation for CUDA

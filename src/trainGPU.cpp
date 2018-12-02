@@ -12,14 +12,14 @@
 #include <math.h>
 
 // 2954.31 / 10000
-void initialize_chromosome_gpu(struct Chromosome *chromD, struct Chromosome chromH);
+void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 
 __device__ 
-void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom)
+void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t *buttons)
 {
     int buttons_index, ret;
-    uint8_t buttons[MAX_FRAMES];
+    
     float input_tiles[IN_W * IN_H];
     float node_outputs[NPL * HLC];
 
@@ -37,20 +37,21 @@ void runChromosome(struct Game *game, struct Player *player, struct Chromosome *
 }
 
 __global__
-void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen)
+void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen, uint8_t **buttons)
 {
     int member = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (member < GEN_SIZE) {
-        runChromosome(&games[member], &players[member], &gen[member]);
+        runChromosome(&games[member], &players[member], &gen[member], buttons[member]);
     }
 }
 
 int main()
 {
-    struct Game *gameH, *gameD;
-    struct Player *playerH, *playerD;
-    struct Chromosome *chromH, *chromHD, *chromD;
+    struct Game *games;
+    struct Player *players;
+    struct Chromosome *chroms;
+    uint8_t **buttons;
     unsigned int member, seed, level_seed;
     int block_size, grid_size;
 
@@ -66,72 +67,52 @@ int main()
     printf("srand seed: %u\n", seed);
     puts("----------------------------");
 
-    gameH = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
-    playerH = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
+    // Allocate on host and device with unified memory
+    cudaErrCheck( cudaMallocManaged((void **)&games, sizeof(struct Game) * GEN_SIZE) );
+    cudaErrCheck( cudaMallocManaged((void **)&players, sizeof(struct Player) * GEN_SIZE) );
+    cudaErrCheck( cudaMallocManaged((void **)&chroms, sizeof(struct Chromosome) * GEN_SIZE) );
+    cudaErrCheck( cudaMallocManaged((void **)&buttons, sizeof(uint8_t *) * GEN_SIZE) );
 
-    chromH = (struct Chromosome *)malloc(sizeof(struct Chromosome) * GEN_SIZE);
-    chromHD = (struct Chromosome *)malloc(sizeof(struct Chromosome) * GEN_SIZE);
-
-    cudaErrCheck( cudaMalloc((void **)&gameD, sizeof(struct Game) * GEN_SIZE) );
-    cudaErrCheck( cudaMalloc((void **)&playerD, sizeof(struct Player) * GEN_SIZE) );
-    cudaErrCheck( cudaMalloc((void **)&chromD, sizeof(struct Chromosome) * GEN_SIZE) );
-
+    // Initialize games and chromosomes
     for (member = 0; member < GEN_SIZE; member++) {
-        // Generate level on host
-        levelgen_gen_map(&gameH[member], level_seed);
-        
-        // Set up player -> allocate player on device -> copy to device
-        game_setup(&playerH[member]);
+        levelgen_gen_map(&games[member], level_seed);
+        game_setup(&players[member]);
 
-        initialize_chromosome(&chromH[member], IN_H, IN_W, HLC, NPL);
-        generate_chromosome(&chromH[member], rand());
-        initialize_chromosome_gpu(&chromHD[member], chromH[member]);
+        initialize_chromosome_gpu(&chroms[member], IN_H, IN_W, HLC, NPL);
+        generate_chromosome(&chroms[member], rand());
+
+        cudaErrCheck( cudaMallocManaged((void **)&buttons[member], sizeof(uint8_t) * MAX_FRAMES) );
     }
 
-    cudaErrCheck( cudaMemcpy(gameD, gameH, sizeof(struct Game) * GEN_SIZE, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(playerD, playerH, sizeof(struct Player) * GEN_SIZE, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(chromD, chromHD, sizeof(struct Chromosome) * GEN_SIZE, cudaMemcpyHostToDevice) );
+    // Launch kernel
+    block_size = 32;
+    grid_size = ceil((float)GEN_SIZE / (float)block_size); 
+    trainGeneration <<< grid_size, block_size >>> (games, players, chroms, buttons);
+    cudaErrCheck( cudaDeviceSynchronize() );
 
-    block_size = 128;
-    grid_size = ceil(GEN_SIZE / (float)block_size);
-    trainGeneration <<< grid_size, block_size >>> (gameD, playerD, chromD);
-
-    cudaErrCheck( cudaMemcpy(playerH, playerD, sizeof(struct Player) * GEN_SIZE, cudaMemcpyDeviceToHost) );
-
-    print_gen_stats(playerH, 0);
+    print_gen_stats(players, 0);
 
     return 0;
 }
 
-void initialize_chromosome_gpu(struct Chromosome *chromD, struct Chromosome chromH)
+void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
 {
-    chromD->input_act_size = chromH.input_act_size;
-    chromD->input_adj_size = chromH.input_adj_size;
-    chromD->hidden_act_size = chromH.hidden_act_size;
-    chromD->hidden_adj_size = chromH.hidden_adj_size;
-    chromD->out_adj_size = chromH.out_adj_size;
+    chrom->in_h = in_h;
+    chrom->in_w = in_w;
+    chrom->hlc = hlc;
+    chrom->npl = npl;
 
-    chromD->npl = chromH.npl;
-    chromD->in_w = chromH.in_w;
-    chromD->in_h = chromH.in_h;
-    chromD->hlc = chromH.hlc;
+    chrom->input_act_size = in_h * in_w;
+    chrom->input_adj_size = (in_h * in_w) * npl;
+    chrom->hidden_act_size = (hlc * npl);
+    chrom->hidden_adj_size = (hlc - 1) * (npl * npl);
+    chrom->out_adj_size = BUTTON_COUNT * npl;
 
-    cudaErrCheck( cudaMalloc((void **)&chromD->input_act, sizeof(uint8_t) * chromH.input_act_size) );
-    cudaErrCheck( cudaMalloc((void **)&chromD->input_adj, sizeof(float) * chromH.input_adj_size) );
-    cudaErrCheck( cudaMalloc((void **)&chromD->hidden_act, sizeof(uint8_t) * chromH.hidden_act_size) );
-    cudaErrCheck( cudaMalloc((void **)&chromD->hidden_adj, sizeof(float) * chromH.hidden_adj_size) );
-    cudaErrCheck( cudaMalloc((void **)&chromD->out_adj, sizeof(float) * chromH.out_adj_size) );
-
-    cudaErrCheck( cudaMemcpy(chromD->input_act, chromH.input_act, 
-        sizeof(uint8_t) * chromH.input_act_size, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(chromD->input_adj, chromH.input_adj, 
-        sizeof(float) * chromH.input_adj_size, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(chromD->hidden_act,  chromH.hidden_act, 
-        sizeof(uint8_t) * chromH.hidden_act_size, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(chromD->hidden_adj, chromH.hidden_adj, 
-        sizeof(float) * chromH.hidden_adj_size, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(chromD->out_adj, chromH.out_adj, 
-        sizeof(float) * chromH.out_adj_size, cudaMemcpyHostToDevice) );
+    cudaErrCheck( cudaMallocManaged((void **)&chrom->input_act, sizeof(uint8_t) * chrom->input_act_size) );
+    cudaErrCheck( cudaMallocManaged((void **)&chrom->input_adj, sizeof(float) * chrom->input_adj_size) );
+    cudaErrCheck( cudaMallocManaged((void **)&chrom->hidden_act, sizeof(uint8_t) * chrom->hidden_act_size) );
+    cudaErrCheck( cudaMallocManaged((void **)&chrom->hidden_adj, sizeof(float) * chrom->hidden_adj_size) );
+    cudaErrCheck( cudaMallocManaged((void **)&chrom->out_adj, sizeof(float) * chrom->out_adj_size) );
 }
 
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet)
