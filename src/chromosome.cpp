@@ -3,11 +3,10 @@
 #include <chromosome.hpp>
 #include <stdint.h>
 #include <defs.hpp>
-#include <cuda_runtime.h>
 
 float gen_random_weight(unsigned int *seedp);
 
-void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
+void initialize_chromosome(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
 {
     chrom->in_h = in_h;
     chrom->in_w = in_w;
@@ -33,7 +32,7 @@ void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w,
     chrom->out_adj = (float *)malloc(sizeof(float) * chrom->out_adj_size);
 }
 
-void free_chromosome(struct chromosome *chrom)
+void free_chromosome(struct Chromosome *chrom)
 {
     free(chrom->input_act);
     free(chrom->input_adj);
@@ -42,7 +41,7 @@ void free_chromosome(struct chromosome *chrom)
     free(chrom->out_adj);
 }
 
-void generate_chromosome(struct chromosome *chrom, unsigned int seed)
+void generate_chromosome(struct Chromosome *chrom, unsigned int seed)
 {
     uint8_t *cur_uint;
     float *cur_float;
@@ -102,7 +101,7 @@ void generate_chromosome(struct chromosome *chrom, unsigned int seed)
     }
 }
 
-void print_chromosome(struct chromosome *chrom)
+void print_chromosome(struct Chromosome *chrom)
 {
     printf("-------------------------------------------\n");
     uint8_t *cur_uint;
@@ -168,7 +167,6 @@ void print_chromosome(struct chromosome *chrom)
     printf("-------------------------------------------\n");
 }
 
-__host__ __device__
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
 {
     size_t size;

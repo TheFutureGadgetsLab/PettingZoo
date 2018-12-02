@@ -6,14 +6,14 @@
 #include <time.h>
 #include <math.h>
 #include <gamelogic.hpp>
-#include <sys/stat.h>
+#include <cuda_runtime.h>
 
 __host__ __device__
-void calc_first_layer(struct chromosome *chrom, float *inputs, float *node_outputs);
+void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs);
 __host__ __device__
-void calc_hidden_layers(struct chromosome *chrom, float *node_outputs);
+void calc_hidden_layers(struct Chromosome *chrom, float *node_outputs);
 __host__ __device__
-void calc_output(struct chromosome *chrom, float *node_outputs, float *network_outputs);
+void calc_output(struct Chromosome *chrom, float *node_outputs, float *network_outputs);
 
 // Activation functions
 __host__ __device__
@@ -28,7 +28,7 @@ __host__ __device__
 float tanh_bounded(float x);
 
 __host__ __device__
-int evaluate_frame(struct Game *game, struct Player *player, struct chromosome *chrom, float *tiles, float *node_outputs, uint8_t *buttons)
+int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, float *tiles, float *node_outputs, uint8_t *buttons)
 {
     float network_outputs[BUTTON_COUNT];
     uint8_t inputs[BUTTON_COUNT];
@@ -46,9 +46,7 @@ int evaluate_frame(struct Game *game, struct Player *player, struct chromosome *
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.0f;
 
     // Add pressed buttons to the buffer
-    *buttons = inputs[BUTTON_RIGHT]       |
-               (inputs[BUTTON_LEFT] << 1) | 
-               (inputs[BUTTON_JUMP] << 2);
+    *buttons = inputs[BUTTON_RIGHT] | (inputs[BUTTON_LEFT] << 1) | (inputs[BUTTON_JUMP] << 2);
 
     ret = game_update(game, player, inputs);
 
@@ -56,7 +54,7 @@ int evaluate_frame(struct Game *game, struct Player *player, struct chromosome *
 }
 
 __host__ __device__
-void calc_first_layer(struct chromosome *chrom, float *inputs, float *node_outputs)
+void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
     float sum;
@@ -82,7 +80,7 @@ void calc_first_layer(struct chromosome *chrom, float *inputs, float *node_outpu
 }
 
 __host__ __device__
-void calc_hidden_layers(struct chromosome *chrom, float *node_outs)
+void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
 {
     int node, weight, layer, cur_node;
     float sum;
@@ -114,7 +112,7 @@ void calc_hidden_layers(struct chromosome *chrom, float *node_outs)
 }
 
 __host__ __device__
-void calc_output(struct chromosome *chrom, float *node_outs, float *net_outs)
+void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
     float sum;

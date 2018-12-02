@@ -38,6 +38,7 @@ void game_setup(struct Player *player)
 }
 
 //Called every frame
+__host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT])
 {
 	int return_value = 0;
@@ -127,6 +128,7 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 }
 
 //Physics simulation for any body
+__host__ __device__
 int physics_sim(struct Game *game, struct Body* body, bool jump)
 {
 	int return_value = 0;

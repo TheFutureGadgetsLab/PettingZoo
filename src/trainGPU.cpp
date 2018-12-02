@@ -8,11 +8,15 @@
 #include <cuda_helper.hpp>
 #include <cuda_runtime.h>
 #include <cuda.h>
+#include <time.h>
+#include <math.h>
 
-void initialize_chromosome_gpu(struct chromosome *chromD, struct chromosome chromH);
+// 2954.31 / 10000
+void initialize_chromosome_gpu(struct Chromosome *chromD, struct Chromosome chromH);
+void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 
 __device__ 
-void runChromosome(struct Game *game, struct Player *player, struct chromosome *chrom)
+void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom)
 {
     int buttons_index, ret;
     uint8_t buttons[MAX_FRAMES];
@@ -27,73 +31,79 @@ void runChromosome(struct Game *game, struct Player *player, struct chromosome *
         buttons_index++;
 
         if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
-            player->fitness = 1000;
             break;
         }
     }
 }
 
 __global__
-void trainGeneration(struct Game *games, struct Player *players, struct chromosome *generation)
+void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen)
 {
     int member = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (member < GEN_SIZE)
-        runChromosome(&games[member], &players[member], &generation[member]);
-    
-    players[0].fitness = 10;
+    if (member < GEN_SIZE) {
+        runChromosome(&games[member], &players[member], &gen[member]);
+    }
 }
 
-int main() {
-    struct chromosome *chromH, chromD[GEN_SIZE];
-    struct Game *gamesH, *gamesD;
-    struct Player *playersH, *playersD;
-    int member;
+int main()
+{
+    struct Game *gameH, *gameD;
+    struct Player *playerH, *playerD;
+    struct Chromosome *chromH, *chromHD, *chromD;
+    unsigned int member, seed, level_seed;
+    int block_size, grid_size;
 
-    gamesH = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
-    cudaErrCheck( cudaMalloc((void **)&gamesD, sizeof(struct Game) * GEN_SIZE) );
+    seed = (unsigned int)time(NULL);
+    seed = 10;
+    srand(seed);
+    level_seed = rand();
 
-    playersH = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
-    cudaErrCheck( cudaMalloc((void **)&playersD, sizeof(struct Player) * GEN_SIZE) );
+    printf("Running with %d chromosomes for %d generations\n", GEN_SIZE, GENERATIONS);
+    printf("Chromosome stats:\n");
+    printf("  IN_H: %d\n  IN_W: %d\n  HLC: %d\n  NPL: %d\n", IN_H, IN_W, HLC, NPL);
+    printf("Level seed: %u\n", level_seed);
+    printf("srand seed: %u\n", seed);
+    puts("----------------------------");
 
-    chromH = (struct chromosome *)malloc(sizeof(struct chromosome) * GEN_SIZE);
-    cudaErrCheck( cudaMalloc((void **)&chromD, sizeof(struct chromosome) * GEN_SIZE) );
+    gameH = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
+    playerH = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
 
-    // Allocate chromosome on host and device, generate
+    chromH = (struct Chromosome *)malloc(sizeof(struct Chromosome) * GEN_SIZE);
+    chromHD = (struct Chromosome *)malloc(sizeof(struct Chromosome) * GEN_SIZE);
+
+    cudaErrCheck( cudaMalloc((void **)&gameD, sizeof(struct Game) * GEN_SIZE) );
+    cudaErrCheck( cudaMalloc((void **)&playerD, sizeof(struct Player) * GEN_SIZE) );
+    cudaErrCheck( cudaMalloc((void **)&chromD, sizeof(struct Chromosome) * GEN_SIZE) );
+
     for (member = 0; member < GEN_SIZE; member++) {
+        // Generate level on host
+        levelgen_gen_map(&gameH[member], level_seed);
+        
+        // Set up player -> allocate player on device -> copy to device
+        game_setup(&playerH[member]);
+
         initialize_chromosome(&chromH[member], IN_H, IN_W, HLC, NPL);
-        generate_chromosome(&chromH[member], 144);
-        initialize_chromosome_gpu(&chromD[member], chromH[member]);
-
-        game_setup(&playersH[member]);
-        levelgen_gen_map(&gamesH[member], 144);
+        generate_chromosome(&chromH[member], rand());
+        initialize_chromosome_gpu(&chromHD[member], chromH[member]);
     }
 
-    cudaErrCheck( cudaMemcpy(gamesD, gamesH, sizeof(struct Game) * GEN_SIZE, cudaMemcpyHostToDevice) );
-    cudaErrCheck( cudaMemcpy(playersD, playersH, sizeof(struct Player) * GEN_SIZE, cudaMemcpyHostToDevice) );
+    cudaErrCheck( cudaMemcpy(gameD, gameH, sizeof(struct Game) * GEN_SIZE, cudaMemcpyHostToDevice) );
+    cudaErrCheck( cudaMemcpy(playerD, playerH, sizeof(struct Player) * GEN_SIZE, cudaMemcpyHostToDevice) );
+    cudaErrCheck( cudaMemcpy(chromD, chromHD, sizeof(struct Chromosome) * GEN_SIZE, cudaMemcpyHostToDevice) );
 
-    // Launch kernel
-    trainGeneration <<< 1, 1024 >>> (gamesD, playersD, chromD);
-    cudaErrCheck( cudaGetLastError() );
+    block_size = 128;
+    grid_size = ceil(GEN_SIZE / (float)block_size);
+    trainGeneration <<< grid_size, block_size >>> (gameD, playerD, chromD);
 
-    cudaMemcpy(playersH, playersD, sizeof(struct Player) * GEN_SIZE, cudaMemcpyDeviceToHost);
+    cudaErrCheck( cudaMemcpy(playerH, playerD, sizeof(struct Player) * GEN_SIZE, cudaMemcpyDeviceToHost) );
 
-    for (member = 0; member < GEN_SIZE; member++) {
-        printf("Fitness: %lf\n", playersH[member].fitness);
-    }
-
-    // printf("Fitness: %lf\n", playerH->fitness);
-
-    // //Free everything
-    // free_chromosome(&chromH);
-    // // cudaErrCheck( cudaFree(chromD) );
-    // cudaErrCheck( cudaFree(gameD) );
-    // free(playerH);
+    print_gen_stats(playerH, 0);
 
     return 0;
 }
 
-void initialize_chromosome_gpu(struct chromosome *chromD, struct chromosome chromH)
+void initialize_chromosome_gpu(struct Chromosome *chromD, struct Chromosome chromH)
 {
     chromD->input_act_size = chromH.input_act_size;
     chromD->input_adj_size = chromH.input_adj_size;
@@ -122,4 +132,44 @@ void initialize_chromosome_gpu(struct chromosome *chromD, struct chromosome chro
         sizeof(float) * chromH.hidden_adj_size, cudaMemcpyHostToDevice) );
     cudaErrCheck( cudaMemcpy(chromD->out_adj, chromH.out_adj, 
         sizeof(float) * chromH.out_adj_size, cudaMemcpyHostToDevice) );
+}
+
+void print_gen_stats(struct Player players[GEN_SIZE], int quiet)
+{
+    int game, completed, timedout, died;
+    float max, min, avg;
+
+    completed = 0;
+    timedout = 0;
+    died = 0;
+    avg = 0.0f;
+    max = players[0].fitness;
+    min = players[0].fitness;
+    
+    for(game = 0; game < GEN_SIZE; game++) {
+        avg += players[game].fitness;
+
+        if (players[game].fitness > max)
+            max = players[game].fitness;
+        else if (players[game].fitness < min)
+            min = players[game].fitness;
+
+        if (players[game].death_type == PLAYER_COMPLETE)
+            completed++;
+        else if (players[game].death_type == PLAYER_TIMEOUT)
+            timedout++;
+        else if (players[game].death_type == PLAYER_DEAD)
+            died++;
+
+        if (!quiet)
+            printf("Player %d fitness: %0.2lf\n", game, players[game].fitness);
+    }
+
+    avg /= GEN_SIZE;
+
+    printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
+            (float)died / GEN_SIZE * 100, (float)timedout / GEN_SIZE * 100,
+            (float)completed / GEN_SIZE * 100, avg);
+    printf("Max fitness: %.2lf\n", max);
+    printf("Min fitness: %.2lf\n", min);
 }

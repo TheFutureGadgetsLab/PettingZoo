@@ -12,14 +12,14 @@
 void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
 FILE* create_output_dir(unsigned int seed);
-void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct chromosome *chrom, unsigned int seed);
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct Chromosome *chrom, unsigned int seed);
 
 int main()
 {
     struct Game *games;
     struct Player *players;
-    struct chromosome genA[GEN_SIZE], genB[GEN_SIZE];
-    struct chromosome *cur_gen, *next_gen, *tmp;
+    struct Chromosome genA[GEN_SIZE], genB[GEN_SIZE];
+    struct Chromosome *cur_gen, *next_gen, *tmp;
     int gen, game;
     unsigned int seed, level_seed;
     struct RecordedChromosome winner;
@@ -31,6 +31,7 @@ int main()
     seed = (unsigned int)time(NULL);
     seed = 10;
     srand(seed);
+    level_seed = rand();
 
     out_file = create_output_dir(seed);
 
@@ -41,8 +42,11 @@ int main()
     printf("Running with %d chromosomes for %d generations\n", GEN_SIZE, GENERATIONS);
     printf("Chromosome stats:\n");
     printf("  IN_H: %d\n  IN_W: %d\n  HLC: %d\n  NPL: %d\n", IN_H, IN_W, HLC, NPL);
-    printf("Seed: %u\n", seed);
+    printf("Level seed: %u\n", level_seed);
+    printf("srand seed: %u\n", seed);
 
+
+    // Level seed for entire run
     // Allocate space for genA and genB chromosomes
     for (game = 0; game < GEN_SIZE; game++) {
         initialize_chromosome(&genA[game], IN_H, IN_W, HLC, NPL);
@@ -51,9 +55,6 @@ int main()
         // Generate random chromosomes
         generate_chromosome(&genA[game], rand());
     }
-
-    // Level seed for entire run
-    level_seed = rand();
 
     // Initially point current gen to genA, then swap next gen
     cur_gen = genA;
@@ -71,7 +72,7 @@ int main()
         run_generation(games, players, cur_gen, &winner);
 
         // Get stats from run (1 tells function to not print each players fitness)
-        print_gen_stats(players, 1);
+        print_gen_stats(players, 0);
 
         // Write out progress
         write_out_progress(out_file, players);
@@ -195,7 +196,7 @@ FILE* create_output_dir(unsigned int seed)
     return out_file;
 }
 
-void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct chromosome *chrom, unsigned int seed)
+void write_out(char *name, uint8_t *buttons, size_t buttons_bytes, struct Chromosome *chrom, unsigned int seed)
 {
     FILE *file = fopen(name, "wb");
 

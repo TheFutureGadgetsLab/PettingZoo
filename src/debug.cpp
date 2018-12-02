@@ -6,7 +6,7 @@
 #include <neural_network.hpp>
 #include <levelgen.hpp>
 
-void runChromosome(struct Game *game, struct Player *player, struct chromosome chrom)
+void runChromosome(struct Game *game, struct Player *player, struct Chromosome chrom)
 {
     int buttons_index, ret;
     uint8_t buttons[MAX_FRAMES];
@@ -27,15 +27,16 @@ void runChromosome(struct Game *game, struct Player *player, struct chromosome c
 }
 
 int main() {
-    struct chromosome chrom;
+    struct Chromosome chrom;
     struct Game game;
     struct Player player;
-    
+    int seed = 9;
+
     // Allocate chromosome on host and device, generate
     initialize_chromosome(&chrom, IN_H, IN_W, HLC, NPL);
-    generate_chromosome(&chrom, 144);
+    generate_chromosome(&chrom, seed);
     game_setup(&player);
-    levelgen_gen_map(&game, 144);
+    levelgen_gen_map(&game, seed);
     
     runChromosome(&game, &player, chrom);
 

@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <cuda_runtime.h>
 
-struct chromosome {
+struct Chromosome {
     uint8_t *input_act;
     float *input_adj;
     uint8_t *hidden_act;
@@ -25,15 +24,10 @@ struct chromosome {
     uint8_t hlc;
 };
 
-__host__
-void free_chromosome(struct chromosome *chrom);
-__host__
-void initialize_chromosome(struct chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
-__host__
-void generate_chromosome(struct chromosome *chrom, unsigned int seed);
-__host__ __device__
+void free_chromosome(struct Chromosome *chrom);
+void initialize_chromosome(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+void generate_chromosome(struct Chromosome *chrom, unsigned int seed);
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
-__host__ __device__
 void print_chromosome(uint8_t *chrom);
 
 /*
