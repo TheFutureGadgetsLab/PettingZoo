@@ -28,7 +28,7 @@ __host__ __device__
 float tanh_bounded(float x);
 
 __host__ __device__
-int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, float *tiles, float *node_outputs, uint8_t *buttons)
+int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
     uint8_t inputs[BUTTON_COUNT];
@@ -45,9 +45,6 @@ int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *
     inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.0f;
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.0f;
 
-    // Add pressed buttons to the buffer
-    *buttons = inputs[BUTTON_RIGHT] | (inputs[BUTTON_LEFT] << 1) | (inputs[BUTTON_JUMP] << 2);
-
     ret = game_update(game, player, inputs);
 
     return ret;
@@ -63,16 +60,9 @@ void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outpu
     for (node = 0; node < chrom->npl; node++) {
         sum = 0.0f;
 
-        // If the node isn't active its output defaults to 0
-        if (!chrom->hidden_act[node]) {
-            node_outputs[node] = 0.0f;
-            continue;
-        }
-
         // Calculate linear sum of outputs and weights
         for (weight = 0; weight < chrom->in_h * chrom->in_w; weight++) {
-            if (chrom->input_act[weight])
-                sum += chrom->input_adj[node * chrom->in_h * chrom->in_w + weight] * inputs[weight];
+            sum += chrom->input_adj[node * chrom->in_h * chrom->in_w + weight] * inputs[weight];
         }
 
         node_outputs[node] = softsign(sum);
@@ -94,12 +84,6 @@ void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
         for (node = 0; node < chrom->npl; node++) {
             sum = 0.0f;
             cur_node = layer * chrom->npl + node;
-
-            // If the node isn't active its output defaults to 0
-            if (!chrom->hidden_act[cur_node]) {
-                node_outs[cur_node] = 0.0f;
-                continue;
-            }
 
             // Calculate linear sum of outputs and weights
             for (weight = 0; weight < chrom->npl; weight++) {

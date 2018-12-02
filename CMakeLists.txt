@@ -65,25 +65,6 @@ target_link_libraries(trainCPU m)
 
 ###############################################################
 #
-#                       Debug
-#
-###############################################################
-# Compile
-add_executable(
-    debug
-    src/debug.cpp
-    src/genetic.cpp
-    src/chromosome.cpp
-    src/neural_network.cpp
-    src/gamelogic.cpp
-    src/levelgen.cpp
-)
-
-# Link libraries
-target_link_libraries(debug m)
-
-###############################################################
-#
 #                       GPU Program
 #
 ###############################################################

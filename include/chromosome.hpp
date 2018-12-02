@@ -5,16 +5,12 @@
 #include <stdlib.h>
 
 struct Chromosome {
-    uint8_t *input_act;
     float *input_adj;
-    uint8_t *hidden_act;
     float *hidden_adj;
     float *out_adj;
     
     // Sizes are number of elements, not bytes
-    size_t input_act_size;
     size_t input_adj_size;
-    size_t hidden_act_size;
     size_t hidden_adj_size;
     size_t out_adj_size;
 

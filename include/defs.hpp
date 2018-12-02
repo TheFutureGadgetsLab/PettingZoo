@@ -6,8 +6,8 @@
 #define IN_W         12
 #define HLC          2
 #define NPL          128
-#define GEN_SIZE     5000
-#define GENERATIONS  1
+#define GEN_SIZE     1000
+#define GENERATIONS  2
 #define MUTATE_RATE  0.0f
 
 // Button parameters

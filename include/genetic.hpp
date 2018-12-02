@@ -6,7 +6,6 @@
 
 struct RecordedChromosome {
     struct Chromosome *chrom;
-    uint8_t buttons[MAX_FRAMES];
     float fitness;
     struct Game *game;
 };

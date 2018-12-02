@@ -19,17 +19,10 @@ void mutate_f(float *data, size_t length);
  */
 int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct Chromosome generation[GEN_SIZE], struct RecordedChromosome *winner)
 {
-    int game, buttons_index, ret;
+    int game, ret;
     float *input_tiles;
     float *node_outputs;
-    uint8_t buttons[MAX_FRAMES];
 
-    /*
-     * input_tiles holds the tiles around the player the NN sees.
-     * node_outputs holds the outputs of the nodes. Currently only
-     * one is allocated per generation because everything runs in
-     * serial. This will need to change when running on the GPU
-     */
     input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
@@ -38,13 +31,9 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
         printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
         fflush(stdout);
 
-        buttons_index = 0;
-
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(&games[game], &players[game], &generation[game],
-                input_tiles, node_outputs, buttons + buttons_index);
-            buttons_index++;
+            ret = evaluate_frame(&games[game], &players[game], &generation[game], input_tiles, node_outputs);
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
@@ -53,7 +42,6 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
         // Save run details if chrom is new best
         if (players[game].fitness > winner->fitness) {
             winner->chrom = &generation[game];
-            memcpy(winner->buttons, buttons, MAX_FRAMES);
             winner->fitness = players[game].fitness;
             winner->game = &games[game];
         }
@@ -116,23 +104,11 @@ void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, 
 {
     int split_loc, hl;
 
-    // Cross input layers and mutate
-    split_loc = rand() % (parentA->input_act_size + 1);
-    split(parentA->input_act, parentB->input_act, childA->input_act, childB->input_act, parentA->input_act_size, split_loc);
-    mutate_u(childA->input_act, parentA->input_act_size);
-    mutate_u(childB->input_act, parentA->input_act_size);
-
     // Cross input adj layers and mutate
     split_loc = rand() % (parentA->input_adj_size + 1);
     split(parentA->input_adj, parentB->input_adj, childA->input_adj, childB->input_adj, parentA->input_adj_size * sizeof(float), split_loc * sizeof(float));
     mutate_f(childA->input_adj, parentA->input_adj_size);
     mutate_f(childB->input_adj, parentA->input_adj_size);
-
-    // Cross hidden act layer and mutate
-    split_loc = rand() % (parentA->hidden_act_size + 1);
-    split(parentA->hidden_act, parentB->hidden_act, childA->hidden_act, childB->hidden_act, parentA->hidden_act_size, split_loc);
-    mutate_u(childA->hidden_act, parentA->hidden_act_size);
-    mutate_u(childB->hidden_act, parentA->hidden_act_size);
 
     // Cross hidden layers and mutate
     size_t section_size = parentA->npl * parentA->npl;

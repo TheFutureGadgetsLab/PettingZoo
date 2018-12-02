@@ -61,7 +61,7 @@ int main()
     next_gen = genB;
     for (gen = 0; gen < GENERATIONS; gen++) {
         puts("----------------------------");
-        printf("Running generation %d/%d\n", gen, GENERATIONS);
+        printf("Running generation %d/%d\n", gen + 1, GENERATIONS);
 
         // Generate seed for this gens levels and generate them
         for (game = 0; game < GEN_SIZE; game++) {
@@ -91,8 +91,8 @@ int main()
     printf("  Fitness: %f\n  Seed: %u\n", winner.fitness, winner.game->seed);
 
     // Write out best chromosome
-    sprintf(fname, "./%d/best.bin", seed);
-    write_out(fname, winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
+    // sprintf(fname, "./%d/best.bin", seed);
+    // write_out(fname, winner.buttons, MAX_FRAMES, winner.chrom, winner.game->seed);
 
     for (game = 0; game < GEN_SIZE; game++) {
         free_chromosome(&genA[game]);

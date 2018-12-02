@@ -52,9 +52,9 @@ struct Body {
 struct Player {
 	struct Body body;
 	float time;
+	float fitness;
 	int score;
 	int buttonpresses;
-	float fitness;
 	int death_type;
 };
 
@@ -62,8 +62,8 @@ struct Enemy {
 	struct Body body;
 	float speed;
 	float direction;
-	bool dead;
 	unsigned char type;
+	bool dead;
 };
 
 struct Game {
