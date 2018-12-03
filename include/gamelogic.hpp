@@ -18,10 +18,6 @@
 #define COL_LEFT         2
 #define COL_RIGHT        4
 
-#define ENABLE_ENEMIES  false
-#define JUMPING_ENEMIES false
-#define MAX_ENEMIES 32
-
 // Player physics parameters
 #define V_X 6
 #define V_JUMP 8
@@ -74,8 +70,8 @@ struct Game {
 	uint8_t tiles[LEVEL_SIZE];
 };
 
-__host__ __device__
-void game_setup(struct Player *player);
+__host__
+void game_setup(struct Game *game, struct Player *player, unsigned int seed);
 __host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
 __host__ __device__

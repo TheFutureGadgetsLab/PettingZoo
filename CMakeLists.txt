@@ -32,10 +32,12 @@ find_library(SFML_SYSTEM_LIB sfml-system)
 # Compile into petting zoo
 add_executable(
     pettingzoo
+    src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/rendering.cpp
     src/main.cpp
+    src/chromosome.cpp
 )
 
 # Link libraries
@@ -46,7 +48,7 @@ target_link_libraries(pettingzoo m)
 
 ###############################################################
 #
-#                       CPU Program
+#                       CPU Training
 #
 ###############################################################
 # Compile
@@ -60,12 +62,32 @@ add_executable(
     src/levelgen.cpp
 )
 
+
 # Link libraries
 target_link_libraries(trainCPU m)
 
 ###############################################################
 #
-#                       GPU Program
+#                       Debug
+#
+###############################################################
+# Compile
+add_executable(
+    debug
+    src/debug.cpp
+    src/genetic.cpp
+    src/chromosome.cpp
+    src/neural_network.cpp
+    src/gamelogic.cpp
+    src/levelgen.cpp
+)
+
+# Link libraries
+target_link_libraries(trainCPU m)
+
+###############################################################
+#
+#                       GPU Training
 #
 ###############################################################
 # Configure CUDA flags (-x cu tells nvcc to interpret cpp files as having CPU/GPU code)

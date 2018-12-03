@@ -28,11 +28,10 @@ __host__ __device__
 float tanh_bounded(float x);
 
 __host__ __device__
-int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, float *tiles, float *node_outputs)
+int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t *buttons, float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
     uint8_t inputs[BUTTON_COUNT];
-    int ret;
 
     get_input_tiles(game, player, tiles, chrom->in_h, chrom->in_w);
     
@@ -45,9 +44,9 @@ int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *
     inputs[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.0f;
     inputs[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.0f;
 
-    ret = game_update(game, player, inputs);
+    *buttons = inputs[BUTTON_RIGHT] | (inputs[BUTTON_LEFT] << 1) | (inputs[BUTTON_JUMP] << 2);
 
-    return ret;
+    return game_update(game, player, inputs);
 }
 
 __host__ __device__

@@ -10,18 +10,18 @@
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int chance_gen(float percent);
 void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB);
-void mutate_u(uint8_t *data, size_t length);
-void mutate_f(float *data, size_t length);
+void mutate(float *data, size_t length);
 
 /*
  * This function takes an array of games, players, and chromosomes to be evaluated.
  * The fitnesses are written out into the float fitnesses array.
  */
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct Chromosome generation[GEN_SIZE], struct RecordedChromosome *winner)
+int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct Chromosome generation[GEN_SIZE])
 {
     int game, ret;
     float *input_tiles;
     float *node_outputs;
+    uint8_t buttons = 0;
 
     input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
@@ -33,17 +33,10 @@ int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE],
 
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(&games[game], &players[game], &generation[game], input_tiles, node_outputs);
+            ret = evaluate_frame(&games[game], &players[game], &generation[game], &buttons, input_tiles, node_outputs);
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
-        }
-
-        // Save run details if chrom is new best
-        if (players[game].fitness > winner->fitness) {
-            winner->chrom = &generation[game];
-            winner->fitness = players[game].fitness;
-            winner->game = &games[game];
         }
     }
 
@@ -107,8 +100,8 @@ void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, 
     // Cross input adj layers and mutate
     split_loc = rand() % (parentA->input_adj_size + 1);
     split(parentA->input_adj, parentB->input_adj, childA->input_adj, childB->input_adj, parentA->input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate_f(childA->input_adj, parentA->input_adj_size);
-    mutate_f(childB->input_adj, parentA->input_adj_size);
+    mutate(childA->input_adj, parentA->input_adj_size);
+    mutate(childB->input_adj, parentA->input_adj_size);
 
     // Cross hidden layers and mutate
     size_t section_size = parentA->npl * parentA->npl;
@@ -116,15 +109,15 @@ void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, 
         split_loc = rand() % (section_size + 1);
         split(parentA->hidden_adj + section_size * hl, parentB->hidden_adj + section_size * hl,
               childA->hidden_adj + section_size * hl, childB->hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate_f(childA->hidden_adj + section_size * hl, section_size);
-        mutate_f(childB->hidden_adj + section_size * hl, section_size);
+        mutate(childA->hidden_adj + section_size * hl, section_size);
+        mutate(childB->hidden_adj + section_size * hl, section_size);
     }
 
     // Cross output adj layer and mutate
     split_loc = rand() % (parentA->out_adj_size + 1);
     split(parentA->out_adj, parentB->out_adj, childA->out_adj, childB->out_adj, parentA->out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate_f(childA->out_adj, parentA->out_adj_size);
-    mutate_f(childB->out_adj, parentA->out_adj_size);
+    mutate(childA->out_adj, parentA->out_adj_size);
+    mutate(childB->out_adj, parentA->out_adj_size);
 }
 
 /*
@@ -148,20 +141,7 @@ int chance_gen(float percent)
 	return ((float)rand() / (float)RAND_MAX) < (percent / 100.0f);
 }
 
-// Mutation
-void mutate_u(uint8_t *data, size_t length)
-{
-    if (MUTATE_RATE == 0.0f)
-        return;
-
-    size_t i;
-    for (i = 0; i < length; i++) {
-        if (chance_gen(MUTATE_RATE))
-            data[i] = !data[i];
-    }
-}
-
-void mutate_f(float *data, size_t length)
+void mutate(float *data, size_t length)
 {
     if (MUTATE_RATE == 0.0f)
         return;
@@ -171,4 +151,60 @@ void mutate_f(float *data, size_t length)
         if (chance_gen(MUTATE_RATE))
             data[i] *= ((float)rand() / (float)RAND_MAX) * 2.0;
     }
+}
+
+void get_gen_stats(FILE *fh, char *basedir, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation)
+{
+    int game, completed, timedout, died, best_index;
+    float max, min, avg;
+
+    completed = 0;
+    timedout = 0;
+    died = 0;
+    avg = 0.0f;
+    max = players[0].fitness;
+    min = players[0].fitness;
+    best_index = 0;
+    for(game = 0; game < GEN_SIZE; game++) {
+        avg += players[game].fitness;
+
+        if (players[game].fitness > max) {
+            max = players[game].fitness;
+            best_index = game;
+        } else if (players[game].fitness < min) {
+            min = players[game].fitness;
+        }
+
+        if (players[game].death_type == PLAYER_COMPLETE)
+            completed++;
+        else if (players[game].death_type == PLAYER_TIMEOUT)
+            timedout++;
+        else if (players[game].death_type == PLAYER_DEAD)
+            died++;
+
+        if (!quiet)
+            printf("Player %d fitness: %0.2lf\n", game, players[game].fitness);
+    }
+
+    // Write out best chromosome
+    if (write_winner) {
+        char fname[256];
+        sprintf(fname, "./%s/gen_%d_%.2lf.bin", basedir, generation, max);
+        printf("Writing out seed: %d\n", games[best_index].seed);
+        write_out_chromosome(fname, &chroms[best_index], games[best_index].seed);
+    }
+
+    avg /= GEN_SIZE;
+
+    // Write progress to file
+    if (fh != NULL) {
+        fprintf(fh, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
+        fflush(fh);
+    }
+
+    printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
+            (float)died / GEN_SIZE * 100, (float)timedout / GEN_SIZE * 100,
+            (float)completed / GEN_SIZE * 100, avg);
+    printf("Max fitness: %.2lf\n", max);
+    printf("Min fitness: %.2lf\n", min);
 }

@@ -18,14 +18,11 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 void insert_tee(struct Game *game, int origin, int height, int length);
 void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
-void levelgen_clear_level(struct Game *game);
 
 //Generate a new map from given seed
 void levelgen_gen_map(struct Game *game, unsigned int seed)
 {
 	int x, flat_region;
-
-	levelgen_clear_level(game);
 
 	game->seed = seed;
 	game->seed_state = seed;

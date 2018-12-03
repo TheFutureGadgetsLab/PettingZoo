@@ -6,41 +6,17 @@
 #include <neural_network.hpp>
 #include <levelgen.hpp>
 #include <cuda_helper.hpp>
-#include <cuda_runtime.h>
 #include <cuda.h>
 #include <time.h>
 #include <math.h>
-
-void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
-void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
+#include <sys/stat.h>
 
 __device__ 
-void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom)
-{
-    int ret;
-    
-    float input_tiles[IN_W * IN_H];
-    float node_outputs[NPL * HLC];
-
-    // Run game loop until player dies
-    while (1) {
-        ret = evaluate_frame(game, player, chrom, input_tiles, node_outputs);
-
-        if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
-            break;
-        }
-    }
-}
-
+void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom);
 __global__
-void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen)
-{
-    int member = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (member < GEN_SIZE) {
-        runChromosome(&games[member], &players[member], &gen[member]);
-    }
-}
+void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen);
+void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
+FILE* create_output_dir(char *dirname, unsigned int seed);
 
 int main()
 {
@@ -49,10 +25,15 @@ int main()
     struct Chromosome *genA, *genB, *cur_gen, *next_gen, *tmp;
     unsigned int member, seed, level_seed;
     int block_size, grid_size;
+    FILE *run_data;
+    char dir_name[4096];
 
     seed = (unsigned int)time(NULL);
-    seed = 10;
     srand(seed);
+
+    sprintf(dir_name, "./%u", seed);
+    run_data = create_output_dir(dir_name, seed);
+
     level_seed = rand();
 
     printf("Running with %d chromosomes for %d generations\n", GEN_SIZE, GENERATIONS);
@@ -86,8 +67,7 @@ int main()
 
         // Regen levels and reset players
         for (member = 0; member < GEN_SIZE; member++) {
-            game_setup(&players[member]);
-            levelgen_gen_map(&games[member], level_seed);
+            game_setup(&games[member], &players[member], level_seed);
         }
 
         // Launch kernel
@@ -95,7 +75,7 @@ int main()
         cudaErrCheck( cudaDeviceSynchronize() );
 
         // Get stats from run (1 tells function to not print each players fitness)
-        print_gen_stats(players, 1);
+        get_gen_stats(run_data, dir_name, games, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen);
@@ -125,42 +105,50 @@ void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t i
     cudaErrCheck( cudaMallocManaged((void **)&chrom->out_adj, sizeof(float) * chrom->out_adj_size) );
 }
 
-void print_gen_stats(struct Player players[GEN_SIZE], int quiet)
+FILE* create_output_dir(char *dirname, unsigned int seed)
 {
-    int game, completed, timedout, died;
-    float max, min, avg;
+    FILE* out_file;
+    char name[4069];
 
-    completed = 0;
-    timedout = 0;
-    died = 0;
-    avg = 0.0f;
-    max = players[0].fitness;
-    min = players[0].fitness;
+    sprintf(name, "%s", dirname);
+
+    mkdir(name, S_IRWXU | S_IRWXG | S_IRWXO);
+
+    sprintf(name, "%s/run_data.txt", dirname);
+    out_file = fopen(name, "w+");
+
+    // Write out header data
+    fprintf(out_file, "%d, %d, %d, %d, %d, %d, %lf, %u\n", IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE, seed);
+    fflush(out_file);
+
+    return out_file;
+}
+
+__device__ 
+void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom)
+{
+    int ret;
     
-    for(game = 0; game < GEN_SIZE; game++) {
-        avg += players[game].fitness;
+    float input_tiles[IN_W * IN_H];
+    float node_outputs[NPL * HLC];
+    uint8_t buttons;
 
-        if (players[game].fitness > max)
-            max = players[game].fitness;
-        else if (players[game].fitness < min)
-            min = players[game].fitness;
+    // Run game loop until player dies
+    while (1) {
+        ret = evaluate_frame(game, player, chrom, &buttons, input_tiles, node_outputs);
 
-        if (players[game].death_type == PLAYER_COMPLETE)
-            completed++;
-        else if (players[game].death_type == PLAYER_TIMEOUT)
-            timedout++;
-        else if (players[game].death_type == PLAYER_DEAD)
-            died++;
-
-        if (!quiet)
-            printf("Player %d fitness: %0.2lf\n", game, players[game].fitness);
+        if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
+            break;
+        }
     }
+}
 
-    avg /= GEN_SIZE;
+__global__
+void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen)
+{
+    int member = blockIdx.x * blockDim.x + threadIdx.x;
 
-    printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
-            (float)died / GEN_SIZE * 100, (float)timedout / GEN_SIZE * 100,
-            (float)completed / GEN_SIZE * 100, avg);
-    printf("Max fitness: %.2lf\n", max);
-    printf("Min fitness: %.2lf\n", min);
+    if (member < GEN_SIZE) {
+        runChromosome(&games[member], &players[member], &gen[member]);
+    }
 }

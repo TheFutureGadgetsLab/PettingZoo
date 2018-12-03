@@ -24,7 +24,9 @@ void free_chromosome(struct Chromosome *chrom);
 void initialize_chromosome(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
 void generate_chromosome(struct Chromosome *chrom, unsigned int seed);
 size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
-void print_chromosome(uint8_t *chrom);
+void print_chromosome(struct Chromosome *chrom);
+void write_out_chromosome(char *fname, struct Chromosome *chrom, unsigned int level_seed);
+unsigned int extract_from_file(const char *fname, struct Chromosome *chrom);
 
 /*
 

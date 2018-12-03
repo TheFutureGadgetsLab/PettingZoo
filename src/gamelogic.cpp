@@ -17,10 +17,12 @@ __host__ __device__
 float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
-__host__ __device__
-void game_setup(struct Player *player)
+__host__
+void game_setup(struct Game *game, struct Player *player, unsigned int seed)
 {
-	// Reset parameters
+	levelgen_clear_level(game);
+	levelgen_gen_map(game, seed);
+
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
@@ -71,13 +73,11 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
 	}
-
 	//Enemies
+	struct Enemy *enemy;
+	bool empty_below;
+	int ret;
 	for (int i = 0; i < game->n_enemies; i++) {
-		struct Enemy *enemy;
-		bool empty_below;
-		int ret;
-
 		enemy = &game->enemies[i];
 		empty_below = true;
 		if (!enemy->dead) {
@@ -275,12 +275,13 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 	//Loop over tiles and draw them
 	for (y = tile_y1; y < tile_y2; y++) {
 		for (x = tile_x1; x < tile_x2; x++) {
-			tile = game->tiles[y * LEVEL_WIDTH + x];
 			// Report walls on left and right side of level
 			if (x < 0 || x >= LEVEL_WIDTH)
 				tile = BRICKS;
 			else if (y < 0 || y >= LEVEL_HEIGHT)
 				tile = EMPTY;
+			else
+				tile = game->tiles[y * LEVEL_WIDTH + x];
 
 			//Converting tile types to something the chromosome can understand
 			switch(tile) {

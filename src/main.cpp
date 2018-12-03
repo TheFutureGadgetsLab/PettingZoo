@@ -7,6 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <levelgen.hpp>
+#include <chromosome.hpp>
+#include <neural_network.hpp>
 
 #define RIGHT(x) ((x >> 0) & 0x1)
 #define LEFT(x)  ((x >> 1) & 0x1)
@@ -15,17 +17,18 @@
 #define GAME_EXIT  1
 #define GAME_RESET 2
 
-uint8_t *extract_from_file(const char *fname, uint8_t *buttons, unsigned int *seed);
 void reset_game(struct Game *game, struct Player *player, unsigned int seed, bool replay_ai);
 int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], bool *draw_overlay);
 
 int main(int argc, char **argv)
 {
 	bool draw_overlay, replay_ai;
-	int opt, ret, frame;
+	int opt, ret;
 	uint8_t inputs[BUTTON_COUNT] = {0};
-	uint8_t buttons[MAX_FRAMES];
-	uint8_t *chrom;
+	uint8_t buttons;
+	float *input_tiles = NULL;
+	float *node_outputs = NULL;
+	struct Chromosome chrom;
 	unsigned int seed;
 	struct Game game;
 	struct Player player;
@@ -39,8 +42,12 @@ int main(int argc, char **argv)
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			chrom = extract_from_file(optarg, buttons, &seed);
-			free(chrom);
+			
+			input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
+			node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
+
+			seed = extract_from_file(optarg, &chrom);
+			printf("Seed: %u\n", seed);
 			break;
 		default:
 			printf("Usage: %s [-f replayfile]\n", argv[0]);
@@ -51,34 +58,32 @@ int main(int argc, char **argv)
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 		
-	game_setup(&player);
-	levelgen_gen_map(&game, seed);
+	game_setup(&game, &player, seed);
 	render_load_assets();
 	render_gen_map(game);
 
-	frame = 0;
 	draw_overlay = false;
 	while (window.isOpen()) {
 		// Get player input
 		ret = get_player_input(window, inputs, &draw_overlay);
 		if (ret == GAME_RESET) {
-			frame = 0;
 			reset_game(&game, &player, seed, replay_ai);
 		} else if (ret == GAME_EXIT) {
 			window.close();
 			return 0;
 		}
 
-		//Get buttons
+		//Get buttons and update game state
 		if (replay_ai) {
-			inputs[BUTTON_RIGHT] = RIGHT(buttons[frame]);
-			inputs[BUTTON_LEFT] =  LEFT(buttons[frame]);
-			inputs[BUTTON_JUMP] = JUMP(buttons[frame]);
-			frame++;
+			ret = evaluate_frame(&game, &player, &chrom, &buttons, input_tiles, node_outputs);
+
+			inputs[BUTTON_RIGHT] = RIGHT(buttons);
+			inputs[BUTTON_LEFT] =  LEFT(buttons);
+			inputs[BUTTON_JUMP] = JUMP(buttons);
+		} else {
+			ret = game_update(&game, &player, inputs);
 		}
 
-		//Update game state
-		ret = game_update(&game, &player, inputs);
 		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
 			if (ret == PLAYER_DEAD)
 				printf("Player died\n");
@@ -86,7 +91,6 @@ int main(int argc, char **argv)
 				printf("Player timed out\n");
     		printf("Fitness: %0.2lf\n", player.fitness);
 
-			frame = 0;
 			reset_game(&game, &player, seed, replay_ai);
 		} else if (ret == REDRAW) {
 			render_gen_map(game);
@@ -167,52 +171,6 @@ void reset_game(struct Game *game, struct Player *player, unsigned int seed, boo
 	if (!replay_ai)
 		seed = time(NULL);
 	
-	game_setup(player);
-	levelgen_gen_map(game, seed);
+	game_setup(game, player, seed);
 	render_gen_map(*game);
-}
-
-/*
- * Extracts seed, chromosome, and button presses from file.
- * THIS FUNCTION RETURNS A POINTER TO THE EXTRACTED
- * CHROMOSOME THAT ***YOU MUST FREE YOURSELF***
- */
-uint8_t *extract_from_file(const char *fname, uint8_t *buttons, unsigned int *seed)
-{
-    FILE *file = NULL;
-    uint8_t *data = NULL;
-    uint8_t *chrom;
-    size_t file_size, chrom_size, read;
-    struct stat st;
-
-    if (stat(fname, &st) == -1) {
-		printf("Error reading file '%s'!\n", fname);
-		exit(EXIT_FAILURE);
-	}
-
-	file_size = st.st_size;
-
-    file = fopen(fname, "rb");
-
-	data = (uint8_t *)malloc(sizeof(uint8_t) * (file_size + 1));
-    read = fread(data, sizeof(uint8_t), file_size, file);
-
-	if (read != file_size) {
-		printf("Error reading file!\n");
-		exit(EXIT_FAILURE);
-	}
-
-    chrom_size = file_size - MAX_FRAMES - sizeof(unsigned int);
-    chrom = (uint8_t *)malloc(chrom_size);
-
-    // Populate button array
-    memcpy(buttons, data + sizeof(unsigned int), MAX_FRAMES);
-    // Populate chromosome
-    memcpy(chrom, data + sizeof(unsigned int) + MAX_FRAMES, chrom_size);
-
-    *seed = ((unsigned int *)data)[0];
-
-    free(data);
-
-    return chrom;
 }
