@@ -11,7 +11,7 @@ void select_and_breed(struct Player players[GEN_SIZE], struct Chromosome *genera
 __host__
 void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
 __host__
-void get_gen_stats(FILE *fh, char *basedir, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation);
+void get_gen_stats(char *dirname, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation);
 
 
 #endif

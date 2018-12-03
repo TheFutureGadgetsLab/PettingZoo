@@ -153,10 +153,12 @@ void mutate(float *data, size_t length)
     }
 }
 
-void get_gen_stats(FILE *fh, char *basedir, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation)
+void get_gen_stats(char *dirname, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation)
 {
     int game, completed, timedout, died, best_index;
     float max, min, avg;
+    char fname[256];
+    FILE *run_data;
 
     completed = 0;
     timedout = 0;
@@ -188,20 +190,18 @@ void get_gen_stats(FILE *fh, char *basedir, struct Game *games, struct Player *p
 
     // Write out best chromosome
     if (write_winner) {
-        char fname[256];
-        sprintf(fname, "./%s/gen_%d_%.2lf.bin", basedir, generation, max);
-        printf("Writing out seed: %d\n", games[best_index].seed);
+        sprintf(fname, "./%s/gen_%d_%.2lf.bin", dirname, generation, max);
         write_out_chromosome(fname, &chroms[best_index], games[best_index].seed);
     }
 
     avg /= GEN_SIZE;
 
     // Write progress to file
-    if (fh != NULL) {
-        fprintf(fh, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
-        fflush(fh);
-    }
-
+    sprintf(fname, "%s/run_data.txt", dirname);
+    run_data = fopen(fname, "w");
+    fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
+    fclose(run_data);
+    
     printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
             (float)died / GEN_SIZE * 100, (float)timedout / GEN_SIZE * 100,
             (float)completed / GEN_SIZE * 100, avg);

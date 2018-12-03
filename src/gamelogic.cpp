@@ -73,11 +73,13 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
 	}
+
 	//Enemies
-	struct Enemy *enemy;
-	bool empty_below;
-	int ret;
 	for (int i = 0; i < game->n_enemies; i++) {
+		struct Enemy *enemy;
+		bool empty_below;
+		int ret;
+
 		enemy = &game->enemies[i];
 		empty_below = true;
 		if (!enemy->dead) {
@@ -210,6 +212,10 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 	//Apply body->velocity
 	body->px = round(body->px + body->vx);
 	body->py = round(body->py + body->vy);
+
+	//Update tile position
+	body->tile_x = (body->px + 16) / TILE_SIZE;
+	body->tile_y = (body->py + 16) / TILE_SIZE;
 	
 	return return_value;
 }
@@ -309,6 +315,7 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 					break;
 				default:
 					printf("Unexpected tile ID in get_input_tiles!\n");
+					exit(EXIT_FAILURE);
 					break;
 			}
 

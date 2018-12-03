@@ -21,14 +21,14 @@ int main()
     struct Chromosome *cur_gen, *next_gen, *tmp;
     int gen, game;
     unsigned int seed, level_seed;
-    FILE *run_data;
     char dir_name[4096];
 
     seed = (unsigned int)time(NULL);
+    seed = 1543861639;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
-    run_data = create_output_dir(dir_name, seed);
+    create_output_dir(dir_name, seed);
 
     level_seed = rand();
 
@@ -67,7 +67,7 @@ int main()
         run_generation(games, players, cur_gen);
 
         // Write out and/or print stats
-        get_gen_stats(run_data, dir_name, games, players, cur_gen, 1, 1, gen);
+        get_gen_stats(dir_name, games, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen);
@@ -87,7 +87,6 @@ int main()
 
     free(games);
     free(players);
-    fclose(run_data);
 
     return 0;
 }
