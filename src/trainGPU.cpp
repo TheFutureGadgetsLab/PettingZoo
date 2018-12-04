@@ -12,6 +12,7 @@
 
 #define BLOCK_SIZE 32
 
+//nvprof --analysis-metrics --export-profile out_profile.prof --dependency-analysis --track-memory-allocations on --unified-memory-profiling per-process-device --cpu-profiling on ./trainGPU
 __global__
 void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen);
 void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
@@ -31,7 +32,7 @@ int main()
     grid_size = ceil(GEN_SIZE / (float)BLOCK_SIZE); 
 
     seed = (unsigned int)time(NULL);
-    seed = 10;
+    seed = 1543861639;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
@@ -77,9 +78,10 @@ int main()
         get_gen_stats(dir_name, game, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
-        select_and_breed(players, cur_gen, next_gen);
+        if (gen != (GENERATIONS - 1)) {
+            select_and_breed(players, cur_gen, next_gen);
+        }
 
-        // Point current gen to new chromosomes and next gen to old
         tmp = cur_gen;
         cur_gen = next_gen;
         next_gen = tmp;

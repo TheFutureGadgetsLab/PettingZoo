@@ -6,8 +6,8 @@
 #define IN_W        12
 #define HLC         2
 #define NPL         128
-#define GEN_SIZE    256
-#define GENERATIONS 2
+#define GEN_SIZE    3000
+#define GENERATIONS 1
 #define MUTATE_RATE 0.0f
 
 // Enemies
