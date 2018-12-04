@@ -12,8 +12,6 @@
 
 #define BLOCK_SIZE 32
 
-__device__ 
-void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom);
 __global__
 void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen);
 void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
@@ -26,8 +24,11 @@ int main()
     struct Player *players;
     struct Chromosome *genA, *genB, *cur_gen, *next_gen, *tmp;
     unsigned int member, seed, level_seed;
-    int grid_size, gen;
+    int gen;
     char dir_name[4096];
+    int grid_size; 
+
+    grid_size = ceil(GEN_SIZE / (float)BLOCK_SIZE); 
 
     seed = (unsigned int)time(NULL);
     seed = 10;
@@ -56,9 +57,6 @@ int main()
         initialize_chromosome_gpu(&genB[member], IN_H, IN_W, HLC, NPL);
         generate_chromosome(&genA[member], rand());
     }
-
-    // Calc grid/block size
-    grid_size = ceil((float)GEN_SIZE / (float)BLOCK_SIZE); 
 
     cur_gen = genA;
     next_gen = genB;
@@ -135,32 +133,23 @@ void create_output_dir(char *dirname, unsigned int seed)
     fclose(out_file);
 }
 
-__device__ 
-void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom)
-{
-    int ret;
-    
-    float input_tiles[IN_W * IN_H];
-    float node_outputs[NPL * HLC];
-    uint8_t buttons;
-
-    // Run game loop until player dies
-    while (1) {
-        ret = evaluate_frame(game, player, chrom, &buttons, input_tiles, node_outputs);
-
-        if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
-            break;
-        }
-    }
-}
-
 __global__
 void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen)
 {
     int member = blockIdx.x * blockDim.x + threadIdx.x;
-
+    int ret;
+    float input_tiles[IN_W * IN_H];
+    float node_outputs[NPL * HLC];
+    uint8_t buttons;
+    
     if (member < GEN_SIZE) {
-        runChromosome(game, &players[member], &gen[member]);
+        while (1) {
+            ret = evaluate_frame(game, &players[member], &gen[member], &buttons, input_tiles, node_outputs);
+
+            if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
+                break;
+            }
+        }
     }
 }
 
