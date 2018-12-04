@@ -16,24 +16,24 @@ void mutate(float *data, size_t length);
  * This function takes an array of games, players, and chromosomes to be evaluated.
  * The fitnesses are written out into the float fitnesses array.
  */
-int run_generation(struct Game games[GEN_SIZE], struct Player players[GEN_SIZE], struct Chromosome generation[GEN_SIZE])
+int run_generation(struct Game *game, struct Player players[GEN_SIZE], struct Chromosome generation[GEN_SIZE])
 {
-    int game, ret;
+    int g, ret;
     float *input_tiles;
     float *node_outputs;
-    uint8_t buttons = 0;
+    uint8_t buttons;
 
     input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
     // Loop over the entire generation
-    for (game = 0; game < GEN_SIZE; game++) {
-        printf("\33[2K\r%d/%d", game, GEN_SIZE); // Clears line, moves cursor to the beginning
+    for (g = 0; g < GEN_SIZE; g++) {
+        printf("\33[2K\r%d/%d", g, GEN_SIZE); // Clears line, moves cursor to the beginning
         fflush(stdout);
 
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(&games[game], &players[game], &generation[game], &buttons, input_tiles, node_outputs);
+            ret = evaluate_frame(game, &players[g], &generation[g], &buttons, input_tiles, node_outputs);
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
@@ -153,9 +153,9 @@ void mutate(float *data, size_t length)
     }
 }
 
-void get_gen_stats(char *dirname, struct Game *games, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation)
+void get_gen_stats(char *dirname, struct Game *game, struct Player *players, struct Chromosome *chroms, int quiet, int write_winner, int generation)
 {
-    int game, completed, timedout, died, best_index;
+    int g, completed, timedout, died, best_index;
     float max, min, avg;
     char fname[256];
     FILE *run_data;
@@ -167,31 +167,31 @@ void get_gen_stats(char *dirname, struct Game *games, struct Player *players, st
     max = players[0].fitness;
     min = players[0].fitness;
     best_index = 0;
-    for(game = 0; game < GEN_SIZE; game++) {
-        avg += players[game].fitness;
+    for(g = 0; g < GEN_SIZE; g++) {
+        avg += players[g].fitness;
 
-        if (players[game].fitness > max) {
-            max = players[game].fitness;
-            best_index = game;
-        } else if (players[game].fitness < min) {
-            min = players[game].fitness;
+        if (players[g].fitness > max) {
+            max = players[g].fitness;
+            best_index = g;
+        } else if (players[g].fitness < min) {
+            min = players[g].fitness;
         }
 
-        if (players[game].death_type == PLAYER_COMPLETE)
+        if (players[g].death_type == PLAYER_COMPLETE)
             completed++;
-        else if (players[game].death_type == PLAYER_TIMEOUT)
+        else if (players[g].death_type == PLAYER_TIMEOUT)
             timedout++;
-        else if (players[game].death_type == PLAYER_DEAD)
+        else if (players[g].death_type == PLAYER_DEAD)
             died++;
 
         if (!quiet)
-            printf("Player %d fitness: %0.2lf\n", game, players[game].fitness);
+            printf("Player %d fitness: %0.2lf\n", g, players[g].fitness);
     }
 
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%d_%.2lf.bin", dirname, generation, max);
-        write_out_chromosome(fname, &chroms[best_index], games[best_index].seed);
+        write_out_chromosome(fname, &chroms[best_index], game->seed);
     }
 
     avg /= GEN_SIZE;

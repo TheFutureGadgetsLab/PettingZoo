@@ -58,7 +58,8 @@ int main(int argc, char **argv)
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 		
-	game_setup(&game, &player, seed);
+	game_setup(&game, seed);
+	player_setup(&player);
 	render_load_assets();
 	render_gen_map(game);
 
@@ -171,6 +172,7 @@ void reset_game(struct Game *game, struct Player *player, unsigned int seed, boo
 	if (!replay_ai)
 		seed = time(NULL);
 	
-	game_setup(game, player, seed);
+	game_setup(game, seed);
+	player_setup(player);
 	render_gen_map(*game);
 }

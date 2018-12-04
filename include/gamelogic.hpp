@@ -71,7 +71,9 @@ struct Game {
 };
 
 __host__
-void game_setup(struct Game *game, struct Player *player, unsigned int seed);
+void game_setup(struct Game *game, unsigned int seed);
+__host__
+void player_setup(struct Player *player);
 __host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
 __host__ __device__

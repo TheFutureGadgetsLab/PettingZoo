@@ -18,11 +18,14 @@ float dist(float x1, float y1, float x2, float y2);
 
 //Setup for a new game, full reset
 __host__
-void game_setup(struct Game *game, struct Player *player, unsigned int seed)
+void game_setup(struct Game *game, unsigned int seed)
 {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
+}
 
+__host__
+void player_setup(struct Player *player) {
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
 	player->body.vx = 0;
@@ -315,7 +318,7 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 					break;
 				default:
 					printf("Unexpected tile ID in get_input_tiles!\n");
-					exit(EXIT_FAILURE);
+					//exit(EXIT_FAILURE);
 					break;
 			}
 

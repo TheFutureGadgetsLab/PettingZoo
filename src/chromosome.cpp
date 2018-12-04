@@ -112,17 +112,8 @@ void print_chromosome(struct Chromosome *chrom)
 
     printf("\nChromosome:\n");
     printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", chrom->in_h, chrom->in_w, chrom->npl, chrom->hlc);
+    printf("Size: %d bytes\n", (chrom->input_adj_size + chrom->hidden_adj_size + chrom->out_adj_size) * sizeof(float));
     printf("-------------------------------------------\n");
-}
-
-size_t get_chromosome_size_params(uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
-{
-    size_t size;
-
-    // Algebra to reduce length of this line
-    size = 5 + in_h * (in_w + 4 * in_w * npl) + npl * (4 * npl * (-1 + hlc) + hlc + 4 * BUTTON_COUNT);
-
-    return size;
 }
 
 float gen_random_weight(unsigned int *seedp)

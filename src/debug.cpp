@@ -6,6 +6,7 @@
 #include <neural_network.hpp>
 #include <levelgen.hpp>
 #include <cuda_helper.hpp>
+#include <defs.hpp>
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <time.h>
@@ -19,7 +20,7 @@ int main()
     struct Chromosome chromIN;
     unsigned int member, seed, level_seed;
 
-    initialize_chromosome(&chrom, 4, 4, 2, 5);
+    initialize_chromosome(&chrom, IN_W, IN_H, HLC, NPL);
     generate_chromosome(&chrom, 144);
     print_chromosome(&chrom);
     write_out_chromosome("chrom.bin", &chrom,  144);

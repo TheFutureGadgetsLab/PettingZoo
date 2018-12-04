@@ -15,16 +15,16 @@ FILE* create_output_dir(char *dirname, unsigned int seed);
 
 int main()
 {
-    struct Game *games;
+    struct Game game;
     struct Player *players;
     struct Chromosome genA[GEN_SIZE], genB[GEN_SIZE];
     struct Chromosome *cur_gen, *next_gen, *tmp;
-    int gen, game;
+    int gen, g;
     unsigned int seed, level_seed;
     char dir_name[4096];
 
     seed = (unsigned int)time(NULL);
-    seed = 1543861639;
+    seed = 10;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
@@ -33,7 +33,6 @@ int main()
     level_seed = rand();
 
     // Arrays for game and player structures
-    games = (struct Game *)malloc(sizeof(struct Game) * GEN_SIZE);
     players = (struct Player *)malloc(sizeof(struct Player) * GEN_SIZE);
 
     printf("Running with %d chromosomes for %d generations\n", GEN_SIZE, GENERATIONS);
@@ -44,12 +43,12 @@ int main()
 
     // Level seed for entire run
     // Allocate space for genA and genB chromosomes
-    for (game = 0; game < GEN_SIZE; game++) {
-        initialize_chromosome(&genA[game], IN_H, IN_W, HLC, NPL);
-        initialize_chromosome(&genB[game], IN_H, IN_W, HLC, NPL);
+    for (g = 0; g < GEN_SIZE; g++) {
+        initialize_chromosome(&genA[g], IN_H, IN_W, HLC, NPL);
+        initialize_chromosome(&genB[g], IN_H, IN_W, HLC, NPL);
         
         // Generate random chromosomes
-        generate_chromosome(&genA[game], rand());
+        generate_chromosome(&genA[g], rand());
     }
 
     // Initially point current gen to genA, then swap next gen
@@ -60,14 +59,15 @@ int main()
         printf("Running generation %d/%d\n", gen + 1, GENERATIONS);
 
         // Generate seed for this gens levels and generate them
-        for (game = 0; game < GEN_SIZE; game++) {
-            game_setup(&games[game], &players[game], level_seed);
+        game_setup(&game, level_seed);
+        for (g = 0; g < GEN_SIZE; g++) {
+            player_setup(&players[g]);
         }
 
-        run_generation(games, players, cur_gen);
+        run_generation(&game, players, cur_gen);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, games, players, cur_gen, 1, 1, gen);
+        get_gen_stats(dir_name, &game, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen);
@@ -80,12 +80,11 @@ int main()
     puts("----------------------------\n");
 
 
-    for (game = 0; game < GEN_SIZE; game++) {
-        free_chromosome(&genA[game]);
-        free_chromosome(&genB[game]);
+    for (g = 0; g < GEN_SIZE; g++) {
+        free_chromosome(&genA[g]);
+        free_chromosome(&genB[g]);
     }
 
-    free(games);
     free(players);
 
     return 0;

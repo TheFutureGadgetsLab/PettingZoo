@@ -15,14 +15,14 @@
 __device__ 
 void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom);
 __global__
-void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen);
+void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen);
 void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
 void create_output_dir(char *dirname, unsigned int seed);
 void free_chromosome_gpu(struct Chromosome *chrom);
 
 int main()
 {
-    struct Game *games;
+    struct Game *game;
     struct Player *players;
     struct Chromosome *genA, *genB, *cur_gen, *next_gen, *tmp;
     unsigned int member, seed, level_seed;
@@ -30,7 +30,7 @@ int main()
     char dir_name[4096];
 
     seed = (unsigned int)time(NULL);
-    seed = 1543861639;
+    seed = 10;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
@@ -45,7 +45,7 @@ int main()
     printf("srand seed: %u\n", seed);
 
     // Allocate on host and device with unified memory
-    cudaErrCheck( cudaMallocManaged((void **)&games, sizeof(struct Game) * GEN_SIZE) );
+    cudaErrCheck( cudaMallocManaged((void **)&game, sizeof(struct Game)) );
     cudaErrCheck( cudaMallocManaged((void **)&players, sizeof(struct Player) * GEN_SIZE) );
     cudaErrCheck( cudaMallocManaged((void **)&genA, sizeof(struct Chromosome) * GEN_SIZE) );
     cudaErrCheck( cudaMallocManaged((void **)&genB, sizeof(struct Chromosome) * GEN_SIZE) );
@@ -67,15 +67,16 @@ int main()
         printf("Running generation %d/%d\n", gen + 1, GENERATIONS);
 
         // Regen levels and reset players
+        game_setup(game, level_seed);
         for (member = 0; member < GEN_SIZE; member++) {
-            game_setup(&games[member], &players[member], level_seed);
+            player_setup(&players[member]);
         }
         
-        trainGeneration <<< grid_size, BLOCK_SIZE >>> (games, players, cur_gen);
+        trainGeneration <<< grid_size, BLOCK_SIZE >>> (game, players, cur_gen);
         cudaErrCheck( cudaDeviceSynchronize() );
 
         // Get stats from run (1 tells function to not print each players fitness)
-        get_gen_stats(dir_name, games, players, cur_gen, 1, 1, gen);
+        get_gen_stats(dir_name, game, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen);
@@ -91,7 +92,7 @@ int main()
         free_chromosome_gpu(&genB[member]);
     }
 
-    cudaErrCheck( cudaFree(games) );
+    cudaErrCheck( cudaFree(game) );
     cudaErrCheck( cudaFree(players) );
     cudaErrCheck( cudaFree(genA) );
     cudaErrCheck( cudaFree(genB) );
@@ -154,12 +155,12 @@ void runChromosome(struct Game *game, struct Player *player, struct Chromosome *
 }
 
 __global__
-void trainGeneration(struct Game *games, struct Player *players, struct Chromosome *gen)
+void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen)
 {
     int member = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (member < GEN_SIZE) {
-        runChromosome(&games[member], &players[member], &gen[member]);
+        runChromosome(game, &players[member], &gen[member]);
     }
 }
 
