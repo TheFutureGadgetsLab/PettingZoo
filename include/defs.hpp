@@ -5,8 +5,8 @@
 #define IN_H        12
 #define IN_W        12
 #define HLC         2
-#define NPL         32
-#define GEN_SIZE    4
+#define NPL         128
+#define GEN_SIZE    3000
 #define GENERATIONS 1
 #define MUTATE_RATE 0.0f
 

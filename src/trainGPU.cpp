@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 
 #define BLOCK_SIZE 32
-
+//nvprof --analysis-metrics --export-profile out_profile.prof --dependency-analysis --track-memory-allocations on --unified-memory-profiling per-process-device --cpu-profiling on ./trainGPU
 __device__ 
 void runChromosome(struct Game *game, struct Player *player, struct Chromosome *chrom);
 __global__
@@ -30,7 +30,7 @@ int main()
     char dir_name[4096];
 
     seed = (unsigned int)time(NULL);
-    seed = 10;
+    seed = 1543861639;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
@@ -79,9 +79,10 @@ int main()
         get_gen_stats(dir_name, game, players, cur_gen, 1, 1, gen);
 
         // Usher in the new generation
-        select_and_breed(players, cur_gen, next_gen);
+        if (gen != (GENERATIONS - 1)) {
+            select_and_breed(players, cur_gen, next_gen);
+        }
 
-        // Point current gen to new chromosomes and next gen to old
         tmp = cur_gen;
         cur_gen = next_gen;
         next_gen = tmp;
