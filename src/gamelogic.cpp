@@ -296,6 +296,7 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 			switch(tile) {
 				//Empty
 				case EMPTY:
+				case FLAG:
 					*tmp = 0.0f;
 					break;
 				

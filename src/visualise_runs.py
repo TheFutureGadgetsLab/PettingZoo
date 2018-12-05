@@ -80,9 +80,9 @@ def load_data(run_files):
     try:
         for run in run_files:
             # Populate header list
-            run_headers.append(genfromtxt(f'./{run}/run_data.txt', delimiter=',', max_rows = 1, dtype=int))
+            run_headers.append(genfromtxt(f'{run}/run_data.txt', delimiter=',', max_rows = 1, dtype=int))
             # Populate data list
-            runs.append(genfromtxt(f'./{run}/run_data.txt', delimiter=',', skip_header=1, dtype=None))
+            runs.append(genfromtxt(f'{run}/run_data.txt', delimiter=',', skip_header=1, dtype=None))
     except IOError as err:
         print(err)
         exit(1)
