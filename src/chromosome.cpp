@@ -179,5 +179,7 @@ unsigned int extract_from_file(const char *fname, struct Chromosome *chrom)
     read = fread(chrom->hidden_adj, sizeof(*chrom->hidden_adj), chrom->hidden_adj_size, file);
     read = fread(chrom->out_adj, sizeof(*chrom->out_adj), chrom->out_adj_size, file);
 
+    fclose(file);
+
     return level_seed;
 }

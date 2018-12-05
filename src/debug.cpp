@@ -23,11 +23,6 @@ int main()
     initialize_chromosome(&chrom, IN_W, IN_H, HLC, NPL);
     generate_chromosome(&chrom, 144);
     print_chromosome(&chrom);
-    write_out_chromosome("chrom.bin", &chrom,  144);
-
-    puts("");
-    extract_from_file("chrom.bin", &chromIN);
-    print_chromosome(&chromIN);
 
     return 0;
 }

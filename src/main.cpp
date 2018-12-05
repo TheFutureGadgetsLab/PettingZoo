@@ -16,8 +16,9 @@
 
 #define GAME_EXIT  1
 #define GAME_RESET 2
+#define GAME_NEW   3
 
-void reset_game(struct Game *game, struct Player *player, unsigned int seed, bool replay_ai);
+void reset_game(struct Game *game, struct Player *player, unsigned int seed);
 int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], bool *draw_overlay);
 
 int main(int argc, char **argv)
@@ -47,7 +48,6 @@ int main(int argc, char **argv)
 			node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
 
 			seed = extract_from_file(optarg, &chrom);
-			printf("Seed: %u\n", seed);
 			break;
 		default:
 			printf("Usage: %s [-f replayfile]\n", argv[0]);
@@ -68,10 +68,12 @@ int main(int argc, char **argv)
 		// Get player input
 		ret = get_player_input(window, inputs, &draw_overlay);
 		if (ret == GAME_RESET) {
-			reset_game(&game, &player, seed, replay_ai);
+			reset_game(&game, &player, seed);
+		} else if (ret == GAME_NEW) {
+			seed = rand();
+			reset_game(&game, &player, seed);
 		} else if (ret == GAME_EXIT) {
-			window.close();
-			return 0;
+			break;
 		}
 
 		//Get buttons and update game state
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
 				printf("Player timed out\n");
     		printf("Fitness: %0.2lf\n", player.fitness);
 
-			reset_game(&game, &player, seed, replay_ai);
+			reset_game(&game, &player, seed);
 		} else if (ret == REDRAW) {
 			render_gen_map(game);
 		}
@@ -116,6 +118,14 @@ int main(int argc, char **argv)
 
 		window.display();
 	}
+
+	if (replay_ai) {
+		free(input_tiles);
+		free(node_outputs);
+		free_chromosome(&chrom);
+	}
+	
+	window.close();
 
 	return 0;
 }
@@ -149,9 +159,13 @@ int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], boo
 				break;
 			// Reset game state
 			case sf::Keyboard::R:
-				if (is_pressed) {
+				if (is_pressed)
 					return GAME_RESET;
-				}
+				break;
+			// New game state
+			case sf::Keyboard::N:
+				if (is_pressed)
+					return GAME_NEW;
 				break;
 			default:
 				break;
@@ -167,11 +181,8 @@ int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], boo
 	return 0;
 }
 
-void reset_game(struct Game *game, struct Player *player, unsigned int seed, bool replay_ai)
+void reset_game(struct Game *game, struct Player *player, unsigned int seed)
 {
-	if (!replay_ai)
-		seed = time(NULL);
-	
 	game_setup(game, seed);
 	player_setup(player);
 	render_gen_map(*game);
