@@ -158,7 +158,7 @@ void trainGeneration(struct Game *game, struct Player *players, struct Chromosom
             }
             
             // Kill the player if fitness hasnt changed in 5 seconds
-            if (fitness_idle_updates > UPDATES_PS * 5) {
+            if (fitness_idle_updates > AGENT_FITNESS_TIMEOUT) {
                 ret = PLAYER_TIMEOUT;
                 players[member].death_type = PLAYER_TIMEOUT;
             }

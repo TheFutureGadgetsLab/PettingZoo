@@ -22,6 +22,8 @@ int run_generation(struct Game *game, struct Player players[GEN_SIZE], struct Ch
     float *input_tiles;
     float *node_outputs;
     uint8_t buttons;
+    int fitness_idle_updates;
+    float max_fitness;
 
     input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
     node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
@@ -31,9 +33,26 @@ int run_generation(struct Game *game, struct Player players[GEN_SIZE], struct Ch
         printf("\33[2K\r%d/%d", g, GEN_SIZE); // Clears line, moves cursor to the beginning
         fflush(stdout);
 
+        fitness_idle_updates = 0;
+        max_fitness = -1.0f;
+
         // Run game loop until player dies
         while (1) {
             ret = evaluate_frame(game, &players[g], &generation[g], &buttons, input_tiles, node_outputs);
+            
+            // Check idle time
+            if (players[g].fitness > max_fitness) {
+                fitness_idle_updates = 0;
+                max_fitness = players[g].fitness;
+            } else {
+                fitness_idle_updates++;
+            }
+            
+            // Kill the player if fitness hasnt changed in 10 seconds
+            if (fitness_idle_updates > AGENT_FITNESS_TIMEOUT) {
+                ret = PLAYER_TIMEOUT;
+                players[g].death_type = PLAYER_TIMEOUT;
+            }
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
@@ -198,10 +217,11 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players, str
 
     // Write progress to file
     sprintf(fname, "%s/run_data.txt", dirname);
-    run_data = fopen(fname, "w");
+    run_data = fopen(fname, "w+");
     fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
     fclose(run_data);
     
+    // Print out progress
     printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
             (float)died / GEN_SIZE * 100, (float)timedout / GEN_SIZE * 100,
             (float)completed / GEN_SIZE * 100, avg);

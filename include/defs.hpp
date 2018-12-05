@@ -2,13 +2,14 @@
 #define DEFS_H
 
 // AI parameters
-#define IN_H        12
-#define IN_W        12
-#define HLC         2
-#define NPL         128
-#define GEN_SIZE    4096
-#define GENERATIONS 1
-#define MUTATE_RATE 0.001f
+#define IN_H                  12
+#define IN_W                  12
+#define HLC                   2
+#define NPL                   128
+#define GEN_SIZE              10000
+#define GENERATIONS           1
+#define MUTATE_RATE           0.001f
+#define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 10)
 
 // Enemies
 #define ENABLE_ENEMIES  false
