@@ -318,7 +318,6 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 					break;
 				default:
 					printf("Unexpected tile ID in get_input_tiles!\n");
-					//exit(EXIT_FAILURE);
 					break;
 			}
 

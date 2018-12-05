@@ -9,8 +9,6 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 
-void print_gen_stats(struct Player players[GEN_SIZE], int quiet);
-void write_out_progress(FILE *fh, struct Player players[GEN_SIZE]);
 FILE* create_output_dir(char *dirname, unsigned int seed);
 
 int main()
@@ -67,7 +65,7 @@ int main()
         run_generation(&game, players, cur_gen);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, &game, players, cur_gen, 1, 1, gen);
+        get_gen_stats(dir_name, &game, players, cur_gen, 0, 1, gen);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen);

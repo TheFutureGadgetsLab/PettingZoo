@@ -185,7 +185,7 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players, str
             died++;
 
         if (!quiet)
-            printf("Player %d fitness: %0.2lf\n", g, players[g].fitness);
+            printf("Player %d fitness: %0.4lf\n", g, players[g].fitness);
     }
 
     // Write out best chromosome

@@ -12,7 +12,6 @@
 
 #define BLOCK_SIZE 32
 
-//nvprof --analysis-metrics --export-profile out_profile.prof --dependency-analysis --track-memory-allocations on --unified-memory-profiling per-process-device --cpu-profiling on ./trainGPU
 __global__
 void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen);
 void initialize_chromosome_gpu(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl);
@@ -32,7 +31,7 @@ int main()
     grid_size = ceil(GEN_SIZE / (float)BLOCK_SIZE); 
 
     seed = (unsigned int)time(NULL);
-    seed = 1543861639;
+    seed = 10;
     srand(seed);
 
     sprintf(dir_name, "./%u", seed);
@@ -75,7 +74,7 @@ int main()
         cudaErrCheck( cudaDeviceSynchronize() );
 
         // Get stats from run (1 tells function to not print each players fitness)
-        get_gen_stats(dir_name, game, players, cur_gen, 1, 1, gen);
+        get_gen_stats(dir_name, game, players, cur_gen, 0, 1, gen);
 
         // Usher in the new generation
         if (gen != (GENERATIONS - 1)) {
@@ -143,10 +142,26 @@ void trainGeneration(struct Game *game, struct Player *players, struct Chromosom
     float input_tiles[IN_W * IN_H];
     float node_outputs[NPL * HLC];
     uint8_t buttons;
+    int fitness_idle_updates = 0;
+    float max_fitness = -1.0f;
     
     if (member < GEN_SIZE) {
         while (1) {
             ret = evaluate_frame(game, &players[member], &gen[member], &buttons, input_tiles, node_outputs);
+
+            // Check idle time
+            if (players[member].fitness > max_fitness) {
+                fitness_idle_updates = 0;
+                max_fitness = players[member].fitness;
+            } else {
+                fitness_idle_updates++;
+            }
+            
+            // Kill the player if fitness hasnt changed in 5 seconds
+            if (fitness_idle_updates > UPDATES_PS * 5) {
+                ret = PLAYER_TIMEOUT;
+                players[member].death_type = PLAYER_TIMEOUT;
+            }
 
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
                 break;
