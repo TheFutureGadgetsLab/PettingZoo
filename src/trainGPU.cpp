@@ -77,6 +77,7 @@ int main(int argc, char **argv)
     grid_size = ceil(params.gen_size / (float)BLOCK_SIZE); 
 
     seed = (unsigned int)time(NULL);
+    seed = 10;
     srand(seed);
 
     level_seed = rand();
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
 
     printf("Running with %d chromosomes for %d generations\n", params.gen_size, params.generations);
     printf("Chromosome stats:\n");
-    printf("  IN_H: %d\n  IN_W: %d\n  params.hlc: %d\n  params.npl: %d\n", params.in_h, params.in_w, params.hlc, params.npl);
+    printf("  IN_H: %d\n  IN_W: %d\n  HLC: %d\n  NPL: %d\n", params.in_h, params.in_w, params.hlc, params.npl);
     printf("Level seed: %u\n", level_seed);
     printf("srand seed: %u\n", seed);
 
@@ -159,7 +160,8 @@ void initialize_chromosome_gpu(struct Chromosome *chrom, struct Params *params)
     chrom->out_adj_size = BUTTON_COUNT * params->npl;
 
     cudaErrCheck( cudaMallocManaged((void **)&chrom->input_adj, sizeof(float) * chrom->input_adj_size) );
-    cudaErrCheck( cudaMallocManaged((void **)&chrom->hidden_adj, sizeof(float) * chrom->hidden_adj_size) );
+    if (params->hlc > 1)
+        cudaErrCheck( cudaMallocManaged((void **)&chrom->hidden_adj, sizeof(float) * chrom->hidden_adj_size) );
     cudaErrCheck( cudaMallocManaged((void **)&chrom->out_adj, sizeof(float) * chrom->out_adj_size) );
 }
 
@@ -197,6 +199,9 @@ void trainGeneration(struct Game *game, struct Player *players, struct Chromosom
             }
         }
     }
+
+    free(input_tiles);
+    free(node_outputs);
 }
 
 void free_chromosome_gpu(struct Chromosome *chrom)
