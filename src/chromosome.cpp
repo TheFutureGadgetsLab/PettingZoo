@@ -7,7 +7,7 @@
 
 float gen_random_weight(unsigned int *seedp);
 
-void initialize_chromosome(struct Chromosome *chrom, uint8_t in_h, uint8_t in_w, uint8_t hlc, uint16_t npl)
+void initialize_chromosome(struct Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl)
 {
     chrom->in_h = in_h;
     chrom->in_w = in_w;

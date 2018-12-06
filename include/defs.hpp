@@ -6,10 +6,21 @@
 #define IN_W                  12
 #define HLC                   2
 #define NPL                   128
-#define GEN_SIZE              10000
+#define GEN_SIZE              100
 #define GENERATIONS           1
 #define MUTATE_RATE           0.001f
-#define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 10)
+
+struct Params {
+    int in_h;
+    int in_w;
+    int hlc;
+    int npl;
+    int gen_size;
+    int generations;
+    float mutate_rate;
+};
+
+#define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 4)
 
 // Enemies
 #define ENABLE_ENEMIES  false

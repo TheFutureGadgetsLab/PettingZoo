@@ -12,17 +12,14 @@
 #include <time.h>
 #include <math.h>
 
-int main()
+int main(int argc, char **argv)
 {
-    struct Game game;
-    struct Player players;
-    struct Chromosome chrom;
-    struct Chromosome chromIN;
-    unsigned int member, seed, level_seed;
+    int n = atoi(argv[1]);
+    int array[n];
 
-    initialize_chromosome(&chrom, IN_W, IN_H, HLC, NPL);
-    generate_chromosome(&chrom, 144);
-    print_chromosome(&chrom);
+    for (int i = 0; i < 100; i++) {
+        printf("%d\n", array[i]);
+    }
 
     return 0;
 }

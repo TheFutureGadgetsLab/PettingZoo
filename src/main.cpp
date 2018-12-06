@@ -23,6 +23,7 @@ int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], boo
 
 int main(int argc, char **argv)
 {
+    struct Params params = {IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE};
 	bool draw_overlay, replay_ai;
 	int opt, ret;
 	uint8_t inputs[BUTTON_COUNT] = {0};
@@ -43,11 +44,14 @@ int main(int argc, char **argv)
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			
-			input_tiles = (float *)malloc(sizeof(float) * IN_W * IN_H);
-			node_outputs = (float *)malloc(sizeof(float) * NPL * HLC);
-
 			seed = extract_from_file(optarg, &chrom);
+			
+			input_tiles = (float *)malloc(sizeof(float) * chrom.in_w * chrom.in_h);
+			node_outputs = (float *)malloc(sizeof(float) * chrom.npl * chrom.hlc);
+			params.in_w = chrom.in_w;
+			params.in_h = chrom.in_h;
+			params.hlc = chrom.hlc;
+			params.npl = chrom.npl;
 			break;
 		default:
 			printf("Usage: %s [-f replayfile]\n", argv[0]);
