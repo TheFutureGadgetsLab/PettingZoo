@@ -13,7 +13,7 @@
 #define BLOCK_SIZE 32
 
 __global__
-void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen, struct Params params);
+void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen, struct Params params, float *node_outputs, float *input_tiles);
 void initialize_chromosome_gpu(struct Chromosome *chrom, struct Params *params);
 void free_chromosome_gpu(struct Chromosome *chrom);
 
@@ -73,6 +73,8 @@ int main(int argc, char **argv)
     struct Chromosome *genA, *genB, *cur_gen, *next_gen, *tmp;
     unsigned int member, seed, level_seed;
     int gen, grid_size;
+    float *input_tiles;
+    float *node_outputs;
 
     grid_size = ceil(params.gen_size / (float)BLOCK_SIZE); 
 
@@ -99,6 +101,8 @@ int main(int argc, char **argv)
     cudaErrCheck( cudaMallocManaged((void **)&players, sizeof(struct Player) * params.gen_size) );
     cudaErrCheck( cudaMallocManaged((void **)&genA, sizeof(struct Chromosome) * params.gen_size) );
     cudaErrCheck( cudaMallocManaged((void **)&genB, sizeof(struct Chromosome) * params.gen_size) );
+    cudaErrCheck( cudaMalloc((void **)&input_tiles, sizeof(float) * params.gen_size * params.in_w * params.in_h) );
+    cudaErrCheck( cudaMalloc((void **)&node_outputs, sizeof(float) * params.gen_size * params.npl * params.hlc) );
 
     // Initialize chromosomes
     for (member = 0; member < params.gen_size; member++) {
@@ -119,7 +123,7 @@ int main(int argc, char **argv)
             player_setup(&players[member]);
         }
         
-        trainGeneration <<< grid_size, BLOCK_SIZE >>> (game, players, cur_gen, params);
+        trainGeneration <<< grid_size, BLOCK_SIZE >>> (game, players, cur_gen, params, node_outputs, input_tiles);
         cudaErrCheck( cudaDeviceSynchronize() );
 
         // Get stats from run (1 tells function to not print each players fitness)
@@ -166,19 +170,20 @@ void initialize_chromosome_gpu(struct Chromosome *chrom, struct Params *params)
 }
 
 __global__
-void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen, struct Params params)
+void trainGeneration(struct Game *game, struct Player *players, struct Chromosome *gen, struct Params params, float *node_outputs, float *input_tiles)
 {
     int member = blockIdx.x * blockDim.x + threadIdx.x;
     int ret;
-    float *input_tiles = (float *)malloc(sizeof(float) * params.in_w * params.in_h);
-    float *node_outputs = (float *)malloc(sizeof(float) * params.npl * params.hlc);
     uint8_t buttons;
     int fitness_idle_updates = 0;
     float max_fitness = -1.0f;
+    float *my_tiles, *my_nodes;
     
     if (member < params.gen_size) {
+        my_tiles = input_tiles + member * params.in_w * params.in_h;
+        my_nodes = node_outputs + member * params.npl * params.hlc;
         while (1) {
-            ret = evaluate_frame(game, &players[member], &gen[member], &buttons, input_tiles, node_outputs);
+            ret = evaluate_frame(game, &players[member], &gen[member], &buttons, my_tiles, my_nodes);
 
             // Check idle time
             if (players[member].fitness > max_fitness) {
@@ -199,9 +204,6 @@ void trainGeneration(struct Game *game, struct Player *players, struct Chromosom
             }
         }
     }
-
-    free(input_tiles);
-    free(node_outputs);
 }
 
 void free_chromosome_gpu(struct Chromosome *chrom)
