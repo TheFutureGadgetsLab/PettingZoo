@@ -1,3 +1,10 @@
+/**
+ * @file gamelogic.hpp
+ * @author Benjamin Mastripolito, Haydn Jones
+ * @brief Functions for interfacing with chromosomes
+ * @date 2018-12-06
+ */
+
 #ifndef GAMELOGIC_H
 #define GAMELOGIC_H
 
@@ -10,7 +17,7 @@
 #define FIT_BUTTONS_WEIGHT 0.2f
 #define COIN_VALUE 1000
 
-// Misc
+// Misc return values for game update / physics
 #define PLAYER_COMPLETE -3
 #define PLAYER_TIMEOUT  -2
 #define PLAYER_DEAD     -1
@@ -32,6 +39,7 @@
 #define MAX_TIME 60
 #define MAX_FRAMES (MAX_TIME * UPDATES_PS)
 
+// Body that physics can be applied to
 struct Body {
 	float px;
 	float py;
@@ -45,6 +53,7 @@ struct Body {
 	bool standing;
 };
 
+// Player structure
 struct Player {
 	struct Body body;
 	float time;
@@ -54,6 +63,7 @@ struct Player {
 	int death_type;
 };
 
+// Enemy structure
 struct Enemy {
 	struct Body body;
 	float speed;
@@ -62,6 +72,7 @@ struct Enemy {
 	bool dead;
 };
 
+// Game structure
 struct Game {
 	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int n_enemies;

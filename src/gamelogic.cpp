@@ -1,3 +1,10 @@
+/**
+ * @file gamelogic.cpp
+ * @author Benjamin Mastripolito, Haydn Jones
+ * @brief Functions for interfacing with chromosomes
+ * @date 2018-12-06
+ */
+
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 #include <stdlib.h>
@@ -8,7 +15,7 @@
 __host__ __device__
 int tile_at(struct Game *game, int x, int y);
 __host__ __device__
-int tile_solid(struct Game *game, int x, int y);
+bool tile_solid(struct Game *game, int x, int y);
 __host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
 __host__ __device__
@@ -16,15 +23,23 @@ int physics_sim(struct Game *game, struct Body* body, bool jump);
 __host__ __device__
 float dist(float x1, float y1, float x2, float y2);
 
-//Setup for a new game, full reset
-__host__
+/**
+ * @brief Setup a game, full reset
+ * 
+ * @param game The game to reset
+ * @param seed The seed to generate the new level from
+ */
 void game_setup(struct Game *game, unsigned int seed)
 {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
 }
 
-__host__
+/**
+ * @brief Initializes / resets player structure
+ * 
+ * @param player The player to initialize
+ */
 void player_setup(struct Player *player) {
 	player->body.px = SPAWN_X * TILE_SIZE;
 	player->body.py = SPAWN_Y * TILE_SIZE;
@@ -42,7 +57,14 @@ void player_setup(struct Player *player) {
 	player->buttonpresses = 0;
 }
 
-//Called every frame
+/**
+ * @brief Update a single frame of the game, simulating physics
+ * 
+ * @param game The game structure we are operating on
+ * @param player The player playing the level
+ * @param input Button controls for the player
+ * @return int PLAYER_DEAD or PLAYER_COMPLETE
+ */
 __host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT])
 {
@@ -51,33 +73,33 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	// Estimate of time
 	player->time += 1.0f / (float)UPDATES_PS;
 	
-	//Time limit
+	// Time limit
 	if (player->time >= MAX_TIME - 1.0f / (float)UPDATES_PS) {
 		player->death_type = PLAYER_TIMEOUT;
 		return PLAYER_TIMEOUT;
 	}
 	
-	//Left and right button press
+	// Left and right button press
 	player->body.vx += (V_X - player->body.vx) * input[BUTTON_RIGHT];
 	player->body.vx += (-V_X - player->body.vx) * input[BUTTON_LEFT];
 
-	//Button presses
+	// Button presses
 	player->buttonpresses += input[BUTTON_JUMP] + input[BUTTON_LEFT] + input[BUTTON_RIGHT];
 
-	//Physics sim for player
+	// Physics sim for player
 	return_value = physics_sim(game, &player->body, input[BUTTON_JUMP]);
 	if (return_value == PLAYER_DEAD) {
 		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
 	}
 
-	//Lower bound
+	// Lower bound
 	if (player->body.py > LEVEL_PIXEL_HEIGHT) {
 		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
 	}
 
-	//Enemies
+	// Enemies
 	for (int i = 0; i < game->n_enemies; i++) {
 		struct Enemy *enemy;
 		bool empty_below;
@@ -116,14 +138,15 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 		}
 	}
 	
-	//Fitness / score
+	// Fitness
 	float fitness;
 	fitness = 100 + player->score + player->body.px;
 	fitness -= player->time * FIT_TIME_WEIGHT;
 	fitness -= player->buttonpresses * FIT_BUTTONS_WEIGHT;
+	// Only increase fitness, never decrease.
 	player->fitness = fitness > player->fitness ? fitness : player->fitness;
 
-	//End of level
+	// Player completed level
 	if (player->body.px + PLAYER_RIGHT >= (LEVEL_WIDTH - 4) * TILE_SIZE) {
 		player->death_type = PLAYER_COMPLETE;
 		return PLAYER_DEAD;
@@ -132,13 +155,20 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	return return_value;
 }
 
-//Physics simulation for any body
+/**
+ * @brief Runs physics simulation for a given body
+ * 
+ * @param game Game the body is in
+ * @param body Body to apply physics to
+ * @param jump Whether or not the body is attempting to jump
+ * @return int If player died or collided with something on the left/right
+ */
 __host__ __device__
 int physics_sim(struct Game *game, struct Body* body, bool jump)
 {
 	int return_value = 0;
 
-	//Jumping
+	// Jumping
 	if (jump && body->canjump) {
 		body->isjump = true;
 		body->canjump = false;
@@ -155,7 +185,7 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 		}
 	}
 
-	//Player physics
+	// Player physics
 	int tile_x = (body->px + body->vx + 16) / TILE_SIZE;
 	int tile_y = (body->py + body->vy + 16) / TILE_SIZE;
 	int feet_y = (body->py + body->vy + 33) / TILE_SIZE;
@@ -169,14 +199,14 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 	body->vy += GRAVITY;
 	body->vx /= INTERTA;
 
-	//Right collision
+	// Right collision
 	if (tile_solid(game, right_x, tile_y) || right_x >= LEVEL_WIDTH) {
 		body->vx = 0;
 		body->px = (right_x - 1) * TILE_SIZE + PLAYER_MARGIN - 2;
 		return_value = COL_RIGHT;
 	}
 
-	//Left collision
+	// Left collision
 	if (tile_solid(game, left_x, tile_y) || left_x < 0) {
 		body->vx = 0;
 		body->px = (left_x + 1) * TILE_SIZE - PLAYER_MARGIN + 2;
@@ -186,7 +216,7 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 	int tile_xr = (body->px + PLAYER_RIGHT) / TILE_SIZE;
 	int tile_xl = (body->px + PLAYER_LEFT) / TILE_SIZE;
 
-	//Collision on bottom
+	// Collision on bottom
 	body->standing = false;
 	if (tile_solid(game, tile_xl, feet_y) > 0 || tile_solid(game, tile_xr, feet_y) > 0) {
 		if (body->vy >= 0) {
@@ -200,7 +230,7 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 		body->py = (feet_y - 1) * TILE_SIZE;
 	}
 
-	//Collision on top
+	// Collision on top
 	if (tile_solid(game, tile_xl, top_y) > 0 || tile_solid(game, tile_xr, top_y) > 0) {
 		if (body->vy < 0) {
 			body->vy = 0;
@@ -212,18 +242,25 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 		body->py = (top_y + 1) * TILE_SIZE;
 	}
 
-	//Apply body->velocity
+	// Apply body->velocity
 	body->px = round(body->px + body->vx);
 	body->py = round(body->py + body->vy);
 
-	//Update tile position
+	// Update tile position
 	body->tile_x = (body->px + 16) / TILE_SIZE;
 	body->tile_y = (body->py + 16) / TILE_SIZE;
 	
 	return return_value;
 }
 
-//Return the tile at given tile position
+/**
+ * @brief Returns the tile value at the given tile position
+ * 
+ * @param Game the game object to grab the tile value from
+ * @param x X tile coordinate
+ * @param y Y tile coordinate
+ * @return int Tile value
+ */
 __host__ __device__
 int tile_at(struct Game *game, int x, int y)
 {
@@ -232,9 +269,16 @@ int tile_at(struct Game *game, int x, int y)
 	return game->tiles[y * LEVEL_WIDTH + x];
 }
 
-//Return if the tile at the given tile position is solid
+/**
+ * @brief Returns whether or not a tile at (x, y) is solid
+ * 
+ * @param game Game tile is in
+ * @param x Tile position x
+ * @param y Tile position y
+ * @return bool 
+ */
 __host__ __device__
-int tile_solid(struct Game *game, int x, int y)
+bool tile_solid(struct Game *game, int x, int y)
 {
 	int tile = tile_at(game, x, y);
 	switch(tile) {
@@ -247,7 +291,14 @@ int tile_solid(struct Game *game, int x, int y)
 	return true;
 }
 
-// Set tile to given type at (x, y)
+/**
+ * @brief Set tile to given type at (x, y)
+ * 
+ * @param Game the game object to operate on
+ * @param x X tile coordinate
+ * @param y Y tile coordinate
+ * @param val The value to set the tile with
+ */
 __host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 {
@@ -257,13 +308,30 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 	game->tiles[y * LEVEL_WIDTH + x] = val;
 }
 
-//Basic distance function
+/**
+ * @brief Basic distance function
+ * 
+ * @param x1 Tile position x1
+ * @param y1 Tile position y1
+ * @param x2 Tile position x2
+ * @param y2 Tile position y2
+ * @return float distance between the two tiles
+ */
 __host__ __device__
 float dist(float x1, float y1, float x2, float y2)
 {
 	return sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
 }
 
+/**
+ * @brief Exposes the tiles around the player to the neural network
+ * 
+ * @param game The game object to get tiles from
+ * @param player The player object
+ * @param tiles The array of tiles to reference
+ * @param in_h Height of the chromsome input matrix
+ * @param in_w Width of the chromsome input matrix
+ */
 __host__ __device__
 void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w)
 {
@@ -318,7 +386,6 @@ void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uin
 					*tmp = 1.0f;
 					break;
 				default:
-					printf("Unexpected tile ID in get_input_tiles!\n");
 					break;
 			}
 

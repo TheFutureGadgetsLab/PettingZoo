@@ -13,10 +13,7 @@ int chance_gen(float percent);
 void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params *params);
 void mutate(float *data, size_t length, float mutate_rate);
 
-/*
- * This function takes an array of games, players, and chromosomes to be evaluated.
- * The fitnesses are written out into the float fitnesses array.
- */
+// This function takes an array of games, players, and chromosomes to be evaluated.
 int run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params)
 {
     int g, ret;
@@ -161,6 +158,7 @@ int chance_gen(float percent)
 	return ((float)rand() / (float)RAND_MAX) < (percent / 100.0f);
 }
 
+// Randomly mutate this floating point data by given mutate rate (% chance)
 void mutate(float *data, size_t length, float mutate_rate)
 {
     if (mutate_rate == 0.0f)
@@ -173,6 +171,7 @@ void mutate(float *data, size_t length, float mutate_rate)
     }
 }
 
+// Writes out the statistics of a run
 void get_gen_stats(char *dirname, struct Game *game, struct Player *players, 
     struct Chromosome *chroms, int quiet, int write_winner, int generation, struct Params *params)
 {

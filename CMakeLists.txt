@@ -83,16 +83,13 @@ add_executable(
 )
 
 # Link libraries
-target_link_libraries(trainCPU m)
+target_link_libraries(debug m)
 
 ###############################################################
 #
 #                       GPU Training
 #
 ###############################################################
-# Configure CUDA flags (-x cu tells nvcc to interpret cpp files as having CPU/GPU code)
-# set(CUDA_NVCC_FLAGS "${CMAKE_CUDA_FLAGS} -Xptxas -dlcm=ca -v -O3 -arch=sm_61 -Xcompiler -O3")
-
 set_source_files_properties(
    src/gamelogic.cpp
    src/neural_network.cpp
