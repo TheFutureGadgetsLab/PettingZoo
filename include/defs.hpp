@@ -1,7 +1,7 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-// AI parameters
+// Default NN parameters
 #define IN_H                  12
 #define IN_W                  12
 #define HLC                   2
@@ -20,7 +20,9 @@ struct Params {
     float mutate_rate;
 };
 
-#define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 4)
+// Time in seconds until NN is considered timedout
+// based on fitness change
+#define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 6)
 
 // Enemies
 #define ENABLE_ENEMIES  false

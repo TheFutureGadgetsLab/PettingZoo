@@ -56,7 +56,7 @@ int main(int argc, char **argv)
             params.mutate_rate = atof(optarg);
             break;
         default: /* '?' */
-            printf("Usage: ./%s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]", argv[0]);
+            printf("Usage: ./%s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
             printf(" -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", IN_H);
             printf(" -l    Number of hidden layers in the neural networks (default %d)\n", HLC);
             printf(" -n    Nodes in each hidden layer (default %d)\n", NPL);
@@ -79,9 +79,7 @@ int main(int argc, char **argv)
     grid_size = ceil(params.gen_size / (float)BLOCK_SIZE); 
 
     seed = (unsigned int)time(NULL);
-    seed = 10;
     srand(seed);
-
     level_seed = rand();
 
     if (dir_name == NULL) {
@@ -122,12 +120,12 @@ int main(int argc, char **argv)
         for (member = 0; member < params.gen_size; member++) {
             player_setup(&players[member]);
         }
-        
+
         trainGeneration <<< grid_size, BLOCK_SIZE >>> (game, players, cur_gen, params, node_outputs, input_tiles);
         cudaErrCheck( cudaDeviceSynchronize() );
 
         // Get stats from run (1 tells function to not print each players fitness)
-        get_gen_stats(dir_name, game, players, cur_gen, 0, 1, gen, &params);
+        get_gen_stats(dir_name, game, players, cur_gen, 1, 1, gen, &params);
 
         // Usher in the new generation
         if (gen != (params.generations - 1)) {

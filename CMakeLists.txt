@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.9.0)
 project(pettingzoo LANGUAGES CXX CUDA)
-# set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Locate headers
 include_directories(include)
 # Workaround for ben
 include_directories(/opt/cuda/include/)
@@ -19,12 +17,15 @@ if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
+# NVCC Flags
+# Enables caching for global loads
+set(CMAKE_CUDA_FLAGS "-Xptxas -dlcm=ca")
 ###############################################################
 #
 #                           Petting zoo
 #
 ###############################################################
-# Find libcsfml
+# Find libsfml
 find_library(SFML_GRAPHICS_LIB sfml-graphics)
 find_library(SFML_WINDOW_LIB sfml-window)
 find_library(SFML_SYSTEM_LIB sfml-system)
@@ -62,7 +63,6 @@ add_executable(
     src/levelgen.cpp
 )
 
-
 # Link libraries
 target_link_libraries(trainCPU m)
 
@@ -71,7 +71,6 @@ target_link_libraries(trainCPU m)
 #                       Debug
 #
 ###############################################################
-# Compile
 add_executable(
     debug
     src/debug.cpp
@@ -82,7 +81,6 @@ add_executable(
     src/levelgen.cpp
 )
 
-# Link libraries
 target_link_libraries(debug m)
 
 ###############################################################
@@ -90,6 +88,7 @@ target_link_libraries(debug m)
 #                       GPU Training
 #
 ###############################################################
+# Tell NVCC that theres device code in these files
 set_source_files_properties(
    src/gamelogic.cpp
    src/neural_network.cpp
@@ -97,7 +96,6 @@ set_source_files_properties(
    PROPERTIES LANGUAGE CUDA
 )
 
-# Compile
 add_executable(
    trainGPU
    src/trainGPU.cpp
@@ -108,8 +106,7 @@ add_executable(
    src/levelgen.cpp
 )
 
-# Enable separate compilation for CUDA
+# Enable seperable compilation
 set_target_properties(trainGPU PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
-# Link libraries
 target_link_libraries(trainGPU m)
