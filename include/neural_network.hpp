@@ -1,3 +1,9 @@
+/**
+ * @file neural_network.cpp
+ * @author Benjamin Mastripolito, Haydn Jones
+ * @brief  Defs for running a neural network 
+ * @date 2018-12-11
+ */
 #ifndef NEURAL_NETWORK_H
 #define NEURAL_NETWORK_H
 

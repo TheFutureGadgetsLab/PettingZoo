@@ -1,3 +1,10 @@
+/**
+ * @file neural_network.cpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Routines for running a neural network
+ * @date 2018-12-06
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <chromosome.hpp>
@@ -27,6 +34,17 @@ float softsign_bounded(float x);
 __host__ __device__
 float tanh_bounded(float x);
 
+/**
+ * @brief Evaluates a single frame of the game with the given chromosome
+ * 
+ * @param game The game struct
+ * @param player The player struct that this chromosome will be controlling
+ * @param chrom The chromosome
+ * @param buttons The button presses the chromosome outputs will be placed here
+ * @param tiles The game tiles
+ * @param node_outputs The node outputs
+ * @return int PLAYER_DEAD or PLAYER_COMPLETE
+ */
 __host__ __device__
 int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t *buttons, float *tiles, float *node_outputs)
 {
@@ -49,6 +67,13 @@ int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *
     return game_update(game, player, inputs);
 }
 
+/**
+ * @brief Calculates output of first hidden layer
+ * 
+ * @param chrom Chromosome to use
+ * @param inputs Input tiles for network
+ * @param node_outputs Where to store node outputs
+ */
 __host__ __device__
 void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs)
 {
@@ -68,6 +93,12 @@ void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outpu
     }
 }
 
+/**
+ * @brief Calculate the chromosome's hidden layers
+ * 
+ * @param chrom The chromosome being simulated
+ * @param node_outs Outputs for the nodes
+ */
 __host__ __device__
 void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
 {
@@ -94,6 +125,13 @@ void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
     }
 }
 
+/**
+ * @brief Calculates the outputs of the network
+ * 
+ * @param chrom Chromosome to use
+ * @param node_outs Outputs from previous layer
+ * @param net_outs Where to store network outputs
+ */
 __host__ __device__
 void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
 {
@@ -112,35 +150,60 @@ void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
     }
 }
 
-// sigmoid in (-1,1)
+/**
+ * @brief The sigmoid function, bounded between -1 and 1
+ * 
+ * @param x Input
+ * @return float Sigmoid output
+ */
 __host__ __device__
 float sigmoid(float x)
 {
     return 2.0f / (1.0f + expf(-x)) - 1.0;
 }
 
-// x/(1+|x|) in [-1,1]
+/**
+ * @brief The softsign function, bounded between -1 and 1
+ * 
+ * @param x The input value
+ * @return float Output value
+ */
 __host__ __device__
 float softsign(float x)
 {
     return x / (1.0f + fabs(x));
 }
 
-// sigmoid in (0,1)
+/**
+ * @brief sigmoid in (0,1)
+ * 
+ * @param x Input to function
+ * @return float Output
+ */
 __host__ __device__
 float sigmoid_bounded(float x)
 {
     return 1.0f / (1.0f + expf(-x));
 }
 
-// x/(1+|x|) in [0,1]
+/**
+ * @brief The softsign function
+ * 
+ * @param x 
+ * @return float 
+ */
 __host__ __device__
 float softsign_bounded(float x)
 {
     return (0.5f * x) / (1.0f + fabs(x)) + 0.5;
 }
 
-// tanh(x) in (0,1)
+/**
+ * @brief tanh(x) in (0,1)
+ * 
+ * @param x Input to function
+ * @return float Output
+ */
 __host__ __device__
 float tanh_bounded(float x)
 {

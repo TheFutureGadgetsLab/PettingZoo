@@ -1,3 +1,9 @@
+/**
+ * @file levelgen.cpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Functions for generating levels
+ * @date 2018-12-11
+ */
 #include <stdlib.h>
 #include <math.h>
 #include <defs.hpp>
@@ -19,7 +25,12 @@ void insert_tee(struct Game *game, int origin, int height, int length);
 void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
 
-//Generate a new map from given seed
+/**
+ * @brief Generate a new map from given seed
+ * 
+ * @param game The game object to write the new tiles to
+ * @param seed The game seed to generate the level with
+ */
 void levelgen_gen_map(struct Game *game, unsigned int seed)
 {
 	int x, flat_region;
@@ -58,7 +69,13 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 	game->seed_state = seed;
 }
 
-// Generate a flat region beginning at origin for length tiles
+/**
+ * @brief Generate a flat region 'length' tiles long and beginning at 'origin'
+ * 
+ * @param game Game struct to generate level in
+ * @param origin Starting location (x tile coord)
+ * @param length Length of flat region
+ */
 void generate_flat_region(struct Game *game, int origin, int length)
 {
 	int x, plat_len, height, stack_offset;
@@ -154,7 +171,13 @@ void generate_flat_region(struct Game *game, int origin, int length)
 	}
 }
 
-// Generates an obstacle and returns the length of the obstacle
+/**
+ * @brief Generates an obstacle and returns the length of the obstacle
+ * 
+ * @param game Game struct to generate obstacle in
+ * @param origin Beginning location of obstacle
+ * @return int Obstacle width
+ */
 int generate_obstacle(struct Game *game, int origin)
 {
 	int width, height, do_pipe;
@@ -168,8 +191,15 @@ int generate_obstacle(struct Game *game, int origin)
 	return height * 2 + width;
 }
 
-// Insert a floor to the bottom of the level beginning at 'origin' with
-// at y level 'ground' and of length 'length'
+/**
+ * @brief Insert a floor to the bottom of the level beginning at 'origin' with
+ *        at y level 'ground' and of length 'length'
+ * 
+ * @param game The game object to operate on
+ * @param origin The x tile coord to start the floor at
+ * @param ground The y coord to start the floor at
+ * @param length length of floor
+ */
 void insert_floor(struct Game *game, int origin, int ground, int length)
 {
 	int x, y, val;
@@ -186,7 +216,15 @@ void insert_floor(struct Game *game, int origin, int ground, int length)
 	}
 }
 
-// Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
+/**
+ * @brief Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
+ * 
+ * @param game Game structure to insert platform in
+ * @param origin X tile location to insert platform
+ * @param height Height above ground platform should be inserted
+ * @param length Length of platform
+ * @param type Tile type of platform
+ */
 void insert_platform(struct Game *game, int origin, int height, int length, int type)
 {
 	int x, base;
@@ -198,7 +236,14 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
 	}
 }
 
-// Insert Tee
+/**
+ * @brief Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
+ * 
+ * @param game Game structure to insert platform in
+ * @param origin X tile location to insert tee
+ * @param height Height above ground platform should be inserted
+ * @param length Length of platform
+ */
 void insert_tee(struct Game *game, int origin, int height, int length)
 {
 	int y, top;
@@ -211,7 +256,14 @@ void insert_tee(struct Game *game, int origin, int height, int length)
 	}
 }
 
-// Insert enemy at tile position
+/**
+ * @brief Insert enemy at location (x, y)
+ * 
+ * @param game Game to insert enemy in
+ * @param x X tile coord
+ * @param y Y tile coord
+ * @param type Type of enemy
+ */
 void insert_enemy(struct Game *game, int x, int y, int type)
 {
 	if (!ENABLE_ENEMIES)
@@ -229,7 +281,13 @@ void insert_enemy(struct Game *game, int x, int y, int type)
 	game->n_enemies++;
 }
 
-// Insert hole in the ground at 'origin' with width 'width'
+/**
+ * @brief Create hole at origin
+ * 
+ * @param game Game to insert hole on
+ * @param origin X tile coordinate
+ * @param width Width of hole
+ */
 void create_hole(struct Game *game, int origin, int width)
 {
 	int x, y;
@@ -240,7 +298,14 @@ void create_hole(struct Game *game, int origin, int width)
 	}
 }
 
-// Create a pipe at 'origin', opens at 'height' tiles from the ground with a gap of 'width' tiles
+/**
+ * @brief Create a pipe at 'origin', opens at 'height' tiles from the ground with a gap of 'width' tiles
+ * 
+ * @param game Game to insert pipe in
+ * @param origin X tile location of pipe
+ * @param width Width of gap in pipe
+ * @param height height of hole opening above the ground
+ */
 void create_pipe(struct Game *game, int origin, int width, int height)
 {
 	int y;
@@ -264,9 +329,19 @@ void create_pipe(struct Game *game, int origin, int width, int height)
 	}
 }
 
-// Create a stair gap. 'height' describes the # of steps in the stairs and
-// 'width' describes the width of the gap
-// If 'do_pipe' is true, 'width' will be set to next greatest odd if even
+//
+
+/**
+ * @brief Create a stair gap. 'height' describes the # of steps in the stairs and 
+ *        'width' describes the width of the gap
+ *        If 'do_pipe' is true, 'width' will be set to next greatest odd if even
+ * 
+ * @param game Game struct to insert stair gap in
+ * @param origin X tile cooordinate of gap
+ * @param height Height of stairs
+ * @param width Width of gap
+ * @param do_pipe Insert pipe on true 
+ */
 void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe)
 {
 	int x, y;
@@ -308,7 +383,14 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 	}
 }
 
-// Set tile to given type at (x, y)
+/**
+ * @brief Set the tile at (x, y)
+ * 
+ * @param game Game to set tile in
+ * @param x X tile coord
+ * @param y Y tile coord
+ * @param val Value to set tile to
+ */
 void set_tile(struct Game *game, int x, int y, unsigned char val)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
@@ -317,7 +399,11 @@ void set_tile(struct Game *game, int x, int y, unsigned char val)
 	game->tiles[y * LEVEL_WIDTH + x] = val;
 }
 
-// Zero out level
+/**
+ * @brief Clear all tiles from level and set enemies to 0
+ * 
+ * @param game Game to clear
+ */
 void levelgen_clear_level(struct Game *game)
 {
 	int x, y;
@@ -329,13 +415,26 @@ void levelgen_clear_level(struct Game *game)
 	game->n_enemies = 0;
 }
 
-// Return an integer where 0 <= x <= max
+/**
+ * @brief Return an integer where 0 <= x <= max
+ * 
+ * @param seedp Reentrant seed pointer
+ * @param max Max value for randint
+ * @return int Random integer
+ */
 int randint(unsigned int *seedp, int max)
 {
 	return rand_r(seedp) % (max + 1);
 }
 
-// Return an integer where min <= x <= max
+/**
+ * @brief Return an integer where min <= x <= max
+ * 
+ * @param seedp Reentrant seed pointer
+ * @param min Min value in range
+ * @param max Max value in range
+ * @return int Random integer
+ */
 int randrange(unsigned int *seedp, int min, int max)
 {
 	if (min == max)
@@ -343,13 +442,26 @@ int randrange(unsigned int *seedp, int min, int max)
 	return min + (rand_r(seedp) % (abs(max - min) + 1));
 }
 
-// Return 0 or 1 probabilistically
+/**
+ * @brief Returns 1 'percent' percent of the time
+ * 
+ * @param seedp Reentrant seed pointer
+ * @param percent Percent chance
+ * @return int True or false
+ */
 int chance(unsigned int *seedp, float percent)
 {
 	return ((float)rand_r(seedp) / (float)RAND_MAX) < (percent / 100.0f);
 }
 
-// Returns a random integer in list of integers
+/**
+ * @brief Returns a random integer in list of integers
+ * 
+ * @param seedp Reentrant seed pointer
+ * @param nargs Number of items to choose from
+ * @param ... Items
+ * @return int Chosen item
+ */
 int choose(unsigned int *seedp, int nargs, ...)
 {
 	va_list args;

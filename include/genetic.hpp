@@ -1,10 +1,16 @@
+/**
+ * @file genetic.hpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Holds genetic defs
+ * @date 2018-12-11
+ */
 #ifndef GENETIC_H
 #define GENETIC_H
 
 #include <defs.hpp>
 #include <gamelogic.hpp>
 
-int run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params);
+void run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params);
 void select_and_breed(struct Player *players, struct Chromosome *generation, struct Chromosome *new_generation, struct Params *params);
 void write_out_progress(FILE *fh, struct Player *players);
 void get_gen_stats(char *dirname, struct Game *game, struct Player *players, 

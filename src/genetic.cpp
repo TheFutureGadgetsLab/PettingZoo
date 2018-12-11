@@ -1,3 +1,9 @@
+/**
+ * @file genetic.cpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Holds functions that govern the genetic algorithm
+ * @date 2018-12-11
+ */
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -13,8 +19,15 @@ int chance_gen(float percent);
 void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params *params);
 void mutate(float *data, size_t length, float mutate_rate);
 
-// This function takes an array of games, players, and chromosomes to be evaluated.
-int run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params)
+/**
+ * @brief This function takes a game, players, and chromosomes to be evaluated.
+ * 
+ * @param game The game object to use in the evaluation
+ * @param players A collection of players
+ * @param generation A collection of chromosomes
+ * @param params The run parameters
+ */
+void run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params)
 {
     int g, ret;
     float *input_tiles;
@@ -63,15 +76,18 @@ int run_generation(struct Game *game, struct Player *players, struct Chromosome 
 
     free(input_tiles);
     free(node_outputs);
-
-    return 0;
 }
 
-/*
- * This selection function normalizes a chromosomes fitness with the maximum fitness of that generation
- * and then uses that value as a probability for being selected to breed. Once (GEN_SIZE / 2) parents
- * have been selected the first is bred with the second, second with the third, and so on (the first is
- * also bred with the last to ensure each chrom breeds twice).
+/**
+ * @brief This selection function normalizes a chromosomes fitness with the maximum fitness of that generation
+ *        and then uses that value as a probability for being selected to breed. Once (GEN_SIZE / 2) parents
+ *        have been selected the first is bred with the second, second with the third, and so on (the first is
+ *        also bred with the last to ensure each chrom breeds twice).
+ * 
+ * @param players Player structures that hold the fitnesses
+ * @param generation Generation that has been evaluated
+ * @param new_generation Where the new chromosomes will be stored
+ * @param params Parameters describing the run
  */
 void select_and_breed(struct Player *players, struct Chromosome *generation, struct Chromosome *new_generation, struct Params *params)
 {
@@ -106,9 +122,15 @@ void select_and_breed(struct Player *players, struct Chromosome *generation, str
     }
 }
 
-/*
- * Chooses as single point in each section of the chromosomes and childA is set up as
- * ParentA | Parent B, while childB is set up as ParentB | ParentA
+/**
+ * @brief Chooses as single point in each section of the chromosomes and childA is set up as
+ *        ParentA | Parent B, while childB is set up as ParentB | ParentA
+ * 
+ * @param parentA The chromosome to breed with B
+ * @param parentB The chromosome to breed with
+ * @param childA Pointer to memory where child A will be held
+ * @param childB Pointer to memory where child B will be held
+ * @param params The run parameters struct
  */
 void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params *params)
 {
@@ -137,10 +159,17 @@ void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, 
     mutate(childB->out_adj, parentA->out_adj_size, params->mutate_rate);
 }
 
-/*
- * Copies 'split' bytes into childA from parentA, then after that copies the rest of the section
- * (length - split) into childA from parentB. This is then done with childB, but the copy order
- * is reversed (parentB first then parentA).
+/**
+ * @brief Copies 'split' bytes into childA from parentA, then after that copies the rest of the section
+ *        (length - split) into childA from parentB. This is then done with childB, but the copy order
+ *        is reversed (parentB first then parentA).
+ * 
+ * @param parentA Pointer to beginning of parentA data
+ * @param parentB Pointer to beginning of parentB data
+ * @param childA Pointer to beginning of childA data
+ * @param childB Pointer to beginning of parentB data
+ * @param length Length in bytes to be copied
+ * @param split location the split occurs
  */
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
 {
@@ -152,13 +181,25 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
     memcpy((uint8_t *)childB + split, (uint8_t *)parentA + split, length - split);
 }
 
-// Return 1 if random number is <= percent, otherwise 0
+/**
+ * @brief Return 1 if random number is <= percent, otherwise 0
+ * 
+ * @param percent Percent chance between 0.0 and 100.0
+ * @return int 1 or 0
+ */
 int chance_gen(float percent)
 {
 	return ((float)rand() / (float)RAND_MAX) < (percent / 100.0f);
 }
 
-// Randomly mutate this floating point data by given mutate rate (% chance)
+/**
+ * @brief Randomly mutate this floating point data with a given mutate probability
+ *        Data can mutate in the range of 0-200%
+ * 
+ * @param data Float array to be mutated
+ * @param length Length of the array
+ * @param mutate_rate Probability of mutation
+ */
 void mutate(float *data, size_t length, float mutate_rate)
 {
     if (mutate_rate == 0.0f)
@@ -171,7 +212,18 @@ void mutate(float *data, size_t length, float mutate_rate)
     }
 }
 
-// Writes out the statistics of a run
+/**
+ * @brief Writes out the statistics of a run
+ * 
+ * @param dirname The directory to write the files into
+ * @param game The game object
+ * @param players A collection of players
+ * @param chroms A collection of chromosomes
+ * @param quiet Function will print if this is 0
+ * @param write_winner Will write out the winner chromosome if 1
+ * @param generation The generation number
+ * @param params The parameters struct
+ */
 void get_gen_stats(char *dirname, struct Game *game, struct Player *players, 
     struct Chromosome *chroms, int quiet, int write_winner, int generation, struct Params *params)
 {
@@ -230,6 +282,13 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players,
     printf("Min fitness: %.2lf\n", min);
 }
 
+/**
+ * @brief Creates an output directory
+ * 
+ * @param dirname The directory name
+ * @param seed The game seed
+ * @param params The parameters structure
+ */
 void create_output_dir(char *dirname, unsigned int seed, struct Params *params)
 {
     FILE* out_file;

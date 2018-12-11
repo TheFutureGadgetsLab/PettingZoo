@@ -1,3 +1,9 @@
+/**
+ * @file levelgen.cpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Defs for levelgen
+ * @date 2018-12-11
+ */
 #ifndef LEVELGEN_H
 #define LEVELGEN_H
 

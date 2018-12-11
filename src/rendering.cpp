@@ -1,3 +1,10 @@
+/**
+ * @file rendering.hpp
+ * @author Haydn Jones, Benjamin Mastripolito
+ * @brief Routines for rendering with SMFL
+ * @date 2018-12-06
+ */
+
 #include <SFML/Graphics.hpp>
 #include <rendering.hpp>
 #include <defs.hpp>
@@ -79,7 +86,13 @@ sf::Font font;
 View game_view;
 TileMap map;
 
-//Load a sprite where index is its identifier in sprites array
+/**
+ * @brief Load a sprite where index is its identifier in sprites array
+ * 
+ * @param sprite_index The index of the sprite in the sprite collection
+ * @param path The path to the image file
+ * @param docenter Change the origin of the sprite to be at the center of the image
+ */
 void load_sprite(int sprite_index, const std::string path, bool docenter = false) {
     textures[sprite_index].loadFromFile(path);
 	sprites[sprite_index].setTexture(textures[sprite_index], true);
@@ -91,7 +104,11 @@ void load_sprite(int sprite_index, const std::string path, bool docenter = false
 	}
 }
 
-//Update the shared view properties
+/**
+ * @brief Update the shared view properties
+ * 
+ * @param view The SFML view object to operate on
+ */
 void update_view_vars(sf::View view) {
 	game_view.center = view.getCenter();
 	game_view.size = view.getSize();
@@ -99,7 +116,12 @@ void update_view_vars(sf::View view) {
 	game_view.corner.y = game_view.center.y - (game_view.size.y / 2.0);
 }
 
-//Handle the render camera
+/**
+ * @brief Handle the render camera
+ * 
+ * @param window The SFML renderwindow object
+ * @param player The player object
+ */
 void render_handle_camera(sf::RenderWindow &window, const struct Player player) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
@@ -128,7 +150,10 @@ void render_handle_camera(sf::RenderWindow &window, const struct Player player) 
 	update_view_vars(view);
 }
 
-//Load visual game assets
+/**
+ * @brief Load visual game assets
+ * 
+ */
 void render_load_assets() {
 	// Sprites
 	load_sprite(LAMP, "../assets/lamp.png", false);
@@ -151,12 +176,22 @@ void render_load_assets() {
 	map.load_textures("../assets/spritesheet.png");
 }
 
-//Render the entire map
+/**
+ * @brief Render the entire map
+ * 
+ * @param game The game object
+ */
 void render_gen_map(const struct Game game) {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
-//Render all entities (player, enemies)
+/**
+ * @brief Render all entities (player, enemies)
+ * 
+ * @param window The SFML window object
+ * @param game The game struct
+ * @param player The player
+ */
 void render_entities(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
@@ -172,7 +207,13 @@ void render_entities(sf::RenderWindow &window, const struct Game game, const str
 	}
 }
 
-//Render the debug information overlay
+/**
+ * @brief Render the debug information overlay
+ * 
+ * @param window The SFML window object
+ * @param game The game struct
+ * @param player The player struct
+ */
 void render_debug_overlay(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	char overlay_text[512];
 
@@ -211,13 +252,22 @@ void render_debug_overlay(sf::RenderWindow &window, const struct Game game, cons
 	}
 }
 
-//Render other things
+/**
+ * @brief Render other things
+ * 
+ * @param window The SFML window object
+ */
 void render_other(sf::RenderWindow &window) {
 	sprites[BG].setPosition(game_view.center);
 	window.draw(sprites[BG]);
 }
 
-//Window rescale handler
+/**
+ * @brief Handler for rescaling the viewport
+ * 
+ * @param window The SFML window object
+ * @param event The rescale SFML event
+ */
 void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	int zoom;
 	sf::View view = window.getView();
@@ -234,7 +284,13 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
 	update_view_vars(view);
 }
 
-//Render the HUD
+/**
+ * @brief Render the HUD
+ * 
+ * @param window SFML window object
+ * @param player The player structure
+ * @param input Player inputs
+ */
 void render_hud(sf::RenderWindow &window, const struct Player player, const uint8_t input[BUTTON_COUNT]) {
 	char score_text[128];
 
@@ -249,7 +305,13 @@ void render_hud(sf::RenderWindow &window, const struct Player player, const uint
 	window.draw(score);
 }
 
-//Render everything
+/**
+ * @brief Render everything
+ * 
+ * @param window SFML window
+ * @param game The game struct
+ * @param player The player struct
+ */
 void render_draw_state(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	render_other(window);
 	window.draw(map);
