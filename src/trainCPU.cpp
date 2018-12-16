@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     int opt;
     char *dir_name = NULL;
  
-    while ((opt = getopt(argc, argv, "i:l:n:c:g:m:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "hi:l:n:c:g:m:o:")) != -1) {
         switch (opt) {
         // Output dir name
         case 'o':
@@ -47,16 +47,17 @@ int main(int argc, char **argv)
         case 'm':
             params.mutate_rate = atof(optarg);
             break;
+        case 'h':
         default: /* '?' */
-            printf("Usage: ./%s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
-            printf(" -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", IN_H);
-            printf(" -l    Number of hidden layers in the neural networks (default %d)\n", HLC);
-            printf(" -n    Nodes in each hidden layer (default %d)\n", NPL);
-            printf(" -c    Number of chromosomes in each generation (default %d)\n", GEN_SIZE);
-            printf(" -g    Number of generations to run (default %d)\n", GENERATIONS);            
-            printf(" -m    Percent chance of mutation rate (float from 0 - 100, default %lf)\n", MUTATE_RATE);
-            printf(" -o    Output directory name\n");
-            exit(EXIT_FAILURE);
+            printf("Usage: %s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
+            printf("  -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", IN_H);
+            printf("  -l    Number of hidden layers in the neural networks (default %d)\n", HLC);
+            printf("  -n    Nodes in each hidden layer (default %d)\n", NPL);
+            printf("  -c    Number of chromosomes in each generation (default %d)\n", GEN_SIZE);
+            printf("  -g    Number of generations to run (default %d)\n", GENERATIONS);            
+            printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", MUTATE_RATE);
+            printf("  -o    Output directory name\n");
+            return 0;
         }
     }
 

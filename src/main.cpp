@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
 	seed = time(NULL);
 	replay_ai = false;
-	while ((opt = getopt(argc, argv, "f:")) != -1) {
+	while ((opt = getopt(argc, argv, "hf:")) != -1) {
 		switch (opt) {
 		// Read in replay file to watch NN
 		case 'f':
@@ -54,8 +54,12 @@ int main(int argc, char **argv)
 			params.npl = chrom.npl;
 			break;
 		default:
-			printf("Usage: %s [-f replayfile]\n", argv[0]);
-			exit(EXIT_FAILURE);
+			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);
+			printf("Buttons:\n");
+			printf("  r:    Resets game state and takes you to the beginning of the level\n");
+			printf("  n:    Generates new level, resets game state, and takes you to the beginning\n");
+			printf("  o:    Opens debug overlay and displays input grid of chromosome. Does not currently reflect chromosomes actual input size\n");
+			return 0;
 		}
 	}
 
