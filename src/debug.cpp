@@ -5,10 +5,7 @@
 #include <genetic.hpp>
 #include <neural_network.hpp>
 #include <levelgen.hpp>
-#include <cuda_helper.hpp>
 #include <defs.hpp>
-#include <cuda_runtime.h>
-#include <cuda.h>
 #include <time.h>
 #include <math.h>
 

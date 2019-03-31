@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.9.0)
-project(pettingzoo LANGUAGES CXX CUDA)
+project(pettingzoo LANGUAGES CXX)
 
 include_directories(include)
-# Workaround for ben
-include_directories(/opt/cuda/include/)
 
 # Set march
 include(CheckCXXCompilerFlag)
@@ -17,9 +15,6 @@ if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
-# NVCC Flags
-# Enables caching for global loads
-set(CMAKE_CUDA_FLAGS "-Xptxas -dlcm=ca")
 ###############################################################
 #
 #                           Petting zoo
@@ -54,8 +49,8 @@ target_link_libraries(pettingzoo m)
 ###############################################################
 # Compile
 add_executable(
-    trainCPU
-    src/trainCPU.cpp
+    train
+    src/train.cpp
     src/genetic.cpp
     src/chromosome.cpp
     src/neural_network.cpp
@@ -64,7 +59,7 @@ add_executable(
 )
 
 # Link libraries
-target_link_libraries(trainCPU m)
+target_link_libraries(train m)
 
 ###############################################################
 #
@@ -82,31 +77,3 @@ add_executable(
 )
 
 target_link_libraries(debug m)
-
-###############################################################
-#
-#                       GPU Training
-#
-###############################################################
-# Tell NVCC that theres device code in these files
-set_source_files_properties(
-   src/gamelogic.cpp
-   src/neural_network.cpp
-   src/trainGPU.cpp
-   PROPERTIES LANGUAGE CUDA
-)
-
-add_executable(
-   trainGPU
-   src/trainGPU.cpp
-   src/gamelogic.cpp
-   src/neural_network.cpp
-   src/chromosome.cpp
-   src/genetic.cpp
-   src/levelgen.cpp
-)
-
-# Enable seperable compilation
-set_target_properties(trainGPU PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
-target_link_libraries(trainGPU m)

@@ -10,7 +10,6 @@
 
 #include <defs.hpp>
 #include <stdint.h>
-#include <cuda_runtime.h>
 
 // Fitness measurement parameters
 #define FIT_TIME_WEIGHT 2.0f
@@ -81,14 +80,9 @@ struct Game {
 	uint8_t tiles[LEVEL_SIZE];
 };
 
-__host__
 void game_setup(struct Game *game, unsigned int seed);
-__host__
 void player_setup(struct Player *player);
-__host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
-__host__ __device__
 void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w);
-
 
 #endif

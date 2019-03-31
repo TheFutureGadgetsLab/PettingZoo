@@ -10,17 +10,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <cuda_runtime.h>
 
-__host__ __device__
 int tile_at(struct Game *game, int x, int y);
-__host__ __device__
 bool tile_solid(struct Game *game, int x, int y);
-__host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val);
-__host__ __device__
 int physics_sim(struct Game *game, struct Body* body, bool jump);
-__host__ __device__
 float dist(float x1, float y1, float x2, float y2);
 
 /**
@@ -65,7 +59,6 @@ void player_setup(struct Player *player) {
  * @param input Button controls for the player
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-__host__ __device__
 int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT])
 {
 	int return_value = 0;
@@ -163,7 +156,6 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
  * @param jump Whether or not the body is attempting to jump
  * @return int If player died or collided with something on the left/right
  */
-__host__ __device__
 int physics_sim(struct Game *game, struct Body* body, bool jump)
 {
 	int return_value = 0;
@@ -261,7 +253,6 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
  * @param y Y tile coordinate
  * @return int Tile value
  */
-__host__ __device__
 int tile_at(struct Game *game, int x, int y)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
@@ -277,7 +268,6 @@ int tile_at(struct Game *game, int x, int y)
  * @param y Tile position y
  * @return bool 
  */
-__host__ __device__
 bool tile_solid(struct Game *game, int x, int y)
 {
 	int tile = tile_at(game, x, y);
@@ -299,7 +289,6 @@ bool tile_solid(struct Game *game, int x, int y)
  * @param y Y tile coordinate
  * @param val The value to set the tile with
  */
-__host__ __device__
 void game_set_tile(struct Game *game, int x, int y, unsigned char val)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
@@ -317,7 +306,6 @@ void game_set_tile(struct Game *game, int x, int y, unsigned char val)
  * @param y2 Tile position y2
  * @return float distance between the two tiles
  */
-__host__ __device__
 float dist(float x1, float y1, float x2, float y2)
 {
 	return sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
@@ -332,7 +320,6 @@ float dist(float x1, float y1, float x2, float y2)
  * @param in_h Height of the chromsome input matrix
  * @param in_w Width of the chromsome input matrix
  */
-__host__ __device__
 void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w)
 {
 	int tile_x1, tile_y1;

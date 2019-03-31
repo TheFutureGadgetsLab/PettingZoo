@@ -1,5 +1,5 @@
 # Petting Zoo
-CUDA and serial implementation of a genetic algorithm learning to player a game.
+Implementation of a genetic algorithm learning to play a platformer.
 
 ## Game
 The game is a simple platformer.
@@ -8,7 +8,7 @@ The game is a simple platformer.
 Evolution, Neural Networks, Stuff.
 
 ## Installation and Requirements
-SFML and CUDA must be installed to build. CUDA is only required to run on the GPU and SFML is only required to watch a chromosome play.
+SFML must be installed to build, however, SFML is only required to watch a chromosome play.
 Here are some sample build instructions:
 
 ```
@@ -17,8 +17,8 @@ cd build
 cmake ..
 make 
 ```
+
 ## Running
-When built the following executables will be created:
+When built, the following executables will be created:
 - pettingzoo: This is the platformer, just run it to play the game. To watch a chromosome play, run `./pettingzoo -f PATH_TO_CHROMOSOME`
-- trainCPU: This runs the genetic algorithm on the CPU. Run `./trainCPU -h` for help
-- trainGPU: This runs the genetic algorithm on the GPU. Run `./trainGPU -h` for help
+- train: Run this to begin training the NN. Run `./trainCPU -h` for help

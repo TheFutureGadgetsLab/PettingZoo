@@ -13,25 +13,16 @@
 #include <time.h>
 #include <math.h>
 #include <gamelogic.hpp>
-#include <cuda_runtime.h>
 
-__host__ __device__
 void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs);
-__host__ __device__
 void calc_hidden_layers(struct Chromosome *chrom, float *node_outputs);
-__host__ __device__
 void calc_output(struct Chromosome *chrom, float *node_outputs, float *network_outputs);
 
 // Activation functions
-__host__ __device__
 float sigmoid(float x);
-__host__ __device__
 float softsign(float x);
-__host__ __device__
 float sigmoid_bounded(float x);
-__host__ __device__
 float softsign_bounded(float x);
-__host__ __device__
 float tanh_bounded(float x);
 
 /**
@@ -45,7 +36,6 @@ float tanh_bounded(float x);
  * @param node_outputs The node outputs
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-__host__ __device__
 int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t *buttons, float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
@@ -74,7 +64,6 @@ int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *
  * @param inputs Input tiles for network
  * @param node_outputs Where to store node outputs
  */
-__host__ __device__
 void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
@@ -99,7 +88,6 @@ void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outpu
  * @param chrom The chromosome being simulated
  * @param node_outs Outputs for the nodes
  */
-__host__ __device__
 void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
 {
     int node, weight, layer, cur_node;
@@ -132,7 +120,6 @@ void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
  * @param node_outs Outputs from previous layer
  * @param net_outs Where to store network outputs
  */
-__host__ __device__
 void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
@@ -156,7 +143,6 @@ void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
  * @param x Input
  * @return float Sigmoid output
  */
-__host__ __device__
 float sigmoid(float x)
 {
     return 2.0f / (1.0f + expf(-x)) - 1.0;
@@ -168,7 +154,6 @@ float sigmoid(float x)
  * @param x The input value
  * @return float Output value
  */
-__host__ __device__
 float softsign(float x)
 {
     return x / (1.0f + fabs(x));
@@ -180,7 +165,6 @@ float softsign(float x)
  * @param x Input to function
  * @return float Output
  */
-__host__ __device__
 float sigmoid_bounded(float x)
 {
     return 1.0f / (1.0f + expf(-x));
@@ -192,7 +176,6 @@ float sigmoid_bounded(float x)
  * @param x 
  * @return float 
  */
-__host__ __device__
 float softsign_bounded(float x)
 {
     return (0.5f * x) / (1.0f + fabs(x)) + 0.5;
@@ -204,7 +187,6 @@ float softsign_bounded(float x)
  * @param x Input to function
  * @return float Output
  */
-__host__ __device__
 float tanh_bounded(float x)
 {
     return 0.5f + tanhf(x) * 0.5f;
