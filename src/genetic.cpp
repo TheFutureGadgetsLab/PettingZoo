@@ -32,9 +32,12 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
     int g, ret;
     float *input_tiles;
     float *node_outputs;
-    uint8_t buttons;
     int fitness_idle_updates;
     float max_fitness;
+    uint8_t buttons[BUTTON_COUNT];
+    bool playerNeedsUpdate;
+    int playerLastTileX = 0;
+    int playerLastTileY = 0;
 
     input_tiles = (float *)malloc(sizeof(float) * params->in_w * params->in_h);
     node_outputs = (float *)malloc(sizeof(float) * params->npl * params->hlc);
@@ -47,9 +50,26 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
         fitness_idle_updates = 0;
         max_fitness = -1.0f;
 
+        playerNeedsUpdate = true;
+        playerLastTileX = players[g].body.tile_x;
+        playerLastTileY = players[g].body.tile_y;
+
         // Run game loop until player dies
         while (1) {
-            ret = evaluate_frame(game, &players[g], &generation[g], &buttons, input_tiles, node_outputs);
+            if (playerNeedsUpdate) {
+                evaluate_frame(game, &players[g], &generation[g], buttons, input_tiles, node_outputs);
+            }
+    
+            ret = game_update(game, &players[g], buttons);
+
+            //Skip simulating chromosomes if tile position of player hasn't changed
+            if (playerLastTileX != players[g].body.tile_x || playerLastTileY != players[g].body.tile_y) {
+                playerNeedsUpdate = true;       
+            } else {
+                playerNeedsUpdate = false;
+            }
+            playerLastTileX = players[g].body.tile_x;
+            playerLastTileY = players[g].body.tile_y;
             
             // Check idle time
             if (players[g].fitness > max_fitness) {

@@ -41,7 +41,6 @@ void player_setup(struct Player *player) {
 	player->body.vy = 0;
 	player->body.tile_x = player->body.px / TILE_SIZE;
 	player->body.tile_y = player->body.py / TILE_SIZE;
-	player->body.immune = false;
 	player->body.canjump = false;
 	player->body.isjump = false;
 	player->body.standing = false;
@@ -90,45 +89,6 @@ int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_C
 	if (player->body.py > LEVEL_PIXEL_HEIGHT) {
 		player->death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
-	}
-
-	// Enemies
-	for (int i = 0; i < game->n_enemies; i++) {
-		struct Enemy *enemy;
-		bool empty_below;
-		int ret;
-
-		enemy = &game->enemies[i];
-		empty_below = true;
-		if (!enemy->dead) {
-			//Enemy physics simulation
-			enemy->body.vx = enemy->direction;
-			ret = physics_sim(game, &(enemy->body), false);
-			if (ret == PLAYER_DEAD) {
-				enemy->dead = true;
-			}
-
-			//Check if empty below
-			for (int y = enemy->body.tile_y; y < LEVEL_HEIGHT; y++) {
-				if (tile_solid(game, enemy->body.tile_x, y))
-					empty_below = false;
-			}
-
-			//Determine if we need to change direction
-			if (empty_below) {
-				enemy->direction = -enemy->direction;
-			} else if (ret == COL_RIGHT && enemy->direction > 0) {
-				enemy->direction = -enemy->direction;
-			} else if (ret == COL_LEFT && enemy->direction < 0) {
-				enemy->direction = -enemy->direction;
-			}
-
-			//Kill player
-			if (dist(player->body.px, player->body.py, enemy->body.px, enemy->body.py) < 32) {
-				player->death_type = PLAYER_DEAD;
-				return PLAYER_DEAD;
-			}
-		}
 	}
 	
 	// Fitness
@@ -215,7 +175,7 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 			body->vy = 0;
 			body->canjump = true;
 			body->standing = true;
-			if (!body->immune && (tile_at(game, tile_xl, feet_y) == SPIKES_TOP || tile_at(game, tile_xr, feet_y) == SPIKES_TOP)) {
+			if (tile_at(game, tile_xl, feet_y) == SPIKES_TOP || tile_at(game, tile_xr, feet_y) == SPIKES_TOP) {
 				return PLAYER_DEAD;
 			}
 		}
@@ -227,7 +187,7 @@ int physics_sim(struct Game *game, struct Body* body, bool jump)
 		if (body->vy < 0) {
 			body->vy = 0;
 			body->isjump = false;
-			if (!body->immune && (tile_at(game, tile_xl, top_y) == SPIKES_BOTTOM || tile_at(game, tile_xr, top_y) == SPIKES_BOTTOM)) {
+			if (tile_at(game, tile_xl, top_y) == SPIKES_BOTTOM || tile_at(game, tile_xr, top_y) == SPIKES_BOTTOM) {
 				return PLAYER_DEAD;
 			}
 		}

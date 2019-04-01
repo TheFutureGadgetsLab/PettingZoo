@@ -195,16 +195,6 @@ void render_gen_map(const struct Game game) {
 void render_entities(sf::RenderWindow &window, const struct Game game, const struct Player player) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
-
-	uint i;
-	struct Enemy enemy;
-	for (i = 0; i < game.n_enemies; i++) {
-		if (!game.enemies[i].dead) {
-			enemy = game.enemies[i];
-			sprites[ENEMY].setPosition(enemy.body.px, enemy.body.py);
-			window.draw(sprites[ENEMY]);
-		}
-	}
 }
 
 /**

@@ -22,7 +22,6 @@ void generate_flat_region(struct Game *game, int origin, int length);
 void insert_floor(struct Game *game, int origin, int ground, int length);
 void insert_platform(struct Game *game, int origin, int height, int length, int type);
 void insert_tee(struct Game *game, int origin, int height, int length);
-void insert_enemy(struct Game *game, int x, int y, int type);
 int generate_obstacle(struct Game *game, int origin);
 
 /**
@@ -266,19 +265,7 @@ void insert_tee(struct Game *game, int origin, int height, int length)
  */
 void insert_enemy(struct Game *game, int x, int y, int type)
 {
-	if (!ENABLE_ENEMIES)
-		return;
-
-	struct Enemy enemy;
-
-	enemy.body.px = x * TILE_SIZE;
-	enemy.body.py = y * TILE_SIZE;
-	enemy.type = type;
-	enemy.dead = true;
-	enemy.body.immune = true;
-	enemy.direction = 3;
-	game->enemies[game->n_enemies] = enemy;
-	game->n_enemies++;
+	return;
 }
 
 /**

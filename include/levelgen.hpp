@@ -31,5 +31,6 @@
 void levelgen_gen_map(struct Game *game, unsigned int seed);
 int chance(unsigned int *seedp, float percent);
 void levelgen_clear_level(struct Game *game);
+void insert_enemy(struct Game *game, int x, int y, int type);
 
 #endif

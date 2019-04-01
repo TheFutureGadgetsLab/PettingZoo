@@ -7,8 +7,10 @@
 #ifndef NEURAL_NETWORK_H
 #define NEURAL_NETWORK_H
 
+#include <defs.hpp>
+
 float sigmoid(float x);
 float soft_sign(float x);
-int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t *buttons, float *tiles, float *node_outputs);
+int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t buttons[BUTTON_COUNT], float *tiles, float *node_outputs);
 
 #endif

@@ -46,7 +46,6 @@ struct Body {
 	float vy;
 	int tile_x;
 	int tile_y;
-	bool immune;
 	bool canjump;
 	bool isjump;
 	bool standing;
@@ -62,18 +61,8 @@ struct Player {
 	int death_type;
 };
 
-// Enemy structure
-struct Enemy {
-	struct Body body;
-	float speed;
-	float direction;
-	unsigned char type;
-	bool dead;
-};
-
 // Game structure
 struct Game {
-	struct Enemy enemies[MAX_ENEMIES];
 	unsigned int n_enemies;
 	unsigned int seed;
 	unsigned int seed_state;

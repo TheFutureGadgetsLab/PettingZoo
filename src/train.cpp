@@ -69,7 +69,8 @@ int main(int argc, char **argv)
     unsigned int seed, level_seed;
 
     // Generate seeds
-    seed = (unsigned int)time(NULL);
+    // seed = (unsigned int)time(NULL);
+    seed = 10;
     srand(seed);
     level_seed = rand();
 
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
         run_generation(&game, players, cur_gen, &params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, &game, players, cur_gen, 1, 1, gen, &params);
+        get_gen_stats(dir_name, &game, players, cur_gen, 0, 1, gen, &params);
 
         // Usher in the new generation
         select_and_breed(players, cur_gen, next_gen, &params);
