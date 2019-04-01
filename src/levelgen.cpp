@@ -14,15 +14,15 @@
 int randint(unsigned int *seedp, int max);
 int randrange(unsigned int *seedp, int min, int max);
 int choose(unsigned int *seedp, int nargs, ...);
-void set_tile(struct Game& game, int x, int y, unsigned char val);
-void create_hole(struct Game& game, int origin, int width);
-void create_pipe(struct Game& game, int origin, int width, int height);
-void create_stair_gap(struct Game& game, int origin, int height, int width, int do_pipe);
-void generate_flat_region(struct Game& game, int origin, int length);
-void insert_floor(struct Game& game, int origin, int ground, int length);
-void insert_platform(struct Game& game, int origin, int height, int length, int type);
-void insert_tee(struct Game& game, int origin, int height, int length);
-int generate_obstacle(struct Game& game, int origin);
+void set_tile(Game& game, int x, int y, unsigned char val);
+void create_hole(Game& game, int origin, int width);
+void create_pipe(Game& game, int origin, int width, int height);
+void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe);
+void generate_flat_region(Game& game, int origin, int length);
+void insert_floor(Game& game, int origin, int ground, int length);
+void insert_platform(Game& game, int origin, int height, int length, int type);
+void insert_tee(Game& game, int origin, int height, int length);
+int generate_obstacle(Game& game, int origin);
 
 /**
  * @brief Generate a new map from given seed
@@ -30,7 +30,7 @@ int generate_obstacle(struct Game& game, int origin);
  * @param game The game object to write the new tiles to
  * @param seed The game seed to generate the level with
  */
-void levelgen_gen_map(struct Game& game, unsigned int seed)
+void levelgen_gen_map(Game& game, unsigned int seed)
 {
 	int x, flat_region;
 
@@ -67,11 +67,11 @@ void levelgen_gen_map(struct Game& game, unsigned int seed)
 /**
  * @brief Generate a flat region 'length' tiles long and beginning at 'origin'
  * 
- * @param game Game struct to generate level in
+ * @param game Game to generate level in
  * @param origin Starting location (x tile coord)
  * @param length Length of flat region
  */
-void generate_flat_region(struct Game& game, int origin, int length)
+void generate_flat_region(Game& game, int origin, int length)
 {
 	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
@@ -169,11 +169,11 @@ void generate_flat_region(struct Game& game, int origin, int length)
 /**
  * @brief Generates an obstacle and returns the length of the obstacle
  * 
- * @param game Game struct to generate obstacle in
+ * @param game Game to generate obstacle in
  * @param origin Beginning location of obstacle
  * @return int Obstacle width
  */
-int generate_obstacle(struct Game& game, int origin)
+int generate_obstacle(Game& game, int origin)
 {
 	int width, height, do_pipe;
 
@@ -195,7 +195,7 @@ int generate_obstacle(struct Game& game, int origin)
  * @param ground The y coord to start the floor at
  * @param length length of floor
  */
-void insert_floor(struct Game& game, int origin, int ground, int length)
+void insert_floor(Game& game, int origin, int ground, int length)
 {
 	int x, y, val;
 	for (x = origin; x < origin + length; x++) {
@@ -214,13 +214,13 @@ void insert_floor(struct Game& game, int origin, int ground, int length)
 /**
  * @brief Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
  * 
- * @param game Game structure to insert platform in
+ * @param game Game obj to insert platform in
  * @param origin X tile location to insert platform
  * @param height Height above ground platform should be inserted
  * @param length Length of platform
  * @param type Tile type of platform
  */
-void insert_platform(struct Game& game, int origin, int height, int length, int type)
+void insert_platform(Game& game, int origin, int height, int length, int type)
 {
 	int x, base;
 
@@ -234,12 +234,12 @@ void insert_platform(struct Game& game, int origin, int height, int length, int 
 /**
  * @brief Insert a platform at 'origin', 'height' tiles above the ground, 'length' tiles long and of type 'type'
  * 
- * @param game Game structure to insert platform in
+ * @param game Game obj to insert platform in
  * @param origin X tile location to insert tee
  * @param height Height above ground platform should be inserted
  * @param length Length of platform
  */
-void insert_tee(struct Game& game, int origin, int height, int length)
+void insert_tee(Game& game, int origin, int height, int length)
 {
 	int y, top;
 	top = GROUND_HEIGHT - height;
@@ -258,7 +258,7 @@ void insert_tee(struct Game& game, int origin, int height, int length)
  * @param origin X tile coordinate
  * @param width Width of hole
  */
-void create_hole(struct Game& game, int origin, int width)
+void create_hole(Game& game, int origin, int width)
 {
 	int x, y;
 	for (x = origin; x < origin + width; x++) {
@@ -276,7 +276,7 @@ void create_hole(struct Game& game, int origin, int width)
  * @param width Width of gap in pipe
  * @param height height of hole opening above the ground
  */
-void create_pipe(struct Game& game, int origin, int width, int height)
+void create_pipe(Game& game, int origin, int width, int height)
 {
 	int y;
 
@@ -306,13 +306,13 @@ void create_pipe(struct Game& game, int origin, int width, int height)
  *        'width' describes the width of the gap
  *        If 'do_pipe' is true, 'width' will be set to next greatest odd if even
  * 
- * @param game Game struct to insert stair gap in
+ * @param game Game to insert stair gap in
  * @param origin X tile cooordinate of gap
  * @param height Height of stairs
  * @param width Width of gap
  * @param do_pipe Insert pipe on true 
  */
-void create_stair_gap(struct Game& game, int origin, int height, int width, int do_pipe)
+void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe)
 {
 	int x, y;
 
@@ -361,7 +361,7 @@ void create_stair_gap(struct Game& game, int origin, int height, int width, int 
  * @param y Y tile coord
  * @param val Value to set tile to
  */
-void set_tile(struct Game& game, int x, int y, unsigned char val)
+void set_tile(Game& game, int x, int y, unsigned char val)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
 		return;
@@ -370,11 +370,11 @@ void set_tile(struct Game& game, int x, int y, unsigned char val)
 }
 
 /**
- * @brief Clear all tiles from level and set enemies to 0
+ * @brief Clear all tiles from level
  * 
  * @param game Game to clear
  */
-void levelgen_clear_level(struct Game& game)
+void levelgen_clear_level(Game& game)
 {
 	int x, y;
 	for (x = 0; x < LEVEL_WIDTH; x++) {

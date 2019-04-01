@@ -14,20 +14,20 @@
 #define GAME_RESET 2
 #define GAME_NEW   3
 
-void reset_game(struct Game& game, struct Player& player, unsigned int seed);
+void reset_game(Game& game, Player& player, unsigned int seed);
 int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overlay);
 
 int main(int argc, char **argv)
 {
-    struct Params params = {IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE};
+    Params params;
 	bool draw_overlay, replay_ai;
 	int opt, ret;
 	float *input_tiles = NULL;
 	float *node_outputs = NULL;
-	struct Chromosome chrom;
+	Chromosome chrom;
 	unsigned int seed;
-	struct Game game;
-	struct Player player;
+	Game game;
+	Player player;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Color bg_color(135, 206, 235);
 
@@ -61,7 +61,6 @@ int main(int argc, char **argv)
 	window.setVerticalSyncEnabled(true);
 		
 	game_setup(game, seed);
-	player_setup(player);
 	render_load_assets();
 	render_gen_map(game);
 
@@ -138,17 +137,17 @@ int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overla
 			case sf::Keyboard::Up:
 			case sf::Keyboard::Space:
 			case sf::Keyboard::W:
-				player.buttons[JUMP] = is_pressed;
+				player.jump = is_pressed;
 				break;
 			// Left
 			case sf::Keyboard::Left:
 			case sf::Keyboard::A:
-				player.buttons[LEFT] = is_pressed;
+				player.left = is_pressed;
 				break;
 			// Right
 			case sf::Keyboard::Right:
 			case sf::Keyboard::D:
-				player.buttons[RIGHT] = is_pressed;
+				player.right = is_pressed;
 				break;
 			case sf::Keyboard::Escape:
 				return GAME_EXIT;
@@ -179,9 +178,9 @@ int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overla
 	return 0;
 }
 
-void reset_game(struct Game& game, struct Player& player, unsigned int seed)
+void reset_game(Game& game, Player& player, unsigned int seed)
 {
 	game_setup(game, seed);
-	player_setup(player);
+	player.reset();
 	render_gen_map(game);
 }

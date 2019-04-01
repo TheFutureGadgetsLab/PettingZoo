@@ -25,7 +25,7 @@ float gen_random_weight(unsigned int *seedp);
  * @param hlc Hidden layer count
  * @param npl Nodes per layer
  */
-void initialize_chromosome(struct Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl)
+void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl)
 {
     chrom->in_h = in_h;
     chrom->in_w = in_w;
@@ -46,7 +46,7 @@ void initialize_chromosome(struct Chromosome *chrom, uint8_t in_w, uint8_t in_h,
  * 
  * @param chrom chromsome to free
  */
-void free_chromosome(struct Chromosome *chrom)
+void free_chromosome(Chromosome *chrom)
 {
     free(chrom->input_adj);
     free(chrom->hidden_adj);
@@ -59,7 +59,7 @@ void free_chromosome(struct Chromosome *chrom)
  * @param chrom Chromosome to store weights in
  * @param seed used to seed random number generator
  */
-void generate_chromosome(struct Chromosome *chrom, unsigned int seed)
+void generate_chromosome(Chromosome *chrom, unsigned int seed)
 {
     uint8_t *cur_uint;
     float *cur_float;
@@ -103,7 +103,7 @@ void generate_chromosome(struct Chromosome *chrom, unsigned int seed)
  * 
  * @param chrom the chromsome to print the properties of
  */
-void print_chromosome(struct Chromosome *chrom)
+void print_chromosome(Chromosome *chrom)
 {
     printf("-------------------------------------------\n");
     uint8_t *cur_uint;
@@ -176,7 +176,7 @@ float gen_random_weight(unsigned int *seedp)
  * @param chrom the chromosome to write to disk from
  * @param level_seed the seed of the level, which will be written along with the chromosome data
  */
-void write_out_chromosome(char *fname, struct Chromosome *chrom, unsigned int level_seed)
+void write_out_chromosome(char *fname, Chromosome *chrom, unsigned int level_seed)
 {
     FILE *file = fopen(fname, "wb");
 
@@ -200,10 +200,10 @@ void write_out_chromosome(char *fname, struct Chromosome *chrom, unsigned int le
  * @brief Extracts chromosome from file. IT WILL BE INITIALIZED FOR YOU
  * 
  * @param fname name of file chromosome is stored in
- * @param chrom chromosome structure to fill
+ * @param chrom chromosome obj to fill
  * @return unsigned int 
  */
-unsigned int extract_from_file(const char *fname, struct Chromosome *chrom)
+unsigned int extract_from_file(const char *fname, Chromosome *chrom)
 {
     FILE *file = NULL;
     struct stat st;

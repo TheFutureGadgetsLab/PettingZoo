@@ -1,33 +1,21 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-// Default NN parameters
-#define IN_H                  12
-#define IN_W                  12
-#define HLC                   2
-#define NPL                   128
-#define GEN_SIZE              100
-#define GENERATIONS           1
-#define MUTATE_RATE           0.001f
-
-struct Params {
-    int in_h;
-    int in_w;
-    int hlc;
-    int npl;
-    int gen_size;
-    int generations;
-    float mutate_rate;
+// Genetic/NN run parameters
+class Params {
+    public:
+    int in_h = 12;
+    int in_w = 12;
+    int hlc = 2;
+    int npl = 128;
+    int gen_size = 100;
+    int generations = 1;
+    float mutate_rate = 0.001f;
 };
 
 // Time in seconds until NN is considered timedout
 // based on fitness change
 #define AGENT_FITNESS_TIMEOUT (UPDATES_PS * 6)
-
-// Enemies
-#define ENABLE_ENEMIES  false
-#define JUMPING_ENEMIES false
-#define MAX_ENEMIES 0
 
 // Button parameters
 #define BUTTON_COUNT 3

@@ -16,7 +16,7 @@
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int chance_gen(float percent);
-void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params& params);
+void single_point_breed(Chromosome *parentA, Chromosome *parentB, Chromosome *childA, Chromosome *childB, Params& params);
 void mutate(float *data, size_t length, float mutate_rate);
 
 /**
@@ -27,7 +27,7 @@ void mutate(float *data, size_t length, float mutate_rate);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(struct Game& game, struct Player *players, struct Chromosome *generation, struct Params& params)
+void run_generation(Game& game, Player *players, Chromosome *generation, Params& params)
 {
     int g;
     int ret;
@@ -101,16 +101,16 @@ void run_generation(struct Game& game, struct Player *players, struct Chromosome
  *        have been selected the first is bred with the second, second with the third, and so on (the first is
  *        also bred with the last to ensure each chrom breeds twice).
  * 
- * @param players Player structures that hold the fitnesses
+ * @param players Player obj that hold the fitnesses
  * @param generation Generation that has been evaluated
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(struct Player *players, struct Chromosome *generation, struct Chromosome *new_generation, struct Params& params)
+void select_and_breed(Player *players, Chromosome *generation, Chromosome *new_generation, Params& params)
 {
     int game;
     float best, sum;
-    struct Chromosome *survivors[params.gen_size / 2];
+    Chromosome *survivors[params.gen_size / 2];
     int n_survivors = 0;
 
     //Find the worst and best score
@@ -147,9 +147,9 @@ void select_and_breed(struct Player *players, struct Chromosome *generation, str
  * @param parentB The chromosome to breed with
  * @param childA Pointer to memory where child A will be held
  * @param childB Pointer to memory where child B will be held
- * @param params The run parameters struct
+ * @param params The run parameters obj
  */
-void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params& params)
+void single_point_breed(Chromosome *parentA, Chromosome *parentB, Chromosome *childA, Chromosome *childB, Params& params)
 {
     int split_loc, hl;
 
@@ -239,10 +239,10 @@ void mutate(float *data, size_t length, float mutate_rate)
  * @param quiet Function will print if this is 0
  * @param write_winner Will write out the winner chromosome if 1
  * @param generation The generation number
- * @param params The parameters struct
+ * @param params The parameters obj
  */
-void get_gen_stats(char *dirname, struct Game& game, struct Player *players, 
-    struct Chromosome *chroms, int quiet, int write_winner, int generation, struct Params& params)
+void get_gen_stats(char *dirname, Game& game, Player *players, 
+    Chromosome *chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int g, completed, timedout, died, best_index;
     float max, min, avg;
@@ -304,9 +304,9 @@ void get_gen_stats(char *dirname, struct Game& game, struct Player *players,
  * 
  * @param dirname The directory name
  * @param seed The game seed
- * @param params The parameters structure
+ * @param params The parameters obj
  */
-void create_output_dir(char *dirname, unsigned int seed, struct Params& params)
+void create_output_dir(char *dirname, unsigned int seed, Params& params)
 {
     FILE* out_file;
     char name[4069];

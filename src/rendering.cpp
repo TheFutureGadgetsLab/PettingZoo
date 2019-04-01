@@ -185,10 +185,10 @@ void render_gen_map(Game& game) {
 }
 
 /**
- * @brief Render all entities (player, enemies)
+ * @brief Render all entities (player)
  * 
  * @param window The SFML window object
- * @param game The game struct
+ * @param game The game obj
  * @param player The player
  */
 void render_entities(sf::RenderWindow &window, Game& game, Player player) {
@@ -200,8 +200,8 @@ void render_entities(sf::RenderWindow &window, Game& game, Player player) {
  * @brief Render the debug information overlay
  * 
  * @param window The SFML window object
- * @param game The game struct
- * @param player The player struct
+ * @param game The game obj
+ * @param player The player obj
  */
 void render_debug_overlay(sf::RenderWindow &window, Game& game, Player player) {
 	char overlay_text[512];
@@ -277,17 +277,16 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
  * @brief Render the HUD
  * 
  * @param window SFML window object
- * @param player The player structure
- * @param input Player inputs
+ * @param player The player obj
  */
 void render_hud(sf::RenderWindow &window, Player player) {
 	char score_text[128];
 
 	sprintf(score_text, "Score: %05d\nFitness: %0.2lf\nTime: %0.1lf\n%s %s %s",
 	player.score, player.fitness, player.time,
-	(player.buttons[LEFT] > 0) ? "Left" : "     ",
-	(player.buttons[RIGHT] > 0) ? "Right" : "     ",
-	(player.buttons[JUMP] > 0) ? "JUMP" : "");
+	(player.left > 0) ? "Left" : "     ",
+	(player.right > 0) ? "Right" : "     ",
+	(player.jump > 0) ? "JUMP" : "");
 
 	score.setString(score_text);
 	score.setPosition({game_view.center.x, game_view.corner.y + 10});
@@ -298,8 +297,8 @@ void render_hud(sf::RenderWindow &window, Player player) {
  * @brief Render everything
  * 
  * @param window SFML window
- * @param game The game struct
- * @param player The player struct
+ * @param game The game obj
+ * @param player The player obj
  */
 void render_draw_state(sf::RenderWindow &window, Game& game, Player player) {
 	render_other(window);

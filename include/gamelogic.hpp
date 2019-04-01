@@ -41,30 +41,35 @@
 // Body that physics can be applied to
 class Body {
 	public:
-	float px, py; // Position X, Y coord
-	float vx, vy; // Velocity X, Y val
+	float px, py;       // Position X, Y coord
+	float vx, vy;       // Velocity X, Y val
 	int tile_x, tile_y; // Tile X, Y coord
 	bool canjump, isjump, standing;
+
+	Body();
+	void reset();
 };
 
-// Player structure
+// Player class
 class Player {
 	public:
 	Body body;
-	uint8_t buttons[BUTTON_COUNT];
+	uint8_t left, right, jump;
 	float time, fitness;
 	int score, buttonpresses, death_type;
+
+	Player();
+	void reset();
 };
 
-// Game structure
-struct Game {
-	unsigned int seed;
-	unsigned int seed_state;
+// Game class
+class Game {
+	public:
+	unsigned int seed, seed_state;
 	uint8_t tiles[LEVEL_SIZE];
 };
 
 void game_setup(Game& game, unsigned int seed);
-void player_setup(Player& player);
 int game_update(Game& game, Player& player);
 void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w);
 

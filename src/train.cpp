@@ -12,7 +12,7 @@
 int main(int argc, char **argv)
 {
     // Default global parameters
-    struct Params params = {IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE};
+    Params params;
     int opt;
     char *dir_name = NULL;
  
@@ -50,21 +50,21 @@ int main(int argc, char **argv)
         case 'h':
         default: /* '?' */
             printf("Usage: %s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
-            printf("  -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", IN_H);
-            printf("  -l    Number of hidden layers in the neural networks (default %d)\n", HLC);
-            printf("  -n    Nodes in each hidden layer (default %d)\n", NPL);
-            printf("  -c    Number of chromosomes in each generation (default %d)\n", GEN_SIZE);
-            printf("  -g    Number of generations to run (default %d)\n", GENERATIONS);            
-            printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", MUTATE_RATE);
+            printf("  -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", params.in_h);
+            printf("  -l    Number of hidden layers in the neural networks (default %d)\n",  params.hlc);
+            printf("  -n    Nodes in each hidden layer (default %d)\n", params.npl);
+            printf("  -c    Number of chromosomes in each generation (default %d)\n", params.gen_size);
+            printf("  -g    Number of generations to run (default %d)\n", params.generations);            
+            printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", params.mutate_rate);
             printf("  -o    Output directory name\n");
             return 0;
         }
     }
 
-    struct Game game;
-    struct Player *players;
-    struct Chromosome genA[params.gen_size], genB[params.gen_size];
-    struct Chromosome *cur_gen, *next_gen, *tmp;
+    Game game;
+    Player *players;
+    Chromosome genA[params.gen_size], genB[params.gen_size];
+    Chromosome *cur_gen, *next_gen, *tmp;
     int gen, g;
     unsigned int seed, level_seed;
 
@@ -80,8 +80,8 @@ int main(int argc, char **argv)
     }
     create_output_dir(dir_name, seed, params);
 
-    // Arrays for game and player structures
-    players = (struct Player *)malloc(sizeof(struct Player) * params.gen_size);
+    // Arrays for game and player objs
+    players = (Player *)malloc(sizeof(Player) * params.gen_size);
 
     printf("Running with %d chromosomes for %d generations\n", params.gen_size, params.generations);
     printf("Chromosome stats:\n");
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         // Generate seed for this gens levels and generate them
         game_setup(game, level_seed);
         for (g = 0; g < params.gen_size; g++) {
-            player_setup(players[g]);
+            players[g].reset();
         }
 
         run_generation(game, players, cur_gen, params);

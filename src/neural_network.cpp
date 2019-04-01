@@ -14,9 +14,9 @@
 #include <math.h>
 #include <gamelogic.hpp>
 
-void calc_first_layer(struct Chromosome& chrom, float *inputs, float *node_outputs);
-void calc_hidden_layers(struct Chromosome& chrom, float *node_outputs);
-void calc_output(struct Chromosome& chrom, float *node_outputs, float *network_outputs);
+void calc_first_layer(Chromosome& chrom, float *inputs, float *node_outputs);
+void calc_hidden_layers(Chromosome& chrom, float *node_outputs);
+void calc_output(Chromosome& chrom, float *node_outputs, float *network_outputs);
 
 // Activation functions
 float sigmoid(float x);
@@ -28,15 +28,15 @@ float tanh_bounded(float x);
 /**
  * @brief Evaluates a single frame of the game with the given chromosome
  * 
- * @param game The game struct
- * @param player The player struct that this chromosome will be controlling
+ * @param game The game obj
+ * @param player The player that this chromosome will be controlling
  * @param chrom The chromosome
  * @param buttons The button presses the chromosome outputs will be placed here
  * @param tiles The game tiles
  * @param node_outputs The node outputs
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& chrom, float *tiles, float *node_outputs)
+int evaluate_frame(Game& game, Player& player, Chromosome& chrom, float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
 
@@ -47,9 +47,9 @@ int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& 
     calc_output(chrom, node_outputs, network_outputs);
 
     // Assign button presses based on output probability
-    player.buttons[RIGHT] = network_outputs[RIGHT] > 0.0f;
-    player.buttons[LEFT] = network_outputs[LEFT] > 0.0f;
-    player.buttons[JUMP] = network_outputs[JUMP] > 0.0f;
+    player.right = network_outputs[RIGHT] > 0.0f;
+    player.left = network_outputs[LEFT] > 0.0f;
+    player.jump = network_outputs[JUMP] > 0.0f;
 
     return 0;
 }
@@ -61,7 +61,7 @@ int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& 
  * @param inputs Input tiles for network
  * @param node_outputs Where to store node outputs
  */
-void calc_first_layer(struct Chromosome& chrom, float *inputs, float *node_outputs)
+void calc_first_layer(Chromosome& chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
     float sum;
@@ -85,7 +85,7 @@ void calc_first_layer(struct Chromosome& chrom, float *inputs, float *node_outpu
  * @param chrom The chromosome being simulated
  * @param node_outs Outputs for the nodes
  */
-void calc_hidden_layers(struct Chromosome& chrom, float *node_outs)
+void calc_hidden_layers(Chromosome& chrom, float *node_outs)
 {
     int node, weight, layer, cur_node;
     float sum;
@@ -117,7 +117,7 @@ void calc_hidden_layers(struct Chromosome& chrom, float *node_outs)
  * @param node_outs Outputs from previous layer
  * @param net_outs Where to store network outputs
  */
-void calc_output(struct Chromosome& chrom, float *node_outs, float *net_outs)
+void calc_output(Chromosome& chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
     float sum;

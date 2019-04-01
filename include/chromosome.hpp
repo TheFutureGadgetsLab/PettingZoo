@@ -1,7 +1,7 @@
 /**
  * @file chromosome.hpp
  * @author Haydn Jones, Benjamin Mastripolito
- * @brief Holds chromosome function defs and structures
+ * @brief Holds chromosome function defs and class
  * @date 2018-12-06
  */
 #ifndef CHROMOSOME_H
@@ -10,7 +10,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-struct Chromosome {
+class Chromosome {
+    public:
     float *input_adj;  // Adjacency matrix describing input layer to first hidden layer
     float *hidden_adj; // Adjacency matrix describing the hidden layers
     float *out_adj;    // Adjacency matrix describing last hidden layer to the output nodes
@@ -26,12 +27,12 @@ struct Chromosome {
     uint8_t hlc;  // Number of hidden layers
 };
 
-void free_chromosome(struct Chromosome *chrom);
-void initialize_chromosome(struct Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl);
-void generate_chromosome(struct Chromosome *chrom, unsigned int seed);
-void print_chromosome(struct Chromosome *chrom);
-void write_out_chromosome(char *fname, struct Chromosome *chrom, unsigned int level_seed);
-unsigned int extract_from_file(const char *fname, struct Chromosome *chrom);
+void free_chromosome(Chromosome *chrom);
+void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl);
+void generate_chromosome(Chromosome *chrom, unsigned int seed);
+void print_chromosome(Chromosome *chrom);
+void write_out_chromosome(char *fname, Chromosome *chrom, unsigned int level_seed);
+unsigned int extract_from_file(const char *fname, Chromosome *chrom);
 
 /*
 

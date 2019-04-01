@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <math.h>
 
-int tile_at(struct Game& game, int x, int y);
-bool tile_solid(struct Game& game, int x, int y);
-int physics_sim(struct Game& game, struct Body& body, bool jump);
+int tile_at(Game& game, int x, int y);
+bool tile_solid(Game& game, int x, int y);
+int physics_sim(Game& game, Body& body, bool jump);
 float dist(float x1, float y1, float x2, float y2);
 
 /**
@@ -22,42 +22,21 @@ float dist(float x1, float y1, float x2, float y2);
  * @param game The game to reset
  * @param seed The seed to generate the new level from
  */
-void game_setup(struct Game& game, unsigned int seed)
+void game_setup(Game& game, unsigned int seed)
 {
 	levelgen_clear_level(game);
 	levelgen_gen_map(game, seed);
 }
 
 /**
- * @brief Initializes / resets player structure
- * 
- * @param player The player to initialize
- */
-void player_setup(struct Player& player) {
-	player.body.px = SPAWN_X * TILE_SIZE;
-	player.body.py = SPAWN_Y * TILE_SIZE;
-	player.body.vx = 0;
-	player.body.vy = 0;
-	player.body.tile_x = player.body.px / TILE_SIZE;
-	player.body.tile_y = player.body.py / TILE_SIZE;
-	player.body.canjump = false;
-	player.body.isjump = false;
-	player.body.standing = false;
-	player.score = 0;
-	player.fitness = 0;
-	player.time = 0;
-	player.buttonpresses = 0;
-}
-
-/**
  * @brief Update a single frame of the game, simulating physics
  * 
- * @param game The game structure we are operating on
+ * @param game The game obj we are operating on
  * @param player The player playing the level
  * @param input Button controls for the player
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int game_update(struct Game& game, struct Player& player)
+int game_update(Game& game, Player& player)
 {
 	int return_value = 0;
 
@@ -71,14 +50,14 @@ int game_update(struct Game& game, struct Player& player)
 	}
 	
 	// Left and right button press
-	player.body.vx += (V_X - player.body.vx) * player.buttons[RIGHT];
-	player.body.vx += (-V_X - player.body.vx) * player.buttons[LEFT];
+	player.body.vx += (V_X - player.body.vx) * player.right;
+	player.body.vx += (-V_X - player.body.vx) * player.left;
 
 	// Button presses
-	player.buttonpresses += player.buttons[JUMP] + player.buttons[LEFT] + player.buttons[RIGHT];
+	player.buttonpresses += player.jump + player.left + player.right;
 
 	// Physics sim for player
-	return_value = physics_sim(game, player.body, player.buttons[JUMP]);
+	return_value = physics_sim(game, player.body, player.jump);
 	if (return_value == PLAYER_DEAD) {
 		player.death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;
@@ -115,7 +94,7 @@ int game_update(struct Game& game, struct Player& player)
  * @param jump Whether or not the body is attempting to jump
  * @return int If player died or collided with something on the left/right
  */
-int physics_sim(struct Game& game, struct Body& body, bool jump)
+int physics_sim(Game& game, Body& body, bool jump)
 {
 	int return_value = 0;
 
@@ -212,7 +191,7 @@ int physics_sim(struct Game& game, struct Body& body, bool jump)
  * @param y Y tile coordinate
  * @return int Tile value
  */
-int tile_at(struct Game& game, int x, int y)
+int tile_at(Game& game, int x, int y)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT)
 		return 0;
@@ -227,7 +206,7 @@ int tile_at(struct Game& game, int x, int y)
  * @param y Tile position y
  * @return bool 
  */
-bool tile_solid(struct Game& game, int x, int y)
+bool tile_solid(Game& game, int x, int y)
 {
 	int tile = tile_at(game, x, y);
 	switch(tile) {
@@ -263,7 +242,7 @@ float dist(float x1, float y1, float x2, float y2)
  * @param in_h Height of the chromsome input matrix
  * @param in_w Width of the chromsome input matrix
  */
-void get_input_tiles(struct Game& game, struct Player& player, float *tiles, uint8_t in_h, uint8_t in_w)
+void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w)
 {
 	int tile_x1, tile_y1;
 	int tile_x2, tile_y2;
@@ -322,4 +301,55 @@ void get_input_tiles(struct Game& game, struct Player& player, float *tiles, uin
 			tmp++;
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////
+//
+//                  Player Class
+//
+///////////////////////////////////////////////////////////////
+Player::Player()
+{
+	reset();
+	printf("Called constructor!\n");
+}
+
+void Player::reset()
+{
+	body.reset();
+
+	left = 0;
+	right = 0;
+	jump = 0;
+
+	score = 0;
+	fitness = 0;
+	time = 0;
+	buttonpresses = 0;
+}
+
+///////////////////////////////////////////////////////////////
+//
+//                  Body Class
+//
+///////////////////////////////////////////////////////////////
+Body::Body()
+{
+	reset();
+}
+
+void Body::reset()
+{
+	px = SPAWN_X * TILE_SIZE;
+	py = SPAWN_Y * TILE_SIZE;
+
+	vx = 0;
+	vy = 0;
+	
+	tile_x = px / TILE_SIZE;
+	tile_y = py / TILE_SIZE;
+	
+	canjump = false;
+	isjump = false;
+	standing = false;
 }
