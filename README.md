@@ -1,5 +1,5 @@
 # Petting Zoo
-Implementation of a genetic algorithm learning to play a platformer.
+Multithreaded implementation of a genetic algorithm learning to play a platformer.
 
 ## Game
 The game is a simple platformer.
@@ -8,7 +8,8 @@ The game is a simple platformer.
 Evolution, Neural Networks, Stuff.
 
 ## Installation and Requirements
-SFML must be installed to build, however, SFML is only required to watch a chromosome play.
+SFML and OpenMP must be installed to build, however, SFML is only required to watch a chromosome play. Not really sure why you would want to train and not watch though.
+
 Here are some sample build instructions:
 
 ```

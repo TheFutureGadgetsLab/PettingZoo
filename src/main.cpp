@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 	bool draw_overlay, replay_ai;
 	int opt, ret;
 	uint8_t inputs[BUTTON_COUNT] = {0};
-	uint8_t buttons;
 	float *input_tiles = NULL;
 	float *node_outputs = NULL;
 	struct Chromosome chrom;
@@ -84,16 +83,12 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		//Get buttons and update game state
+		//Get buttons if replaying NN
 		if (replay_ai) {
-			ret = evaluate_frame(&game, &player, &chrom, &buttons, input_tiles, node_outputs);
-
-			inputs[BUTTON_RIGHT] = RIGHT(buttons);
-			inputs[BUTTON_LEFT] =  LEFT(buttons);
-			inputs[BUTTON_JUMP] = JUMP(buttons);
-		} else {
-			ret = game_update(&game, &player, inputs);
+			evaluate_frame(&game, &player, &chrom, inputs, input_tiles, node_outputs);
 		}
+
+		ret = game_update(&game, &player, inputs);
 
 		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
 			if (ret == PLAYER_DEAD)
