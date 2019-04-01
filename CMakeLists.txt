@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9.0)
 project(pettingzoo LANGUAGES CXX)
 
+find_package(OpenMP)
+
 include_directories(include)
 
 # Set march
@@ -41,6 +43,7 @@ target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
+target_link_libraries(pettingzoo OpenMP::OpenMP_CXX)
 
 ###############################################################
 #
@@ -60,6 +63,7 @@ add_executable(
 
 # Link libraries
 target_link_libraries(train m)
+target_link_libraries(train OpenMP::OpenMP_CXX)
 
 ###############################################################
 #

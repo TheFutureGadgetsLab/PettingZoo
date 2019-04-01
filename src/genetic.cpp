@@ -29,23 +29,22 @@ void mutate(float *data, size_t length, float mutate_rate);
  */
 void run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params)
 {
-    int g, ret;
-    float *input_tiles;
-    float *node_outputs;
+    int g;
+    int ret;
+    float *input_tiles, *node_outputs;
     int fitness_idle_updates;
     float max_fitness;
     uint8_t buttons[BUTTON_COUNT];
     bool playerNeedsUpdate;
-    int playerLastTileX = 0;
-    int playerLastTileY = 0;
-
-    input_tiles = (float *)malloc(sizeof(float) * params->in_w * params->in_h);
-    node_outputs = (float *)malloc(sizeof(float) * params->npl * params->hlc);
+    int playerLastTileX, playerLastTileY;
 
     // Loop over the entire generation
+    #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, buttons, playerNeedsUpdate, playerLastTileX, playerLastTileY)
     for (g = 0; g < params->gen_size; g++) {
-        printf("\33[2K\r%d/%d", g, params->gen_size); // Clears line, moves cursor to the beginning
-        fflush(stdout);
+        input_tiles = (float *)malloc(sizeof(float) * params->in_w * params->in_h);
+        node_outputs = (float *)malloc(sizeof(float) * params->npl * params->hlc);
+        // printf("\33[2K\r%d/%d", g, params->gen_size); // Clears line, moves cursor to the beginning
+        // fflush(stdout);
 
         fitness_idle_updates = 0;
         max_fitness = -1.0f;
@@ -88,14 +87,13 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
                 break;
         }
+        free(input_tiles);
+        free(node_outputs);
     }
 
     // Clear line so progress indicator is removed
     printf("\33[2K\r");
     fflush(stdout);
-
-    free(input_tiles);
-    free(node_outputs);
 }
 
 /**
