@@ -63,7 +63,6 @@ struct Player {
 
 // Game structure
 struct Game {
-	unsigned int n_enemies;
 	unsigned int seed;
 	unsigned int seed_state;
 	uint8_t tiles[LEVEL_SIZE];

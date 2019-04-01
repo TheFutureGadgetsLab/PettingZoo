@@ -159,7 +159,6 @@ void render_load_assets() {
 	load_sprite(LAMP, "../assets/lamp.png", false);
 	load_sprite(BG, "../assets/bg.png", true);
 	load_sprite(GRID, "../assets/grid.png", false);
-	load_sprite(ENEMY, "../assets/enemy.png", false);
 
 	// Text / Font
 	font.loadFromFile("../assets/Vera.ttf");

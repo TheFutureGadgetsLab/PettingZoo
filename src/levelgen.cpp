@@ -50,10 +50,6 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 
 			generate_flat_region(game, x, length);
 
-			if (chance(&game->seed_state, 75)) {
-				insert_enemy(game, x + (length / 2), GROUND_HEIGHT - 4, ENEMY);
-			}
-
 			x += length;
 			flat_region = 0;
 		} else {
@@ -256,19 +252,6 @@ void insert_tee(struct Game *game, int origin, int height, int length)
 }
 
 /**
- * @brief Insert enemy at location (x, y)
- * 
- * @param game Game to insert enemy in
- * @param x X tile coord
- * @param y Y tile coord
- * @param type Type of enemy
- */
-void insert_enemy(struct Game *game, int x, int y, int type)
-{
-	return;
-}
-
-/**
  * @brief Create hole at origin
  * 
  * @param game Game to insert hole on
@@ -399,7 +382,6 @@ void levelgen_clear_level(struct Game *game)
 			set_tile(game, x, y, EMPTY);
 		}
 	}
-	game->n_enemies = 0;
 }
 
 /**

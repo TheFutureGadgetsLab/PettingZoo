@@ -43,10 +43,9 @@ struct Params {
 #define LEVEL_PIXEL_HEIGHT (LEVEL_HEIGHT * TILE_SIZE)
 #define LEVEL_SIZE (LEVEL_HEIGHT * LEVEL_WIDTH)
 
-#define ENEMY         0
-#define BG            1
-#define GRID          2
-#define LAMP          3
+#define BG            0
+#define GRID          1
+#define LAMP          2
 
 #define INPUT_SIZE    16
 
