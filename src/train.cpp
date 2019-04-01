@@ -78,7 +78,7 @@ int main(int argc, char **argv)
         printf("Output directory is required!\n");
         exit(EXIT_FAILURE);
     }
-    create_output_dir(dir_name, seed, &params);
+    create_output_dir(dir_name, seed, params);
 
     // Arrays for game and player structures
     players = (struct Player *)malloc(sizeof(struct Player) * params.gen_size);
@@ -107,18 +107,18 @@ int main(int argc, char **argv)
         printf("Running generation %d/%d\n", gen + 1, params.generations);
 
         // Generate seed for this gens levels and generate them
-        game_setup(&game, level_seed);
+        game_setup(game, level_seed);
         for (g = 0; g < params.gen_size; g++) {
-            player_setup(&players[g]);
+            player_setup(players[g]);
         }
 
-        run_generation(&game, players, cur_gen, &params);
+        run_generation(game, players, cur_gen, params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, &game, players, cur_gen, 0, 1, gen, &params);
+        get_gen_stats(dir_name, game, players, cur_gen, 0, 1, gen, params);
 
         // Usher in the new generation
-        select_and_breed(players, cur_gen, next_gen, &params);
+        select_and_breed(players, cur_gen, next_gen, params);
 
         // Point current gen to new chromosomes and next gen to old
         tmp = cur_gen;

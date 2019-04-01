@@ -14,15 +14,15 @@
 int randint(unsigned int *seedp, int max);
 int randrange(unsigned int *seedp, int min, int max);
 int choose(unsigned int *seedp, int nargs, ...);
-void set_tile(struct Game *game, int x, int y, unsigned char val);
-void create_hole(struct Game *game, int origin, int width);
-void create_pipe(struct Game *game, int origin, int width, int height);
-void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe);
-void generate_flat_region(struct Game *game, int origin, int length);
-void insert_floor(struct Game *game, int origin, int ground, int length);
-void insert_platform(struct Game *game, int origin, int height, int length, int type);
-void insert_tee(struct Game *game, int origin, int height, int length);
-int generate_obstacle(struct Game *game, int origin);
+void set_tile(struct Game& game, int x, int y, unsigned char val);
+void create_hole(struct Game& game, int origin, int width);
+void create_pipe(struct Game& game, int origin, int width, int height);
+void create_stair_gap(struct Game& game, int origin, int height, int width, int do_pipe);
+void generate_flat_region(struct Game& game, int origin, int length);
+void insert_floor(struct Game& game, int origin, int ground, int length);
+void insert_platform(struct Game& game, int origin, int height, int length, int type);
+void insert_tee(struct Game& game, int origin, int height, int length);
+int generate_obstacle(struct Game& game, int origin);
 
 /**
  * @brief Generate a new map from given seed
@@ -30,12 +30,12 @@ int generate_obstacle(struct Game *game, int origin);
  * @param game The game object to write the new tiles to
  * @param seed The game seed to generate the level with
  */
-void levelgen_gen_map(struct Game *game, unsigned int seed)
+void levelgen_gen_map(struct Game& game, unsigned int seed)
 {
 	int x, flat_region;
 
-	game->seed = seed;
-	game->seed_state = seed;
+	game.seed = seed;
+	game.seed_state = seed;
 
 	// Insert ground
 	insert_floor(game, 0, GROUND_HEIGHT, LEVEL_WIDTH);
@@ -43,7 +43,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 	flat_region = 1;
 	for (x = START_PLATLEN; x < LEVEL_WIDTH - 20; x++) {
 		if (flat_region) {
-			int length = randrange(&game->seed_state, 20, 50);
+			int length = randrange(&game.seed_state, 20, 50);
 
 			if (x + length >= LEVEL_WIDTH - START_PLATLEN)
 				length = (LEVEL_WIDTH - START_PLATLEN) - x;
@@ -61,7 +61,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
 
 	// Ending flag
 	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
-	game->seed_state = seed;
+	game.seed_state = seed;
 }
 
 /**
@@ -71,7 +71,7 @@ void levelgen_gen_map(struct Game *game, unsigned int seed)
  * @param origin Starting location (x tile coord)
  * @param length Length of flat region
  */
-void generate_flat_region(struct Game *game, int origin, int length)
+void generate_flat_region(struct Game& game, int origin, int length)
 {
 	int x, plat_len, height, stack_offset;
 	int base_plat = 0;
@@ -84,23 +84,23 @@ void generate_flat_region(struct Game *game, int origin, int length)
 	type = 0;
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
-		if (chance(&game->seed_state, 15)) {
-			plat_len = randrange(&game->seed_state, 3, 8);
+		if (chance(&game.seed_state, 15)) {
+			plat_len = randrange(&game.seed_state, 3, 8);
 			// Ensure platform doesnt extend past region
 			if (x + plat_len >= origin + length)
 				plat_len = origin + length - x - 1;
 
 			// Choose plat type with equal probability then set
 			// height coords based on type
-			type = BRICKS + randrange(&game->seed_state, 0, 2); // if rand returns 0 then bricks, 1 top spikes, 2 bottom spikes
+			type = BRICKS + randrange(&game.seed_state, 0, 2); // if rand returns 0 then bricks, 1 top spikes, 2 bottom spikes
 			if (type == BRICKS || type == SPIKES_TOP)
-				height = randrange(&game->seed_state, base_plat + 2, base_plat + 3);
+				height = randrange(&game.seed_state, base_plat + 2, base_plat + 3);
 			else // Bottom spikes can be higher
-				height = randrange(&game->seed_state, base_plat + 2, base_plat + 4);
+				height = randrange(&game.seed_state, base_plat + 2, base_plat + 4);
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (base_plat == 0 && type == BRICKS && chance(&game->seed_state, 75)) {
+				if (base_plat == 0 && type == BRICKS && chance(&game.seed_state, 75)) {
 					int t_platlen = plat_len;
 					if (t_platlen % 2 == 0)
 						t_platlen++;
@@ -153,8 +153,8 @@ void generate_flat_region(struct Game *game, int origin, int length)
 		// If height of prev. plat allows, or base_plat is not 0, and the plat is long enough
 		// Insert a hole
 		if ((height < 4 || base_plat != 0) && plat_len > 3 && allow_hole && (type != SPIKES_BOTTOM || base_plat != 0)) {
-			int hole_len = randrange(&game->seed_state, 2, 5);
-			int hole_origin = x + randrange(&game->seed_state, 0, plat_len - hole_len + 3);
+			int hole_len = randrange(&game.seed_state, 2, 5);
+			int hole_origin = x + randrange(&game.seed_state, 0, plat_len - hole_len + 3);
 
 			if (hole_origin + hole_len >= origin + length)
 				hole_len = origin + length - hole_origin - 1;
@@ -173,13 +173,13 @@ void generate_flat_region(struct Game *game, int origin, int length)
  * @param origin Beginning location of obstacle
  * @return int Obstacle width
  */
-int generate_obstacle(struct Game *game, int origin)
+int generate_obstacle(struct Game& game, int origin)
 {
 	int width, height, do_pipe;
 
-	width = randrange(&game->seed_state, 3, 7);
-	height = randrange(&game->seed_state, 3, 5);
-	do_pipe = chance(&game->seed_state, 50);
+	width = randrange(&game.seed_state, 3, 7);
+	height = randrange(&game.seed_state, 3, 5);
+	do_pipe = chance(&game.seed_state, 50);
 
 	create_stair_gap(game, origin, height, width, do_pipe);
 
@@ -195,7 +195,7 @@ int generate_obstacle(struct Game *game, int origin)
  * @param ground The y coord to start the floor at
  * @param length length of floor
  */
-void insert_floor(struct Game *game, int origin, int ground, int length)
+void insert_floor(struct Game& game, int origin, int ground, int length)
 {
 	int x, y, val;
 	for (x = origin; x < origin + length; x++) {
@@ -220,7 +220,7 @@ void insert_floor(struct Game *game, int origin, int ground, int length)
  * @param length Length of platform
  * @param type Tile type of platform
  */
-void insert_platform(struct Game *game, int origin, int height, int length, int type)
+void insert_platform(struct Game& game, int origin, int height, int length, int type)
 {
 	int x, base;
 
@@ -239,7 +239,7 @@ void insert_platform(struct Game *game, int origin, int height, int length, int 
  * @param height Height above ground platform should be inserted
  * @param length Length of platform
  */
-void insert_tee(struct Game *game, int origin, int height, int length)
+void insert_tee(struct Game& game, int origin, int height, int length)
 {
 	int y, top;
 	top = GROUND_HEIGHT - height;
@@ -258,7 +258,7 @@ void insert_tee(struct Game *game, int origin, int height, int length)
  * @param origin X tile coordinate
  * @param width Width of hole
  */
-void create_hole(struct Game *game, int origin, int width)
+void create_hole(struct Game& game, int origin, int width)
 {
 	int x, y;
 	for (x = origin; x < origin + width; x++) {
@@ -276,7 +276,7 @@ void create_hole(struct Game *game, int origin, int width)
  * @param width Width of gap in pipe
  * @param height height of hole opening above the ground
  */
-void create_pipe(struct Game *game, int origin, int width, int height)
+void create_pipe(struct Game& game, int origin, int width, int height)
 {
 	int y;
 
@@ -312,7 +312,7 @@ void create_pipe(struct Game *game, int origin, int width, int height)
  * @param width Width of gap
  * @param do_pipe Insert pipe on true 
  */
-void create_stair_gap(struct Game *game, int origin, int height, int width, int do_pipe)
+void create_stair_gap(struct Game& game, int origin, int height, int width, int do_pipe)
 {
 	int x, y;
 
@@ -335,8 +335,8 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
 	create_hole(game, origin, width);
 
 	if (do_pipe) {
-		int pipe_width = randrange(&game->seed_state, 2, 4);
-		int pipe_height = height + choose(&game->seed_state, (7), 0, 1, 1, 2, 2, 2, 3, 3, 3, 3) * choose(&game->seed_state, (2), 1, -1);
+		int pipe_width = randrange(&game.seed_state, 2, 4);
+		int pipe_height = height + choose(&game.seed_state, (7), 0, 1, 1, 2, 2, 2, 3, 3, 3, 3) * choose(&game.seed_state, (2), 1, -1);
 
 		create_pipe(game, origin + floor(width / 2), pipe_width, pipe_height);
 	}
@@ -361,12 +361,12 @@ void create_stair_gap(struct Game *game, int origin, int height, int width, int 
  * @param y Y tile coord
  * @param val Value to set tile to
  */
-void set_tile(struct Game *game, int x, int y, unsigned char val)
+void set_tile(struct Game& game, int x, int y, unsigned char val)
 {
 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
 		return;
 	}
-	game->tiles[y * LEVEL_WIDTH + x] = val;
+	game.tiles[y * LEVEL_WIDTH + x] = val;
 }
 
 /**
@@ -374,7 +374,7 @@ void set_tile(struct Game *game, int x, int y, unsigned char val)
  * 
  * @param game Game to clear
  */
-void levelgen_clear_level(struct Game *game)
+void levelgen_clear_level(struct Game& game)
 {
 	int x, y;
 	for (x = 0; x < LEVEL_WIDTH; x++) {

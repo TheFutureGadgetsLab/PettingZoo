@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.9.0)
 project(pettingzoo LANGUAGES CXX)
 
-find_package(OpenMP)
-
 include_directories(include)
+
+###############################################################
+#
+#                        Packages / Flags
+#
+###############################################################
+find_package(OpenMP)
 
 # Set march
 include(CheckCXXCompilerFlag)
@@ -47,7 +52,7 @@ target_link_libraries(pettingzoo OpenMP::OpenMP_CXX)
 
 ###############################################################
 #
-#                       CPU Training
+#                       Training
 #
 ###############################################################
 # Compile

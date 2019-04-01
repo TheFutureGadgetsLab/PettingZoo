@@ -14,9 +14,9 @@
 #include <math.h>
 #include <gamelogic.hpp>
 
-void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs);
-void calc_hidden_layers(struct Chromosome *chrom, float *node_outputs);
-void calc_output(struct Chromosome *chrom, float *node_outputs, float *network_outputs);
+void calc_first_layer(struct Chromosome& chrom, float *inputs, float *node_outputs);
+void calc_hidden_layers(struct Chromosome& chrom, float *node_outputs);
+void calc_output(struct Chromosome& chrom, float *node_outputs, float *network_outputs);
 
 // Activation functions
 float sigmoid(float x);
@@ -36,12 +36,11 @@ float tanh_bounded(float x);
  * @param node_outputs The node outputs
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *chrom, uint8_t buttons[BUTTON_COUNT], float *tiles, float *node_outputs)
+int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& chrom, uint8_t buttons[BUTTON_COUNT], float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
-    //uint8_t inputs[BUTTON_COUNT];
 
-    get_input_tiles(game, player, tiles, chrom->in_h, chrom->in_w);
+    get_input_tiles(game, player, tiles, chrom.in_h, chrom.in_w);
     
     calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);
@@ -63,18 +62,18 @@ int evaluate_frame(struct Game *game, struct Player *player, struct Chromosome *
  * @param inputs Input tiles for network
  * @param node_outputs Where to store node outputs
  */
-void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outputs)
+void calc_first_layer(struct Chromosome& chrom, float *inputs, float *node_outputs)
 {
     int node, weight;
     float sum;
 
     // Loop over nodes in the first hidden layer
-    for (node = 0; node < chrom->npl; node++) {
+    for (node = 0; node < chrom.npl; node++) {
         sum = 0.0f;
 
         // Calculate linear sum of outputs and weights
-        for (weight = 0; weight < chrom->in_h * chrom->in_w; weight++) {
-            sum += chrom->input_adj[node * chrom->in_h * chrom->in_w + weight] * inputs[weight];
+        for (weight = 0; weight < chrom.in_h * chrom.in_w; weight++) {
+            sum += chrom.input_adj[node * chrom.in_h * chrom.in_w + weight] * inputs[weight];
         }
 
         node_outputs[node] = softsign(sum);
@@ -87,24 +86,24 @@ void calc_first_layer(struct Chromosome *chrom, float *inputs, float *node_outpu
  * @param chrom The chromosome being simulated
  * @param node_outs Outputs for the nodes
  */
-void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
+void calc_hidden_layers(struct Chromosome& chrom, float *node_outs)
 {
     int node, weight, layer, cur_node;
     float sum;
     float *hidden_adj;
 
     // Loop over layers, beginning at 2nd (first is handled by calc_first_layer)
-    for (layer = 1; layer < chrom->hlc; layer++) {
+    for (layer = 1; layer < chrom.hlc; layer++) {
         // Grab the adjacency matrix for this layer
-        hidden_adj = chrom->hidden_adj + (layer - 1) * chrom->npl * chrom->npl;
+        hidden_adj = chrom.hidden_adj + (layer - 1) * chrom.npl * chrom.npl;
         // Loop over nodes in this layer
-        for (node = 0; node < chrom->npl; node++) {
+        for (node = 0; node < chrom.npl; node++) {
             sum = 0.0f;
-            cur_node = layer * chrom->npl + node;
+            cur_node = layer * chrom.npl + node;
 
             // Calculate linear sum of outputs and weights
-            for (weight = 0; weight < chrom->npl; weight++) {
-                sum += hidden_adj[node * chrom->npl + weight] * node_outs[(layer - 1) * chrom->npl + weight];
+            for (weight = 0; weight < chrom.npl; weight++) {
+                sum += hidden_adj[node * chrom.npl + weight] * node_outs[(layer - 1) * chrom.npl + weight];
             }
 
             node_outs[cur_node] = softsign(sum);
@@ -119,7 +118,7 @@ void calc_hidden_layers(struct Chromosome *chrom, float *node_outs)
  * @param node_outs Outputs from previous layer
  * @param net_outs Where to store network outputs
  */
-void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
+void calc_output(struct Chromosome& chrom, float *node_outs, float *net_outs)
 {
     int bttn, weight;
     float sum;
@@ -128,8 +127,8 @@ void calc_output(struct Chromosome *chrom, float *node_outs, float *net_outs)
     for (bttn = 0; bttn < BUTTON_COUNT; bttn++) {
         sum = 0.0f;
         // Linear sum
-        for (weight = 0; weight < chrom->npl; weight++) {
-            sum += chrom->out_adj[bttn * chrom->npl + weight] * node_outs[(chrom->hlc - 1) * chrom->npl + weight];
+        for (weight = 0; weight < chrom.npl; weight++) {
+            sum += chrom.out_adj[bttn * chrom.npl + weight] * node_outs[(chrom.hlc - 1) * chrom.npl + weight];
         }
 
         net_outs[bttn] = softsign(sum);

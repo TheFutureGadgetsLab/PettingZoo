@@ -39,26 +39,20 @@
 #define MAX_FRAMES (MAX_TIME * UPDATES_PS)
 
 // Body that physics can be applied to
-struct Body {
-	float px;
-	float py;
-	float vx;
-	float vy;
-	int tile_x;
-	int tile_y;
-	bool canjump;
-	bool isjump;
-	bool standing;
+class Body {
+	public:
+	float px, py; // Position X, Y coord
+	float vx, vy; // Velocity X, Y val
+	int tile_x, tile_y; // Tile X, Y coord
+	bool canjump, isjump, standing;
 };
 
 // Player structure
-struct Player {
-	struct Body body;
-	float time;
-	float fitness;
-	int score;
-	int buttonpresses;
-	int death_type;
+class Player {
+	public:
+	Body body;
+	float time, fitness;
+	int score, buttonpresses, death_type;
 };
 
 // Game structure
@@ -68,9 +62,9 @@ struct Game {
 	uint8_t tiles[LEVEL_SIZE];
 };
 
-void game_setup(struct Game *game, unsigned int seed);
-void player_setup(struct Player *player);
-int game_update(struct Game *game, struct Player *player, uint8_t input[BUTTON_COUNT]);
-void get_input_tiles(struct Game *game, struct Player *player, float *tiles, uint8_t in_h, uint8_t in_w);
+void game_setup(Game& game, unsigned int seed);
+void player_setup(Player& player);
+int game_update(Game& game, Player& player, uint8_t input[BUTTON_COUNT]);
+void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w);
 
 #endif

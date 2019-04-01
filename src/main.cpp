@@ -18,7 +18,7 @@
 #define GAME_RESET 2
 #define GAME_NEW   3
 
-void reset_game(struct Game *game, struct Player *player, unsigned int seed);
+void reset_game(struct Game& game, struct Player& player, unsigned int seed);
 int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], bool *draw_overlay);
 
 int main(int argc, char **argv)
@@ -65,8 +65,8 @@ int main(int argc, char **argv)
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 		
-	game_setup(&game, seed);
-	player_setup(&player);
+	game_setup(game, seed);
+	player_setup(player);
 	render_load_assets();
 	render_gen_map(game);
 
@@ -75,20 +75,20 @@ int main(int argc, char **argv)
 		// Get player input
 		ret = get_player_input(window, inputs, &draw_overlay);
 		if (ret == GAME_RESET) {
-			reset_game(&game, &player, seed);
+			reset_game(game, player, seed);
 		} else if (ret == GAME_NEW) {
 			seed = rand();
-			reset_game(&game, &player, seed);
+			reset_game(game, player, seed);
 		} else if (ret == GAME_EXIT) {
 			break;
 		}
 
 		//Get buttons if replaying NN
 		if (replay_ai) {
-			evaluate_frame(&game, &player, &chrom, inputs, input_tiles, node_outputs);
+			evaluate_frame(game, player, chrom, inputs, input_tiles, node_outputs);
 		}
 
-		ret = game_update(&game, &player, inputs);
+		ret = game_update(game, player, inputs);
 
 		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
 			if (ret == PLAYER_DEAD)
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 				printf("Player timed out\n");
     		printf("Fitness: %0.2lf\n", player.fitness);
 
-			reset_game(&game, &player, seed);
+			reset_game(game, player, seed);
 		} else if (ret == REDRAW) {
 			render_gen_map(game);
 		}
@@ -184,9 +184,9 @@ int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], boo
 	return 0;
 }
 
-void reset_game(struct Game *game, struct Player *player, unsigned int seed)
+void reset_game(struct Game& game, struct Player& player, unsigned int seed)
 {
 	game_setup(game, seed);
 	player_setup(player);
-	render_gen_map(*game);
+	render_gen_map(game);
 }

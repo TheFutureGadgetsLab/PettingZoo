@@ -122,7 +122,7 @@ void update_view_vars(sf::View view) {
  * @param window The SFML renderwindow object
  * @param player The player object
  */
-void render_handle_camera(sf::RenderWindow &window, const struct Player player) {
+void render_handle_camera(sf::RenderWindow &window, Player player) {
 	// Candidate camera location, centered on player x position
 	sf::View view = window.getView();
 	sf::Vector2f target;
@@ -180,7 +180,7 @@ void render_load_assets() {
  * 
  * @param game The game object
  */
-void render_gen_map(const struct Game game) {
+void render_gen_map(Game& game) {
 	map.load_map(game.tiles, LEVEL_WIDTH, LEVEL_HEIGHT);
 }
 
@@ -191,7 +191,7 @@ void render_gen_map(const struct Game game) {
  * @param game The game struct
  * @param player The player
  */
-void render_entities(sf::RenderWindow &window, const struct Game game, const struct Player player) {
+void render_entities(sf::RenderWindow &window, Game& game, Player player) {
 	sprites[LAMP].setPosition(player.body.px, player.body.py);
 	window.draw(sprites[LAMP]);
 }
@@ -203,7 +203,7 @@ void render_entities(sf::RenderWindow &window, const struct Game game, const str
  * @param game The game struct
  * @param player The player struct
  */
-void render_debug_overlay(sf::RenderWindow &window, const struct Game game, const struct Player player) {
+void render_debug_overlay(sf::RenderWindow &window, Game& game, Player player) {
 	char overlay_text[512];
 
 	sprintf(overlay_text,
@@ -280,7 +280,7 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
  * @param player The player structure
  * @param input Player inputs
  */
-void render_hud(sf::RenderWindow &window, const struct Player player, const uint8_t input[BUTTON_COUNT]) {
+void render_hud(sf::RenderWindow &window, Player player, const uint8_t input[BUTTON_COUNT]) {
 	char score_text[128];
 
 	sprintf(score_text, "Score: %05d\nFitness: %0.2lf\nTime: %0.1lf\n%s %s %s",
@@ -301,7 +301,7 @@ void render_hud(sf::RenderWindow &window, const struct Player player, const uint
  * @param game The game struct
  * @param player The player struct
  */
-void render_draw_state(sf::RenderWindow &window, const struct Game game, const struct Player player) {
+void render_draw_state(sf::RenderWindow &window, Game& game, Player player) {
 	render_other(window);
 	window.draw(map);
 	render_entities(window, game, player);

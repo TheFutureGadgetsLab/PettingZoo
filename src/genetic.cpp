@@ -16,7 +16,7 @@
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int chance_gen(float percent);
-void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params *params);
+void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params& params);
 void mutate(float *data, size_t length, float mutate_rate);
 
 /**
@@ -27,7 +27,7 @@ void mutate(float *data, size_t length, float mutate_rate);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(struct Game *game, struct Player *players, struct Chromosome *generation, struct Params *params)
+void run_generation(struct Game& game, struct Player *players, struct Chromosome *generation, struct Params& params)
 {
     int g;
     int ret;
@@ -40,9 +40,9 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
 
     // Loop over the entire generation
     #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, buttons, playerNeedsUpdate, playerLastTileX, playerLastTileY)
-    for (g = 0; g < params->gen_size; g++) {
-        input_tiles = (float *)malloc(sizeof(float) * params->in_w * params->in_h);
-        node_outputs = (float *)malloc(sizeof(float) * params->npl * params->hlc);
+    for (g = 0; g < params.gen_size; g++) {
+        input_tiles = (float *)malloc(sizeof(float) * params.in_w * params.in_h);
+        node_outputs = (float *)malloc(sizeof(float) * params.npl * params.hlc);
         // printf("\33[2K\r%d/%d", g, params->gen_size); // Clears line, moves cursor to the beginning
         // fflush(stdout);
 
@@ -56,10 +56,10 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
         // Run game loop until player dies
         while (1) {
             if (playerNeedsUpdate) {
-                evaluate_frame(game, &players[g], &generation[g], buttons, input_tiles, node_outputs);
+                evaluate_frame(game, players[g], generation[g], buttons, input_tiles, node_outputs);
             }
     
-            ret = game_update(game, &players[g], buttons);
+            ret = game_update(game, players[g], buttons);
 
             //Skip simulating chromosomes if tile position of player hasn't changed
             if (playerLastTileX != players[g].body.tile_x || playerLastTileY != players[g].body.tile_y) {
@@ -107,17 +107,17 @@ void run_generation(struct Game *game, struct Player *players, struct Chromosome
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(struct Player *players, struct Chromosome *generation, struct Chromosome *new_generation, struct Params *params)
+void select_and_breed(struct Player *players, struct Chromosome *generation, struct Chromosome *new_generation, struct Params& params)
 {
     int game;
     float best, sum;
-    struct Chromosome *survivors[params->gen_size / 2];
+    struct Chromosome *survivors[params.gen_size / 2];
     int n_survivors = 0;
 
     //Find the worst and best score
     best = players[0].fitness;
     sum = 0;
-    for (game = 0; game < params->gen_size; game++) {
+    for (game = 0; game < params.gen_size; game++) {
         sum += players[game].fitness;
         if (players[game].fitness > best) {
             best = players[game].fitness;
@@ -125,8 +125,8 @@ void select_and_breed(struct Player *players, struct Chromosome *generation, str
     }
 
     //Select survivors
-    while (n_survivors < params->gen_size / 2) {
-        game = rand() % params->gen_size;
+    while (n_survivors < params.gen_size / 2) {
+        game = rand() % params.gen_size;
         if (chance_gen(players[game].fitness / best)) {
             survivors[n_survivors] = &generation[game];
             n_survivors += 1;
@@ -134,8 +134,8 @@ void select_and_breed(struct Player *players, struct Chromosome *generation, str
     }
 
     //Breed
-    for (game = 0; game < params->gen_size / 2; game++) {
-        single_point_breed(survivors[game], survivors[(game + 1) % (params->gen_size / 2)],
+    for (game = 0; game < params.gen_size / 2; game++) {
+        single_point_breed(survivors[game], survivors[(game + 1) % (params.gen_size / 2)],
             &new_generation[game * 2], &new_generation[game * 2 + 1], params);
     }
 }
@@ -150,15 +150,15 @@ void select_and_breed(struct Player *players, struct Chromosome *generation, str
  * @param childB Pointer to memory where child B will be held
  * @param params The run parameters struct
  */
-void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params *params)
+void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, struct Chromosome *childA, struct Chromosome *childB, struct Params& params)
 {
     int split_loc, hl;
 
     // Cross input adj layers and mutate
     split_loc = rand() % (parentA->input_adj_size + 1);
     split(parentA->input_adj, parentB->input_adj, childA->input_adj, childB->input_adj, parentA->input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA->input_adj, parentA->input_adj_size, params->mutate_rate);
-    mutate(childB->input_adj, parentA->input_adj_size, params->mutate_rate);
+    mutate(childA->input_adj, parentA->input_adj_size, params.mutate_rate);
+    mutate(childB->input_adj, parentA->input_adj_size, params.mutate_rate);
 
     // Cross hidden layers and mutate
     size_t section_size = parentA->npl * parentA->npl;
@@ -166,15 +166,15 @@ void single_point_breed(struct Chromosome *parentA, struct Chromosome *parentB, 
         split_loc = rand() % (section_size + 1);
         split(parentA->hidden_adj + section_size * hl, parentB->hidden_adj + section_size * hl,
               childA->hidden_adj + section_size * hl, childB->hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate(childA->hidden_adj + section_size * hl, section_size, params->mutate_rate);
-        mutate(childB->hidden_adj + section_size * hl, section_size, params->mutate_rate);
+        mutate(childA->hidden_adj + section_size * hl, section_size, params.mutate_rate);
+        mutate(childB->hidden_adj + section_size * hl, section_size, params.mutate_rate);
     }
 
     // Cross output adj layer and mutate
     split_loc = rand() % (parentA->out_adj_size + 1);
     split(parentA->out_adj, parentB->out_adj, childA->out_adj, childB->out_adj, parentA->out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA->out_adj, parentA->out_adj_size, params->mutate_rate);
-    mutate(childB->out_adj, parentA->out_adj_size, params->mutate_rate);
+    mutate(childA->out_adj, parentA->out_adj_size, params.mutate_rate);
+    mutate(childB->out_adj, parentA->out_adj_size, params.mutate_rate);
 }
 
 /**
@@ -242,8 +242,8 @@ void mutate(float *data, size_t length, float mutate_rate)
  * @param generation The generation number
  * @param params The parameters struct
  */
-void get_gen_stats(char *dirname, struct Game *game, struct Player *players, 
-    struct Chromosome *chroms, int quiet, int write_winner, int generation, struct Params *params)
+void get_gen_stats(char *dirname, struct Game& game, struct Player *players, 
+    struct Chromosome *chroms, int quiet, int write_winner, int generation, struct Params& params)
 {
     int g, completed, timedout, died, best_index;
     float max, min, avg;
@@ -257,7 +257,7 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players,
     max = players[0].fitness;
     min = players[0].fitness;
     best_index = 0;
-    for(g = 0; g < params->gen_size; g++) {
+    for(g = 0; g < params.gen_size; g++) {
         avg += players[g].fitness;
 
         if (players[g].fitness > max) {
@@ -281,10 +281,10 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players,
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%d_%.2lf.bin", dirname, generation, max);
-        write_out_chromosome(fname, &chroms[best_index], game->seed);
+        write_out_chromosome(fname, &chroms[best_index], game.seed);
     }
 
-    avg /= params->gen_size;
+    avg /= params.gen_size;
 
     // Write progress to file
     sprintf(fname, "%s/run_data.txt", dirname);
@@ -294,8 +294,8 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players,
     
     // Print out progress
     printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
-            (float)died / params->gen_size * 100, (float)timedout / params->gen_size * 100,
-            (float)completed / params->gen_size * 100, avg);
+            (float)died / params.gen_size * 100, (float)timedout / params.gen_size * 100,
+            (float)completed / params.gen_size * 100, avg);
     printf("Max fitness: %.2lf\n", max);
     printf("Min fitness: %.2lf\n", min);
 }
@@ -307,7 +307,7 @@ void get_gen_stats(char *dirname, struct Game *game, struct Player *players,
  * @param seed The game seed
  * @param params The parameters structure
  */
-void create_output_dir(char *dirname, unsigned int seed, struct Params *params)
+void create_output_dir(char *dirname, unsigned int seed, struct Params& params)
 {
     FILE* out_file;
     char name[4069];
@@ -321,7 +321,7 @@ void create_output_dir(char *dirname, unsigned int seed, struct Params *params)
 
     // Write out run data header
     fprintf(out_file, "%d, %d, %d, %d, %d, %d, %lf, %u\n", 
-        params->in_h, params->in_w, params->hlc, params->npl, params->gen_size, params->generations, params->mutate_rate, seed);
+        params.in_h, params.in_w, params.hlc, params.npl, params.gen_size, params.generations, params.mutate_rate, seed);
     
     // Close file
     fclose(out_file);

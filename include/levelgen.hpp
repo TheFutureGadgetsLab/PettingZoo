@@ -28,8 +28,8 @@
 #define COIN          9
 #define FLAG          10
 
-void levelgen_gen_map(struct Game *game, unsigned int seed);
+void levelgen_gen_map(Game& game, unsigned int seed);
 int chance(unsigned int *seedp, float percent);
-void levelgen_clear_level(struct Game *game);
+void levelgen_clear_level(Game& game);
 
 #endif
