@@ -280,14 +280,14 @@ void render_scale_window(sf::RenderWindow &window, sf::Event event) {
  * @param player The player structure
  * @param input Player inputs
  */
-void render_hud(sf::RenderWindow &window, Player player, const uint8_t input[BUTTON_COUNT]) {
+void render_hud(sf::RenderWindow &window, Player player) {
 	char score_text[128];
 
 	sprintf(score_text, "Score: %05d\nFitness: %0.2lf\nTime: %0.1lf\n%s %s %s",
 	player.score, player.fitness, player.time,
-	(input[BUTTON_LEFT] > 0) ? "Left" : "     ",
-	(input[BUTTON_RIGHT] > 0) ? "Right" : "     ",
-	(input[BUTTON_JUMP] > 0) ? "JUMP" : "");
+	(player.buttons[LEFT] > 0) ? "Left" : "     ",
+	(player.buttons[RIGHT] > 0) ? "Right" : "     ",
+	(player.buttons[JUMP] > 0) ? "JUMP" : "");
 
 	score.setString(score_text);
 	score.setPosition({game_view.center.x, game_view.corner.y + 10});

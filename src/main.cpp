@@ -10,23 +10,18 @@
 #include <chromosome.hpp>
 #include <neural_network.hpp>
 
-#define RIGHT(x) ((x >> 0) & 0x1)
-#define LEFT(x)  ((x >> 1) & 0x1)
-#define JUMP(x)  ((x >> 2) & 0x1)
-
 #define GAME_EXIT  1
 #define GAME_RESET 2
 #define GAME_NEW   3
 
 void reset_game(struct Game& game, struct Player& player, unsigned int seed);
-int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], bool *draw_overlay);
+int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overlay);
 
 int main(int argc, char **argv)
 {
     struct Params params = {IN_H, IN_W, HLC, NPL, GEN_SIZE, GENERATIONS, MUTATE_RATE};
 	bool draw_overlay, replay_ai;
 	int opt, ret;
-	uint8_t inputs[BUTTON_COUNT] = {0};
 	float *input_tiles = NULL;
 	float *node_outputs = NULL;
 	struct Chromosome chrom;
@@ -73,7 +68,7 @@ int main(int argc, char **argv)
 	draw_overlay = false;
 	while (window.isOpen()) {
 		// Get player input
-		ret = get_player_input(window, inputs, &draw_overlay);
+		ret = get_player_input(window, player, &draw_overlay);
 		if (ret == GAME_RESET) {
 			reset_game(game, player, seed);
 		} else if (ret == GAME_NEW) {
@@ -85,10 +80,10 @@ int main(int argc, char **argv)
 
 		//Get buttons if replaying NN
 		if (replay_ai) {
-			evaluate_frame(game, player, chrom, inputs, input_tiles, node_outputs);
+			evaluate_frame(game, player, chrom, input_tiles, node_outputs);
 		}
 
-		ret = game_update(game, player, inputs);
+		ret = game_update(game, player);
 
 		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
 			if (ret == PLAYER_DEAD)
@@ -117,7 +112,7 @@ int main(int argc, char **argv)
 		}
 
 		// Score and time
-		render_hud(window, player, inputs);
+		render_hud(window, player);
 
 		window.display();
 	}
@@ -133,7 +128,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], bool *draw_overlay)
+int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overlay)
 {
 	sf::Event event;
 	while (window.pollEvent(event)) {
@@ -143,17 +138,17 @@ int get_player_input(sf::RenderWindow &window, uint8_t inputs[BUTTON_COUNT], boo
 			case sf::Keyboard::Up:
 			case sf::Keyboard::Space:
 			case sf::Keyboard::W:
-				inputs[BUTTON_JUMP] = is_pressed;
+				player.buttons[JUMP] = is_pressed;
 				break;
 			// Left
 			case sf::Keyboard::Left:
 			case sf::Keyboard::A:
-				inputs[BUTTON_LEFT] = is_pressed;
+				player.buttons[LEFT] = is_pressed;
 				break;
 			// Right
 			case sf::Keyboard::Right:
 			case sf::Keyboard::D:
-				inputs[BUTTON_RIGHT] = is_pressed;
+				player.buttons[RIGHT] = is_pressed;
 				break;
 			case sf::Keyboard::Escape:
 				return GAME_EXIT;

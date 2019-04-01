@@ -57,7 +57,7 @@ void player_setup(struct Player& player) {
  * @param input Button controls for the player
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int game_update(struct Game& game, struct Player& player, uint8_t input[BUTTON_COUNT])
+int game_update(struct Game& game, struct Player& player)
 {
 	int return_value = 0;
 
@@ -71,14 +71,14 @@ int game_update(struct Game& game, struct Player& player, uint8_t input[BUTTON_C
 	}
 	
 	// Left and right button press
-	player.body.vx += (V_X - player.body.vx) * input[BUTTON_RIGHT];
-	player.body.vx += (-V_X - player.body.vx) * input[BUTTON_LEFT];
+	player.body.vx += (V_X - player.body.vx) * player.buttons[RIGHT];
+	player.body.vx += (-V_X - player.body.vx) * player.buttons[LEFT];
 
 	// Button presses
-	player.buttonpresses += input[BUTTON_JUMP] + input[BUTTON_LEFT] + input[BUTTON_RIGHT];
+	player.buttonpresses += player.buttons[JUMP] + player.buttons[LEFT] + player.buttons[RIGHT];
 
 	// Physics sim for player
-	return_value = physics_sim(game, player.body, input[BUTTON_JUMP]);
+	return_value = physics_sim(game, player.body, player.buttons[JUMP]);
 	if (return_value == PLAYER_DEAD) {
 		player.death_type = PLAYER_DEAD;
 		return PLAYER_DEAD;

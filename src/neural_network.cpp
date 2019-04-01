@@ -36,7 +36,7 @@ float tanh_bounded(float x);
  * @param node_outputs The node outputs
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& chrom, uint8_t buttons[BUTTON_COUNT], float *tiles, float *node_outputs)
+int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& chrom, float *tiles, float *node_outputs)
 {
     float network_outputs[BUTTON_COUNT];
 
@@ -47,11 +47,10 @@ int evaluate_frame(struct Game& game, struct Player& player, struct Chromosome& 
     calc_output(chrom, node_outputs, network_outputs);
 
     // Assign button presses based on output probability
-    buttons[BUTTON_RIGHT] = network_outputs[BUTTON_RIGHT] > 0.0f;
-    buttons[BUTTON_LEFT] = network_outputs[BUTTON_LEFT] > 0.0f;
-    buttons[BUTTON_JUMP] = network_outputs[BUTTON_JUMP] > 0.0f;
+    player.buttons[RIGHT] = network_outputs[RIGHT] > 0.0f;
+    player.buttons[LEFT] = network_outputs[LEFT] > 0.0f;
+    player.buttons[JUMP] = network_outputs[JUMP] > 0.0f;
 
-    // return game_update(game, player, inputs);
     return 0;
 }
 

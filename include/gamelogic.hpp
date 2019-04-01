@@ -51,6 +51,7 @@ class Body {
 class Player {
 	public:
 	Body body;
+	uint8_t buttons[BUTTON_COUNT];
 	float time, fitness;
 	int score, buttonpresses, death_type;
 };
@@ -64,7 +65,7 @@ struct Game {
 
 void game_setup(Game& game, unsigned int seed);
 void player_setup(Player& player);
-int game_update(Game& game, Player& player, uint8_t input[BUTTON_COUNT]);
+int game_update(Game& game, Player& player);
 void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w);
 
 #endif

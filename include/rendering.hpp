@@ -17,7 +17,7 @@ class View {
 
 void render_draw_state(sf::RenderWindow &window, Game &game, Player player);
 void render_debug_overlay(sf::RenderWindow &window, Game &game, Player player);
-void render_hud(sf::RenderWindow &window, Player player, const uint8_t input[BUTTON_COUNT]);
+void render_hud(sf::RenderWindow &window, Player player);
 void render_handle_camera(sf::RenderWindow &window, Player player);
 void render_load_assets();
 void render_scale_window(sf::RenderWindow &window, sf::Event event);

@@ -34,12 +34,11 @@ void run_generation(struct Game& game, struct Player *players, struct Chromosome
     float *input_tiles, *node_outputs;
     int fitness_idle_updates;
     float max_fitness;
-    uint8_t buttons[BUTTON_COUNT];
     bool playerNeedsUpdate;
     int playerLastTileX, playerLastTileY;
 
     // Loop over the entire generation
-    #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, buttons, playerNeedsUpdate, playerLastTileX, playerLastTileY)
+    #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, playerNeedsUpdate, playerLastTileX, playerLastTileY)
     for (g = 0; g < params.gen_size; g++) {
         input_tiles = (float *)malloc(sizeof(float) * params.in_w * params.in_h);
         node_outputs = (float *)malloc(sizeof(float) * params.npl * params.hlc);
@@ -56,10 +55,10 @@ void run_generation(struct Game& game, struct Player *players, struct Chromosome
         // Run game loop until player dies
         while (1) {
             if (playerNeedsUpdate) {
-                evaluate_frame(game, players[g], generation[g], buttons, input_tiles, node_outputs);
+                evaluate_frame(game, players[g], generation[g], input_tiles, node_outputs);
             }
     
-            ret = game_update(game, players[g], buttons);
+            ret = game_update(game, players[g]);
 
             //Skip simulating chromosomes if tile position of player hasn't changed
             if (playerLastTileX != players[g].body.tile_x || playerLastTileY != players[g].body.tile_y) {
@@ -92,8 +91,8 @@ void run_generation(struct Game& game, struct Player *players, struct Chromosome
     }
 
     // Clear line so progress indicator is removed
-    printf("\33[2K\r");
-    fflush(stdout);
+    // printf("\33[2K\r");
+    // fflush(stdout);
 }
 
 /**

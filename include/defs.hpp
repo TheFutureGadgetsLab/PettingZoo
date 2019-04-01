@@ -31,9 +31,9 @@ struct Params {
 
 // Button parameters
 #define BUTTON_COUNT 3
-#define BUTTON_LEFT  0
-#define BUTTON_RIGHT 1
-#define BUTTON_JUMP  2
+#define LEFT  0
+#define RIGHT 1
+#define JUMP  2
 
 // Level parameters
 #define LEVEL_HEIGHT 32
