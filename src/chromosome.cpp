@@ -62,6 +62,9 @@ Chromosome::Chromosome(const char *fname)
     hidden_adj = new float[hidden_adj_size];
     out_adj = new float[out_adj_size];
 
+    input_tiles = new float[in_w * in_h];
+    node_outputs = new float[npl * hlc];
+
     // Matrices       
     read = fread(input_adj, sizeof(float), input_adj_size, file);
     read = fread(hidden_adj, sizeof(float), hidden_adj_size, file);
@@ -84,6 +87,9 @@ Chromosome::Chromosome(Params& params)
     input_adj = new float[input_adj_size];
     hidden_adj = new float[hidden_adj_size];
     out_adj = new float[out_adj_size];
+
+    input_tiles = new float[in_w * in_h];
+    node_outputs = new float[npl * hlc];
 }
 
 // Copy Constructor
@@ -102,10 +108,16 @@ Chromosome::Chromosome(const Chromosome& old)
     hidden_adj = new float[hidden_adj_size];
     out_adj = new float[out_adj_size];
 
+    input_tiles = new float[in_w * in_h];
+    node_outputs = new float[npl * hlc];
+
     // Copy over NN
     memcpy(input_adj, old.input_adj, input_adj_size * sizeof(float));
     memcpy(hidden_adj, old.hidden_adj, hidden_adj_size * sizeof(float));
     memcpy(out_adj, old.out_adj, out_adj_size * sizeof(float));
+
+    memcpy(input_tiles, old.input_tiles, in_w * in_h * sizeof(float));
+    memcpy(node_outputs, old.node_outputs, npl * hlc * sizeof(float));
 }
 
 /**
@@ -115,9 +127,12 @@ Chromosome::Chromosome(const Chromosome& old)
  */
 Chromosome::~Chromosome()
 {
-    delete input_adj;
-    delete hidden_adj;
-    delete out_adj;
+    delete [] input_adj;
+    delete [] hidden_adj;
+    delete [] out_adj;
+
+    delete [] input_tiles;
+    delete [] node_outputs;
 }
 
 /**

@@ -61,20 +61,11 @@ int main(int argc, char **argv)
             return 0;
         }
     }
-
-    // Generate seeds
-    // seed = (unsigned int)time(NULL);
     unsigned int seed, level_seed;
+    // seed = (unsigned int)time(NULL);
     seed = 10;
     srand(seed);
     level_seed = rand();
-
-    Game game;
-    Player *players;
-    std::vector<Chromosome> genA(params.gen_size, Chromosome(params));
-    std::vector<Chromosome> genB(params.gen_size, Chromosome(params));
-
-    int gen, g;
 
     if (dir_name == NULL) {
         printf("Output directory is required!\n");
@@ -82,45 +73,60 @@ int main(int argc, char **argv)
     }
     create_output_dir(dir_name, seed, params);
 
-    // Arrays for player objs
+    Game game;
+    Player *players;
+    std::vector<Chromosome> genA(params.gen_size, Chromosome(params));
+    std::vector<Chromosome> genB(params.gen_size, Chromosome(params));
     players = new Player[params.gen_size];
+    std::vector<unsigned int> chrom_seeds(params.gen_size);
 
     printf("Running with %d chromosomes for %d generations\n", params.gen_size, params.generations);
     printf("Chromosome stats:\n");
     printf("  IN_H: %d\n  IN_W: %d\n  HLC: %d\n  NPL: %d\n", params.in_h, params.in_w, params.hlc, params.npl);
     printf("Level seed: %u\n", level_seed);
     printf("srand seed: %u\n", seed);
+    fflush(stdout);
 
-    // Generate random chromosomes
-    for (g = 0; g < params.gen_size; g++) {
-        generate_chromosome(genA[g], rand());
+    // Populate list of seeds for parallel generation
+    for (int chrom = 0; chrom < params.gen_size; chrom++) {
+        chrom_seeds[chrom] = rand();
     }
 
-    for (gen = 0; gen < params.generations; gen++) {
+    // Generate chromosomes in parallel
+    #pragma omp parallel for
+    for (int g = 0; g < params.gen_size; g++) {
+        generate_chromosome(genA[g], chrom_seeds[g]);
+    }
+
+    for (int gen = 0; gen < params.generations; gen++) {
         puts("----------------------------");
         printf("Running generation %d/%d\n", gen + 1, params.generations);
 
-        // Generate seed for this gens levels and generate them
+        // Generate map for generation
         game.genMap(level_seed);
-        for (g = 0; g < params.gen_size; g++) {
-            players[g].reset();
+
+        for (int player = 0; player < params.gen_size; player++) {
+            players[player].reset();
         }
 
         run_generation(game, players, genA, params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
+        get_gen_stats(dir_name, game, players, genA, 1, 1, gen, params);
 
-        // Usher in the new generation
-        // select_and_breed(players, *cur_gen, *next_gen, params);
+        if (gen != params.generations - 1) {
+            printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
 
-        // Swap generations
-        genA.swap(genB);
+            // Usher in the new generation
+            select_and_breed(players, genA, genB, params);
+
+            // Swap generations
+            genA.swap(genB);
+        }
     }
     puts("----------------------------\n");
 
-
-    delete players;
+    delete [] players;
 
     return 0;
 }

@@ -36,15 +36,15 @@ float tanh_bounded(float x);
  * @param node_outputs The node outputs
  * @return int PLAYER_DEAD or PLAYER_COMPLETE
  */
-int evaluate_frame(Game& game, Player& player, Chromosome& chrom, float *tiles, float *node_outputs)
+int evaluate_frame(Game& game, Player& player, Chromosome& chrom)
 {
     float network_outputs[BUTTON_COUNT];
 
-    game.getInputTiles(player, tiles, chrom.in_h, chrom.in_w);
+    game.getInputTiles(player, chrom.input_tiles, chrom.in_h, chrom.in_w);
     
-    calc_first_layer(chrom, tiles, node_outputs);
-    calc_hidden_layers(chrom, node_outputs);
-    calc_output(chrom, node_outputs, network_outputs);
+    calc_first_layer(chrom, chrom.input_tiles, chrom.node_outputs);
+    calc_hidden_layers(chrom, chrom.node_outputs);
+    calc_output(chrom, chrom.node_outputs, network_outputs);
 
     // Assign button presses based on output probability
     player.right = network_outputs[RIGHT] > 0.0f;

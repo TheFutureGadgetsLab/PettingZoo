@@ -17,7 +17,7 @@
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int chance_gen(float percent);
-void single_point_breed(Chromosome *parentA, Chromosome *parentB, Chromosome *childA, Chromosome *childB, Params& params);
+void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params);
 void mutate(float *data, size_t length, float mutate_rate);
 
 /**
@@ -28,24 +28,18 @@ void mutate(float *data, size_t length, float mutate_rate);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(Game& game, Player *players, std::vector<Chromosome> generation, Params& params)
+void run_generation(Game& game, Player* players, std::vector<Chromosome> &  generation, Params& params)
 {
     int g;
     int ret;
-    float *input_tiles, *node_outputs;
     int fitness_idle_updates;
     float max_fitness;
     bool playerNeedsUpdate;
     int playerLastTileX, playerLastTileY;
 
     // Loop over the entire generation
-    #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, playerNeedsUpdate, playerLastTileX, playerLastTileY)
+    #pragma omp parallel for private(ret, fitness_idle_updates, max_fitness, playerNeedsUpdate, playerLastTileX, playerLastTileY)
     for (g = 0; g < params.gen_size; g++) {
-        input_tiles = new float[params.in_w * params.in_h];
-        node_outputs = new float[params.npl * params.hlc];
-        // printf("\33[2K\r%d/%d", g, params->gen_size); // Clears line, moves cursor to the beginning
-        // fflush(stdout);
-
         fitness_idle_updates = 0;
         max_fitness = -1.0f;
 
@@ -56,7 +50,7 @@ void run_generation(Game& game, Player *players, std::vector<Chromosome> generat
         // Run game loop until player dies
         while (1) {
             if (playerNeedsUpdate) {
-                evaluate_frame(game, players[g], generation[g], input_tiles, node_outputs);
+                evaluate_frame(game, players[g], generation[g]);
             }
     
             ret = game.update(players[g]);
@@ -87,13 +81,7 @@ void run_generation(Game& game, Player *players, std::vector<Chromosome> generat
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT || ret == PLAYER_COMPLETE)
                 break;
         }
-        delete input_tiles;
-        delete node_outputs;
     }
-
-    // Clear line so progress indicator is removed
-    // printf("\33[2K\r");
-    // fflush(stdout);
 }
 
 /**
@@ -107,7 +95,7 @@ void run_generation(Game& game, Player *players, std::vector<Chromosome> generat
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(Player *players, Chromosome *generation, Chromosome *new_generation, Params& params)
+void select_and_breed(Player *players, std::vector<Chromosome> & generation, std::vector<Chromosome> & new_generation, Params& params)
 {
     int game;
     float best, sum;
@@ -135,8 +123,8 @@ void select_and_breed(Player *players, Chromosome *generation, Chromosome *new_g
 
     //Breed
     for (game = 0; game < params.gen_size / 2; game++) {
-        single_point_breed(survivors[game], survivors[(game + 1) % (params.gen_size / 2)],
-            &new_generation[game * 2], &new_generation[game * 2 + 1], params);
+        single_point_breed(*survivors[game], *survivors[(game + 1) % (params.gen_size / 2)],
+            new_generation[game * 2], new_generation[game * 2 + 1], params);
     }
 }
 
@@ -150,31 +138,31 @@ void select_and_breed(Player *players, Chromosome *generation, Chromosome *new_g
  * @param childB Pointer to memory where child B will be held
  * @param params The run parameters obj
  */
-void single_point_breed(Chromosome *parentA, Chromosome *parentB, Chromosome *childA, Chromosome *childB, Params& params)
+void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params)
 {
     int split_loc, hl;
 
     // Cross input adj layers and mutate
-    split_loc = rand() % (parentA->input_adj_size + 1);
-    split(parentA->input_adj, parentB->input_adj, childA->input_adj, childB->input_adj, parentA->input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA->input_adj, parentA->input_adj_size, params.mutate_rate);
-    mutate(childB->input_adj, parentA->input_adj_size, params.mutate_rate);
+    split_loc = rand() % (parentA.input_adj_size + 1);
+    split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, parentA.input_adj_size * sizeof(float), split_loc * sizeof(float));
+    mutate(childA.input_adj, parentA.input_adj_size, params.mutate_rate);
+    mutate(childB.input_adj, parentA.input_adj_size, params.mutate_rate);
 
     // Cross hidden layers and mutate
-    size_t section_size = parentA->npl * parentA->npl;
-    for (hl = 0; hl < parentA->hlc - 1; hl++) {
+    size_t section_size = parentA.npl * parentA.npl;
+    for (hl = 0; hl < parentA.hlc - 1; hl++) {
         split_loc = rand() % (section_size + 1);
-        split(parentA->hidden_adj + section_size * hl, parentB->hidden_adj + section_size * hl,
-              childA->hidden_adj + section_size * hl, childB->hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate(childA->hidden_adj + section_size * hl, section_size, params.mutate_rate);
-        mutate(childB->hidden_adj + section_size * hl, section_size, params.mutate_rate);
+        split(parentA.hidden_adj + section_size * hl, parentB.hidden_adj + section_size * hl,
+              childA.hidden_adj + section_size * hl, childB.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
+        mutate(childA.hidden_adj + section_size * hl, section_size, params.mutate_rate);
+        mutate(childB.hidden_adj + section_size * hl, section_size, params.mutate_rate);
     }
 
     // Cross output adj layer and mutate
-    split_loc = rand() % (parentA->out_adj_size + 1);
-    split(parentA->out_adj, parentB->out_adj, childA->out_adj, childB->out_adj, parentA->out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA->out_adj, parentA->out_adj_size, params.mutate_rate);
-    mutate(childB->out_adj, parentA->out_adj_size, params.mutate_rate);
+    split_loc = rand() % (parentA.out_adj_size + 1);
+    split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, parentA.out_adj_size * sizeof(float), split_loc * sizeof(float));
+    mutate(childA.out_adj, parentA.out_adj_size, params.mutate_rate);
+    mutate(childB.out_adj, parentA.out_adj_size, params.mutate_rate);
 }
 
 /**
@@ -242,7 +230,7 @@ void mutate(float *data, size_t length, float mutate_rate)
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chromosome> chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int g, completed, timedout, died, best_index;
     float max, min, avg;

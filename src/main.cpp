@@ -23,8 +23,6 @@ int main(int argc, char **argv)
     Params params;
 	bool draw_overlay, replay_ai;
 	int opt, ret;
-	float *input_tiles = NULL;
-	float *node_outputs = NULL;
 	Chromosome *chrom;
 	Game game;
 	Player player;
@@ -41,10 +39,6 @@ int main(int argc, char **argv)
 			replay_ai = true;
 			seed = getStatsFromFile(optarg, params);
 			chrom = new Chromosome(optarg);
-			
-			input_tiles = new float[params.in_w * params.in_h];
-			node_outputs = new float[params.npl * params.hlc];
-			
 			break;
 		default:
 			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);
@@ -78,7 +72,7 @@ int main(int argc, char **argv)
 		
 		//Get buttons if replaying NN
 		if (replay_ai) {
- 			evaluate_frame(game, player, *chrom, input_tiles, node_outputs);
+ 			evaluate_frame(game, player, *chrom);
 		}
 
 		ret = game.update(player);
@@ -119,8 +113,6 @@ int main(int argc, char **argv)
 	}
 
 	if (replay_ai) {
-		delete input_tiles;
-		delete node_outputs;
 		delete chrom;
 	}
 	

@@ -16,6 +16,8 @@ class Chromosome {
     float *input_adj;  // Adjacency matrix describing input layer to first hidden layer
     float *hidden_adj; // Adjacency matrix describing the hidden layers
     float *out_adj;    // Adjacency matrix describing last hidden layer to the output nodes
+    float *input_tiles;
+    float *node_outputs;
     
     // Sizes are number of elements, not bytes
     size_t input_adj_size;
@@ -34,14 +36,12 @@ class Chromosome {
     ~Chromosome();
 };
 
-void free_chromosome(Chromosome *chrom);
 void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl);
 void generate_chromosome(Chromosome& chrom, unsigned int seed);
 void print_chromosome(Chromosome *chrom);
 void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed);
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
 unsigned int getStatsFromFile(const char *fname, Params& params);
-
 
 /*
 

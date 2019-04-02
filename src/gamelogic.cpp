@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////////////////
 Player::Player()
 {
+	// body = Body();
 	reset();
 }
 
@@ -305,34 +306,16 @@ void Game::getInputTiles(Player& player, float *out, uint8_t in_h, uint8_t in_w)
 			else
 				tile = tiles[y * LEVEL_WIDTH + x];
 
-			//Converting tile types to something the chromosome can understand
-			switch(tile) {
-				//Empty
-				case EMPTY:
-				case FLAG:
-					*tmp = 0.0f;
-					break;
-				
-				//Solid tiles
-				case PIPE_BOTTOM:
-				case PIPE_MIDDLE:
-				case PIPE_TOP:
-				case GRASS:
-				case DIRT:
-				case BRICKS:
-					*tmp = (1.0f / 3.0f);
-					break;
-				
-				//Hazards
-				case SPIKES_TOP:
-					*tmp = (2.0f / 3.0f);
-					break;
-				case SPIKES_BOTTOM:
-					*tmp = 1.0f;
-					break;
-				default:
-					break;
-			}
+			if (tile == EMPTY || tile == FLAG)
+				*tmp = 0.0f;
+			else if (tile == PIPE_BOTTOM || tile == PIPE_MIDDLE || tile == PIPE_TOP || tile == GRASS || tile == DIRT || tile == BRICKS)
+				*tmp = (1.0f / 3.0f);
+			else if (tile == SPIKES_TOP)
+				*tmp = (2.0f / 3.0f);
+			else if (tile == SPIKES_BOTTOM)
+				*tmp = 1.0f;
+			else
+				exit(-1);
 
 			tmp++;
 		}
