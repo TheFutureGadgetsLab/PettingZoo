@@ -8,6 +8,7 @@
 #include <gamelogic.hpp>
 #include <levelgen.hpp>
 #include <unistd.h>
+#include <vector>
 
 int main(int argc, char **argv)
 {
@@ -70,8 +71,9 @@ int main(int argc, char **argv)
 
     Game game;
     Player *players;
-    Chromosome genA[params.gen_size], genB[params.gen_size];
-    Chromosome *cur_gen, *next_gen, *tmp;
+    std::vector<Chromosome> genA(params.gen_size, Chromosome(params));
+    std::vector<Chromosome> genB(params.gen_size, Chromosome(params));
+
     int gen, g;
 
     if (dir_name == NULL) {
@@ -80,8 +82,8 @@ int main(int argc, char **argv)
     }
     create_output_dir(dir_name, seed, params);
 
-    // Arrays for game and player objs
-    players = (Player *)malloc(sizeof(Player) * params.gen_size);
+    // Arrays for player objs
+    players = new Player[params.gen_size];
 
     printf("Running with %d chromosomes for %d generations\n", params.gen_size, params.generations);
     printf("Chromosome stats:\n");
@@ -89,19 +91,11 @@ int main(int argc, char **argv)
     printf("Level seed: %u\n", level_seed);
     printf("srand seed: %u\n", seed);
 
-    // Level seed for entire run
-    // Allocate space for genA and genB chromosomes
+    // Generate random chromosomes
     for (g = 0; g < params.gen_size; g++) {
-        initialize_chromosome(&genA[g], params.in_h, params.in_w, params.hlc, params.npl);
-        initialize_chromosome(&genB[g], params.in_h, params.in_w, params.hlc, params.npl);
-        
-        // Generate random chromosomes
-        generate_chromosome(&genA[g], rand());
+        generate_chromosome(genA[g], rand());
     }
 
-    // Initially point current gen to genA, then swap next gen
-    cur_gen = genA;
-    next_gen = genB;
     for (gen = 0; gen < params.generations; gen++) {
         puts("----------------------------");
         printf("Running generation %d/%d\n", gen + 1, params.generations);
@@ -112,28 +106,21 @@ int main(int argc, char **argv)
             players[g].reset();
         }
 
-        run_generation(game, players, cur_gen, params);
+        run_generation(game, players, genA, params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, game, players, cur_gen, 0, 1, gen, params);
+        get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
 
         // Usher in the new generation
-        select_and_breed(players, cur_gen, next_gen, params);
+        // select_and_breed(players, *cur_gen, *next_gen, params);
 
-        // Point current gen to new chromosomes and next gen to old
-        tmp = cur_gen;
-        cur_gen = next_gen;
-        next_gen = tmp;
+        // Swap generations
+        genA.swap(genB);
     }
     puts("----------------------------\n");
 
 
-    for (g = 0; g < params.gen_size; g++) {
-        free_chromosome(&genA[g]);
-        free_chromosome(&genB[g]);
-    }
-
-    free(players);
+    delete players;
 
     return 0;
 }

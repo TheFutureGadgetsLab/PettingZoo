@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <defs.hpp>
 
 class Chromosome {
     public:
@@ -26,18 +27,21 @@ class Chromosome {
     uint8_t in_h; // Height of input rectangle around player
     uint8_t hlc;  // Number of hidden layers
 
-    Chromosome(uint8_t, uint8_t, uint8_t, uint16_t);
+    Chromosome(Params&);
+    
     Chromosome(const char*);
+    Chromosome(const Chromosome &); // Copy constructor
     ~Chromosome();
-
 };
 
 void free_chromosome(Chromosome *chrom);
 void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl);
-void generate_chromosome(Chromosome *chrom, unsigned int seed);
+void generate_chromosome(Chromosome& chrom, unsigned int seed);
 void print_chromosome(Chromosome *chrom);
-void write_out_chromosome(char *fname, Chromosome *chrom, unsigned int level_seed);
+void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed);
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
+unsigned int getStatsFromFile(const char *fname, Params& params);
+
 
 /*
 

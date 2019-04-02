@@ -48,7 +48,6 @@ target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
-target_link_libraries(pettingzoo OpenMP::OpenMP_CXX)
 
 ###############################################################
 #

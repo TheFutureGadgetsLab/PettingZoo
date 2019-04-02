@@ -13,6 +13,7 @@
 #include <neural_network.hpp>
 #include <gamelogic.hpp>
 #include <sys/stat.h>
+#include <vector>
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
 int chance_gen(float percent);
@@ -27,7 +28,7 @@ void mutate(float *data, size_t length, float mutate_rate);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(Game& game, Player *players, Chromosome *generation, Params& params)
+void run_generation(Game& game, Player *players, std::vector<Chromosome> generation, Params& params)
 {
     int g;
     int ret;
@@ -40,8 +41,8 @@ void run_generation(Game& game, Player *players, Chromosome *generation, Params&
     // Loop over the entire generation
     #pragma omp parallel for private(ret, input_tiles, node_outputs, fitness_idle_updates, max_fitness, playerNeedsUpdate, playerLastTileX, playerLastTileY)
     for (g = 0; g < params.gen_size; g++) {
-        input_tiles = (float *)malloc(sizeof(float) * params.in_w * params.in_h);
-        node_outputs = (float *)malloc(sizeof(float) * params.npl * params.hlc);
+        input_tiles = new float[params.in_w * params.in_h];
+        node_outputs = new float[params.npl * params.hlc];
         // printf("\33[2K\r%d/%d", g, params->gen_size); // Clears line, moves cursor to the beginning
         // fflush(stdout);
 
@@ -86,8 +87,8 @@ void run_generation(Game& game, Player *players, Chromosome *generation, Params&
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT || ret == PLAYER_COMPLETE)
                 break;
         }
-        free(input_tiles);
-        free(node_outputs);
+        delete input_tiles;
+        delete node_outputs;
     }
 
     // Clear line so progress indicator is removed
@@ -241,8 +242,7 @@ void mutate(float *data, size_t length, float mutate_rate)
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(char *dirname, Game& game, Player *players, 
-    Chromosome *chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chromosome> chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int g, completed, timedout, died, best_index;
     float max, min, avg;
@@ -280,7 +280,7 @@ void get_gen_stats(char *dirname, Game& game, Player *players,
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%d_%.2lf.bin", dirname, generation, max);
-        write_out_chromosome(fname, &chroms[best_index], game.seed);
+        write_out_chromosome(fname, chroms[best_index], game.seed);
     }
 
     avg /= params.gen_size;

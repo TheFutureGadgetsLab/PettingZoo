@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	int opt, ret;
 	float *input_tiles = NULL;
 	float *node_outputs = NULL;
-	Chromosome chrom;
+	Chromosome *chrom;
 	Game game;
 	Player player;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
@@ -39,14 +39,12 @@ int main(int argc, char **argv)
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			seed = Chromosome(optarg);
+			seed = getStatsFromFile(optarg, params);
+			chrom = new Chromosome(optarg);
 			
-			input_tiles = (float *)malloc(sizeof(float) * chrom.in_w * chrom.in_h);
-			node_outputs = (float *)malloc(sizeof(float) * chrom.npl * chrom.hlc);
-			params.in_w = chrom.in_w;
-			params.in_h = chrom.in_h;
-			params.hlc = chrom.hlc;
-			params.npl = chrom.npl;
+			input_tiles = new float[params.in_w * params.in_h];
+			node_outputs = new float[params.npl * params.hlc];
+			
 			break;
 		default:
 			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);
@@ -65,6 +63,7 @@ int main(int argc, char **argv)
 	reset_game(game, player, seed);
 
 	draw_overlay = false;
+
 	while (window.isOpen()) {
 		// Get player input
 		ret = get_player_input(window, player, &draw_overlay);
@@ -76,10 +75,10 @@ int main(int argc, char **argv)
 		} else if (ret == GAME_EXIT) {
 			break;
 		}
-
+		
 		//Get buttons if replaying NN
 		if (replay_ai) {
-			evaluate_frame(game, player, chrom, input_tiles, node_outputs);
+ 			evaluate_frame(game, player, *chrom, input_tiles, node_outputs);
 		}
 
 		ret = game.update(player);
@@ -120,9 +119,9 @@ int main(int argc, char **argv)
 	}
 
 	if (replay_ai) {
-		free(input_tiles);
-		free(node_outputs);
-		free_chromosome(&chrom);
+		delete input_tiles;
+		delete node_outputs;
+		delete chrom;
 	}
 	
 	window.close();
