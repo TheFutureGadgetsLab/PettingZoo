@@ -14,7 +14,7 @@
 int randint(unsigned int *seedp, int max);
 int randrange(unsigned int *seedp, int min, int max);
 int choose(unsigned int *seedp, int nargs, ...);
-void set_tile(Game& game, int x, int y, unsigned char val);
+// void game.setTileAt(game, int x, int y, unsigned char val);
 void create_hole(Game& game, int origin, int width);
 void create_pipe(Game& game, int origin, int width, int height);
 void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe);
@@ -60,7 +60,7 @@ void levelgen_gen_map(Game& game, unsigned int seed)
 	}
 
 	// Ending flag
-	set_tile(game, LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
+	game.setTileAt(LEVEL_WIDTH - 4, GROUND_HEIGHT - 1, FLAG);
 	game.seed_state = seed;
 }
 
@@ -206,7 +206,7 @@ void insert_floor(Game& game, int origin, int ground, int length)
 			else if (y > ground)
 				val = DIRT;
 			if (val)
-				set_tile(game, x, y, val);
+				game.setTileAt(x, y, val);
 		}
 	}
 }
@@ -227,7 +227,7 @@ void insert_platform(Game& game, int origin, int height, int length, int type)
 	base = GROUND_HEIGHT - height - 1;
 
 	for (x = origin; x < origin + length; x++) {
-		set_tile(game, x, base, type);
+		game.setTileAt(x, base, type);
 	}
 }
 
@@ -247,7 +247,7 @@ void insert_tee(Game& game, int origin, int height, int length)
 	insert_platform(game, origin, height, length, BRICKS);
 
 	for (y = top; y < GROUND_HEIGHT; y++) {
-		set_tile(game, origin + (length / 2), y, BRICKS);
+		game.setTileAt(origin + (length / 2), y, BRICKS);
 	}
 }
 
@@ -263,7 +263,7 @@ void create_hole(Game& game, int origin, int width)
 	int x, y;
 	for (x = origin; x < origin + width; x++) {
 		for (y = GROUND_HEIGHT; y < LEVEL_HEIGHT; y++) {
-			set_tile(game, x, y, EMPTY);
+			game.setTileAt(x, y, EMPTY);
 		}
 	}
 }
@@ -283,18 +283,18 @@ void create_pipe(Game& game, int origin, int width, int height)
 	for (y = 0; y < LEVEL_HEIGHT; y++) {
 		// Middle sections
 		if (y < GROUND_HEIGHT - height - width - 1 || y > GROUND_HEIGHT - height) {
-			set_tile(game, origin, y, PIPE_MIDDLE);
+			game.setTileAt(origin, y, PIPE_MIDDLE);
 		// Bottom of pipe
 		} else if (y == GROUND_HEIGHT - height - width - 1) {
-			set_tile(game, origin, y, PIPE_TOP);
+			game.setTileAt(origin, y, PIPE_TOP);
 		// Gap
 		} else if (y > GROUND_HEIGHT - height - width - 1 && width > 0) {
 			width--;
-			set_tile(game, origin, y, EMPTY);
+			game.setTileAt(origin, y, EMPTY);
 		// Top of pipe
 		} else if (width == 0) {
 			width--;
-			set_tile(game, origin, y, PIPE_BOTTOM);
+			game.setTileAt(origin, y, PIPE_BOTTOM);
 		}
 	}
 }
@@ -324,9 +324,9 @@ void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe
 	for (x = 0; x < height; x++) {
 		for (y = 0; y <= x + 1; y++) {
 			if (y == x + 1)
-				set_tile(game, x + origin, GROUND_HEIGHT - y, GRASS);
+				game.setTileAt(x + origin, GROUND_HEIGHT - y, GRASS);
 			else
-				set_tile(game, x + origin, GROUND_HEIGHT - y, DIRT);
+				game.setTileAt(x + origin, GROUND_HEIGHT - y, DIRT);
 		}
 	}
 	origin += height; // Shift origin over for next section
@@ -346,9 +346,9 @@ void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe
 	for (x = 0; x < height; x++) {
 		for (y = height - x; y >= 0; y--) {
 			if (y == height - x)
-				set_tile(game, x + origin, GROUND_HEIGHT - y, GRASS);
+				game.setTileAt(x + origin, GROUND_HEIGHT - y, GRASS);
 			else
-				set_tile(game, x + origin, GROUND_HEIGHT - y, DIRT);
+				game.setTileAt(x + origin, GROUND_HEIGHT - y, DIRT);
 		}
 	}
 }
@@ -361,13 +361,13 @@ void create_stair_gap(Game& game, int origin, int height, int width, int do_pipe
  * @param y Y tile coord
  * @param val Value to set tile to
  */
-void set_tile(Game& game, int x, int y, unsigned char val)
-{
-	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
-		return;
-	}
-	game.tiles[y * LEVEL_WIDTH + x] = val;
-}
+// void game.setTileAt(game, int x, int y, unsigned char val)
+// {
+// 	if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
+// 		return;
+// 	}
+// 	game.tiles[y * LEVEL_WIDTH + x] = val;
+// }
 
 /**
  * @brief Clear all tiles from level
@@ -379,7 +379,7 @@ void levelgen_clear_level(Game& game)
 	int x, y;
 	for (x = 0; x < LEVEL_WIDTH; x++) {
 		for (y = 0; y < LEVEL_HEIGHT; y++) {
-			set_tile(game, x, y, EMPTY);
+			game.setTileAt(x, y, EMPTY);
 		}
 	}
 }

@@ -65,8 +65,17 @@ class Player {
 // Game class
 class Game {
 	public:
-	unsigned int seed, seed_state;
 	uint8_t tiles[LEVEL_SIZE];
+	unsigned int seed, seed_state;
+
+	void setTileAt(int, int, uint8_t);
+	uint8_t getTileAt(int, int);
+	void getInputTiles(Player&, float*, uint8_t, uint8_t);
+	bool inBounds(int, int);
+	void genMap(unsigned int seed);
+	int update(Player& player);
+	int physicsSim(Body& body, bool jump);
+	bool tileSolid(int, int);
 };
 
 void game_setup(Game& game, unsigned int seed);

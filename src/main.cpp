@@ -19,26 +19,27 @@ int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overla
 
 int main(int argc, char **argv)
 {
+	unsigned int seed;
     Params params;
 	bool draw_overlay, replay_ai;
 	int opt, ret;
 	float *input_tiles = NULL;
 	float *node_outputs = NULL;
 	Chromosome chrom;
-	unsigned int seed;
 	Game game;
 	Player player;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
 	sf::Color bg_color(135, 206, 235);
 
 	seed = time(NULL);
+
 	replay_ai = false;
 	while ((opt = getopt(argc, argv, "hf:")) != -1) {
 		switch (opt) {
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			seed = extract_from_file(optarg, &chrom);
+			seed = Chromosome(optarg);
 			
 			input_tiles = (float *)malloc(sizeof(float) * chrom.in_w * chrom.in_h);
 			node_outputs = (float *)malloc(sizeof(float) * chrom.npl * chrom.hlc);
@@ -59,10 +60,9 @@ int main(int argc, char **argv)
 
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
-		
-	game_setup(game, seed);
+	
 	render_load_assets();
-	render_gen_map(game);
+	reset_game(game, player, seed);
 
 	draw_overlay = false;
 	while (window.isOpen()) {
@@ -82,13 +82,16 @@ int main(int argc, char **argv)
 			evaluate_frame(game, player, chrom, input_tiles, node_outputs);
 		}
 
-		ret = game_update(game, player);
+		ret = game.update(player);
 
-		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT) {
+		if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT || ret == PLAYER_COMPLETE) {
 			if (ret == PLAYER_DEAD)
 				printf("Player died\n");
-			else
+			else if (ret == PLAYER_TIMEOUT)
 				printf("Player timed out\n");
+			else if (ret == PLAYER_COMPLETE)
+				printf("Player won!\n");
+
     		printf("Fitness: %0.2lf\n", player.fitness);
 
 			reset_game(game, player, seed);
@@ -180,7 +183,7 @@ int get_player_input(sf::RenderWindow &window, Player& player, bool *draw_overla
 
 void reset_game(Game& game, Player& player, unsigned int seed)
 {
-	game_setup(game, seed);
+	game.genMap(seed);
 	player.reset();
 	render_gen_map(game);
 }

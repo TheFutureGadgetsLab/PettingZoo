@@ -14,6 +14,11 @@
 
 float gen_random_weight(unsigned int *seedp);
 
+///////////////////////////////////////////////////////////////
+//
+//                  Chromosome Class
+//
+///////////////////////////////////////////////////////////////
 /**
  * @brief Initializes and allocates a given chromosome with the given size
  * 
@@ -25,20 +30,61 @@ float gen_random_weight(unsigned int *seedp);
  * @param hlc Hidden layer count
  * @param npl Nodes per layer
  */
-void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl)
+Chromosome::Chromosome(const char *fname)
 {
-    chrom->in_h = in_h;
-    chrom->in_w = in_w;
-    chrom->hlc = hlc;
-    chrom->npl = npl;
+    FILE *file = NULL;
+    struct stat st;
+    size_t read;
+    unsigned int level_seed;
 
-    chrom->input_adj_size = (in_h * in_w) * npl;
-    chrom->hidden_adj_size = (hlc - 1) * (npl * npl);
-    chrom->out_adj_size = BUTTON_COUNT * npl;
+    if (stat(fname, &st) == -1) {
+		printf("Error reading file '%s'!\n", fname);
+		exit(EXIT_FAILURE);
+	}
 
-    chrom->input_adj = (float *)calloc(chrom->input_adj_size, sizeof(float));
-    chrom->hidden_adj = (float *)calloc(chrom->hidden_adj_size, sizeof(float));
-    chrom->out_adj = (float *)calloc(chrom->out_adj_size, sizeof(float));
+    file = fopen(fname, "rb");
+
+    // Level seed
+    read = fread(&level_seed, sizeof(level_seed), 1, file);
+
+    // Chromosome header
+    read = fread(in_h, sizeof(in_h), 1, file);
+    read = fread(in_w, sizeof(in_w), 1, file);
+    read = fread(hlc, sizeof(hlc), 1, file);
+    read = fread(npl, sizeof(npl), 1, file);
+
+    input_adj_size = (in_h * in_w) * npl;
+    hidden_adj_size = (hlc - 1) * (npl * npl);
+    out_adj_size = BUTTON_COUNT * npl;
+
+    input_adj = (float *)calloc(input_adj_size, sizeof(float));
+    hidden_adj = (float *)calloc(hidden_adj_size, sizeof(float));
+    out_adj = (float *)calloc(out_adj_size, sizeof(float));
+
+    // Matrices       
+    read = fread(input_adj, sizeof(input_adj), input_adj_size, file);
+    read = fread(hidden_adj, sizeof(hidden_adj), hidden_adj_size, file);
+    read = fread(out_adj, sizeof(out_adj), out_adj_size, file);
+
+    fclose(file);
+
+    return level_seed;
+}
+
+Chromosome::Chromosome(uint8_t inWidth, uint8_t inHeight, uint8_t hiddenLayers, uint16_t nodesPerLayer)
+{
+    in_h = inHeight;
+    in_w = inWidth;
+    hlc = hiddenLayers;
+    npl = nodesPerLayer;
+
+    input_adj_size = (in_h * in_w) * npl;
+    hidden_adj_size = (hlc - 1) * (npl * npl);
+    out_adj_size = BUTTON_COUNT * npl;
+
+    input_adj = (float *)calloc(input_adj_size, sizeof(float));
+    hidden_adj = (float *)calloc(hidden_adj_size, sizeof(float));
+    out_adj = (float *)calloc(out_adj_size, sizeof(float));
 }
 
 /**
@@ -46,11 +92,11 @@ void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_
  * 
  * @param chrom chromsome to free
  */
-void free_chromosome(Chromosome *chrom)
+Chromosome::~Chromosome()
 {
-    free(chrom->input_adj);
-    free(chrom->hidden_adj);
-    free(chrom->out_adj);
+    free(input_adj);
+    free(hidden_adj);
+    free(out_adj);
 }
 
 /**
@@ -228,7 +274,7 @@ unsigned int extract_from_file(const char *fname, Chromosome *chrom)
 
     initialize_chromosome(chrom, chrom->in_h, chrom->in_w, chrom->hlc, chrom->npl);
 
-    // Matrices         
+    // Matrices       
     read = fread(chrom->input_adj, sizeof(*chrom->input_adj), chrom->input_adj_size, file);
     read = fread(chrom->hidden_adj, sizeof(*chrom->hidden_adj), chrom->hidden_adj_size, file);
     read = fread(chrom->out_adj, sizeof(*chrom->out_adj), chrom->out_adj_size, file);

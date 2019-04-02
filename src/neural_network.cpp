@@ -40,7 +40,7 @@ int evaluate_frame(Game& game, Player& player, Chromosome& chrom, float *tiles, 
 {
     float network_outputs[BUTTON_COUNT];
 
-    get_input_tiles(game, player, tiles, chrom.in_h, chrom.in_w);
+    game.getInputTiles(player, tiles, chrom.in_h, chrom.in_w);
     
     calc_first_layer(chrom, tiles, node_outputs);
     calc_hidden_layers(chrom, node_outputs);

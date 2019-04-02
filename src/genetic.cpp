@@ -58,7 +58,7 @@ void run_generation(Game& game, Player *players, Chromosome *generation, Params&
                 evaluate_frame(game, players[g], generation[g], input_tiles, node_outputs);
             }
     
-            ret = game_update(game, players[g]);
+            ret = game.update(players[g]);
 
             //Skip simulating chromosomes if tile position of player hasn't changed
             if (playerLastTileX != players[g].body.tile_x || playerLastTileY != players[g].body.tile_y) {
@@ -83,7 +83,7 @@ void run_generation(Game& game, Player *players, Chromosome *generation, Params&
                 players[g].death_type = PLAYER_TIMEOUT;
             }
 
-            if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT)
+            if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT || ret == PLAYER_COMPLETE)
                 break;
         }
         free(input_tiles);

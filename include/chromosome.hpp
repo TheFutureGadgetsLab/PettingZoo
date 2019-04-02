@@ -25,6 +25,11 @@ class Chromosome {
     uint8_t in_w; // Width of input rectangle around player
     uint8_t in_h; // Height of input rectangle around player
     uint8_t hlc;  // Number of hidden layers
+
+    Chromosome(uint8_t, uint8_t, uint8_t, uint16_t);
+    Chromosome(const char*);
+    ~Chromosome();
+
 };
 
 void free_chromosome(Chromosome *chrom);

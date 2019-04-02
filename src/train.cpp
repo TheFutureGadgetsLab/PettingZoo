@@ -61,18 +61,18 @@ int main(int argc, char **argv)
         }
     }
 
+    // Generate seeds
+    // seed = (unsigned int)time(NULL);
+    unsigned int seed, level_seed;
+    seed = 10;
+    srand(seed);
+    level_seed = rand();
+
     Game game;
     Player *players;
     Chromosome genA[params.gen_size], genB[params.gen_size];
     Chromosome *cur_gen, *next_gen, *tmp;
     int gen, g;
-    unsigned int seed, level_seed;
-
-    // Generate seeds
-    // seed = (unsigned int)time(NULL);
-    seed = 10;
-    srand(seed);
-    level_seed = rand();
 
     if (dir_name == NULL) {
         printf("Output directory is required!\n");
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         printf("Running generation %d/%d\n", gen + 1, params.generations);
 
         // Generate seed for this gens levels and generate them
-        game_setup(game, level_seed);
+        game.genMap(level_seed);
         for (g = 0; g < params.gen_size; g++) {
             players[g].reset();
         }
