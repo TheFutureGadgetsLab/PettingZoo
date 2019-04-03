@@ -10,6 +10,7 @@
 
 #include <defs.hpp>
 #include <stdint.h>
+#include <vector>
 
 // Fitness measurement parameters
 #define FIT_TIME_WEIGHT 2.0f
@@ -70,7 +71,7 @@ class Game {
 
 	void setTileAt(int, int, uint8_t);
 	uint8_t getTileAt(int, int);
-	void getInputTiles(Player&, float*, uint8_t, uint8_t);
+	void getInputTiles(Player&, std::vector<float>&, uint8_t, uint8_t);
 	bool inBounds(int, int);
 	void genMap(unsigned int seed);
 	int update(Player& player);
@@ -80,6 +81,6 @@ class Game {
 
 void game_setup(Game& game, unsigned int seed);
 int game_update(Game& game, Player& player);
-void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w);
+
 
 #endif

@@ -50,6 +50,10 @@ void levelgen_gen_map(Game& game, unsigned int seed)
 
 			generate_flat_region(game, x, length);
 
+			if (chance(&game.seed_state, 75)) {
+				;
+			}
+
 			x += length;
 			flat_region = 0;
 		} else {
