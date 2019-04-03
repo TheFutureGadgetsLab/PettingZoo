@@ -34,10 +34,9 @@ class Chromosome {
     Chromosome(const char*);
     Chromosome(const Chromosome &); // Copy constructor
     ~Chromosome();
+    void generate(unsigned int);
 };
 
-void initialize_chromosome(Chromosome *chrom, uint8_t in_w, uint8_t in_h, uint8_t hlc, uint16_t npl);
-void generate_chromosome(Chromosome& chrom, unsigned int seed);
 void print_chromosome(Chromosome *chrom);
 void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed);
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);

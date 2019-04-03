@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     // Generate chromosomes in parallel
     #pragma omp parallel for
     for (int g = 0; g < params.gen_size; g++) {
-        generate_chromosome(genA[g], chrom_seeds[g]);
+        genA[g].generate(chrom_seeds[g]);
     }
 
     for (int gen = 0; gen < params.generations; gen++) {
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         run_generation(game, players, genA, params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, game, players, genA, 1, 1, gen, params);
+        get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
 
         if (gen != params.generations - 1) {
             printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);

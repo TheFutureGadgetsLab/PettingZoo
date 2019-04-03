@@ -14,5 +14,4 @@ float sigmoid(float x);
 float soft_sign(float x);
 int evaluate_frame(Game& game, Player& player, Chromosome& chrom);
 
-
 #endif

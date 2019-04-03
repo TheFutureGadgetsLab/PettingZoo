@@ -12,6 +12,7 @@
 #include <defs.hpp>
 #include <sys/stat.h>
 #include <string.h>
+#include <algorithm>
 
 float gen_random_weight(unsigned int *seedp);
 
@@ -121,6 +122,31 @@ Chromosome::Chromosome(const Chromosome& old)
 }
 
 /**
+ * @brief Generates a random chromosome using the given seed (must have been initialized first)
+ * 
+ * @param chrom Chromosome to store weights in
+ * @param seed used to seed random number generator
+ */
+void Chromosome::generate(unsigned int seed)
+{
+    unsigned int seedp;
+
+    seedp = seed;
+
+    for (int weight = 0; weight < input_adj_size; weight++) {
+        input_adj[weight] = gen_random_weight(&seedp);
+    }
+
+    for (int weight = 0; weight < hidden_adj_size; weight++) {
+        hidden_adj[weight] = gen_random_weight(&seedp);
+    }
+
+    for (int weight = 0; weight < out_adj_size; weight++) {
+        out_adj[weight] = gen_random_weight(&seedp);
+    }
+}
+
+/**
  * @brief Frees the memory used by chrom
  * 
  * @param chrom chromsome to free
@@ -133,51 +159,6 @@ Chromosome::~Chromosome()
 
     delete [] input_tiles;
     delete [] node_outputs;
-}
-
-/**
- * @brief Generates a random chromosome using the given seed (must have been initialized first)
- * 
- * @param chrom Chromosome to store weights in
- * @param seed used to seed random number generator
- */
-void generate_chromosome(Chromosome& chrom, unsigned int seed)
-{
-    uint8_t *cur_uint;
-    float *cur_float;
-    int r, c, hl;
-    unsigned int seedp;
-
-    seedp = seed;
-
-    // Generate input adj matrix
-    cur_float = chrom.input_adj;
-    for (r = 0; r < chrom.npl; r++) {
-        for (c = 0; c < chrom.in_h * chrom.in_w; c++) {
-            *cur_float = gen_random_weight(&seedp);
-            cur_float++;
-        }
-    }
-
-    // Generate hidden adj matrices
-    cur_float = chrom.hidden_adj;
-    for (hl = 0; hl < chrom.hlc - 1; hl++) {
-        for (r = 0; r < chrom.npl; r++) {
-            for (c = 0; c < chrom.npl; c++) {
-                *cur_float = gen_random_weight(&seedp);
-                cur_float++;
-            }
-        }
-    }
-
-    // Generate out adj matrix
-    cur_float = chrom.out_adj;
-    for (r = 0; r < BUTTON_COUNT; r++) {
-        for (c = 0; c < chrom.npl; c++) {
-            *cur_float = gen_random_weight(&seedp);
-            cur_float++;
-        }
-    }
 }
 
 /**

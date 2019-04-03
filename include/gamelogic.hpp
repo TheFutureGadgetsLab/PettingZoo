@@ -78,8 +78,5 @@ class Game {
 	bool tileSolid(int, int);
 };
 
-void game_setup(Game& game, unsigned int seed);
-int game_update(Game& game, Player& player);
-void get_input_tiles(Game& game, Player& player, float *tiles, uint8_t in_h, uint8_t in_w);
 
 #endif
