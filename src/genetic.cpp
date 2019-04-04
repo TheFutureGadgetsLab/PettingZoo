@@ -16,9 +16,9 @@
 #include <vector>
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
-int chance_gen(float percent);
-void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params);
-void mutate(float *data, size_t length, float mutate_rate);
+int chance_gen(float percent, unsigned int *seedState);
+void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
+void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState);
 
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
@@ -95,13 +95,14 @@ void run_generation(Game& game, Player* players, std::vector<Chromosome> &  gene
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(Player *players, std::vector<Chromosome> & generation, std::vector<Chromosome> & new_generation, Params& params)
+void select_and_breed(Player *players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params)
 {
     int game;
     float best, sum;
     Chromosome *survivors[params.gen_size / 2];
     int n_survivors = 0;
-
+    unsigned int seedState = rand();
+    
     //Find the worst and best score
     best = players[0].fitness;
     sum = 0;
@@ -112,19 +113,28 @@ void select_and_breed(Player *players, std::vector<Chromosome> & generation, std
         }
     }
 
+    printf("\tSelecting survivors\n");
     //Select survivors
     while (n_survivors < params.gen_size / 2) {
-        game = rand() % params.gen_size;
-        if (chance_gen(players[game].fitness / best)) {
-            survivors[n_survivors] = &generation[game];
+        game = rand_r(&seedState) % params.gen_size;
+        if (chance_gen(players[game].fitness / best, &seedState)) {
+            survivors[n_survivors] = &curGen[game];
             n_survivors += 1;
         }
     }
 
+    //Generate seeds for breeding
+    std::vector<unsigned int> seeds(params.gen_size / 2);
+    for (int chrom = 0; chrom < params.gen_size / 2; chrom++) {
+        seeds[chrom] = rand_r(&seedState);
+    }
+
+    printf("\tBreeding survivors\n");
     //Breed
-    for (game = 0; game < params.gen_size / 2; game++) {
-        single_point_breed(*survivors[game], *survivors[(game + 1) % (params.gen_size / 2)],
-            new_generation[game * 2], new_generation[game * 2 + 1], params);
+    #pragma omp parallel for
+    for (int surv = 0; surv < params.gen_size / 2; surv++) {
+        single_point_breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)],
+            newGen[surv * 2], newGen[surv * 2 + 1], params, seeds[surv]);
     }
 }
 
@@ -138,31 +148,32 @@ void select_and_breed(Player *players, std::vector<Chromosome> & generation, std
  * @param childB Pointer to memory where child B will be held
  * @param params The run parameters obj
  */
-void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params)
+void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed)
 {
     int split_loc, hl;
+    unsigned int seedState = seed;
 
     // Cross input adj layers and mutate
-    split_loc = rand() % (parentA.input_adj_size + 1);
+    split_loc = rand_r(&seedState) % (parentA.input_adj_size + 1);
     split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, parentA.input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.input_adj, parentA.input_adj_size, params.mutate_rate);
-    mutate(childB.input_adj, parentA.input_adj_size, params.mutate_rate);
+    mutate(childA.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
+    mutate(childB.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
 
     // Cross hidden layers and mutate
     size_t section_size = parentA.npl * parentA.npl;
     for (hl = 0; hl < parentA.hlc - 1; hl++) {
-        split_loc = rand() % (section_size + 1);
+        split_loc = rand_r(&seedState) % (section_size + 1);
         split(parentA.hidden_adj + section_size * hl, parentB.hidden_adj + section_size * hl,
               childA.hidden_adj + section_size * hl, childB.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate(childA.hidden_adj + section_size * hl, section_size, params.mutate_rate);
-        mutate(childB.hidden_adj + section_size * hl, section_size, params.mutate_rate);
+        mutate(childA.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
+        mutate(childB.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
     }
 
     // Cross output adj layer and mutate
-    split_loc = rand() % (parentA.out_adj_size + 1);
+    split_loc = rand_r(&seedState) % (parentA.out_adj_size + 1);
     split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, parentA.out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.out_adj, parentA.out_adj_size, params.mutate_rate);
-    mutate(childB.out_adj, parentA.out_adj_size, params.mutate_rate);
+    mutate(childA.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
+    mutate(childB.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
 }
 
 /**
@@ -193,9 +204,9 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
  * @param percent Percent chance between 0.0 and 100.0
  * @return int 1 or 0
  */
-int chance_gen(float percent)
+int chance_gen(float percent, unsigned int *seedState)
 {
-	return ((float)rand() / (float)RAND_MAX) < (percent / 100.0f);
+	return ((float)rand_r(seedState) / (float)RAND_MAX) < (percent / 100.0f);
 }
 
 /**
@@ -206,15 +217,15 @@ int chance_gen(float percent)
  * @param length Length of the array
  * @param mutate_rate Probability of mutation
  */
-void mutate(float *data, size_t length, float mutate_rate)
+void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState)
 {
     if (mutate_rate == 0.0f)
         return;
 
     size_t i;
     for (i = 0; i < length; i++) {
-        if (chance_gen(mutate_rate))
-            data[i] *= ((float)rand() / (float)RAND_MAX) * 2.0;
+        if (chance_gen(mutate_rate, seedState))
+            data[i] *= ((float)rand_r(seedState) / (float)RAND_MAX) * 2.0;
     }
 }
 
