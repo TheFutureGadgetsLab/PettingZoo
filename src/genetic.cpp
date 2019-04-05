@@ -278,7 +278,7 @@ void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chrom
 
     // Write out best chromosome
     if (write_winner) {
-        sprintf(fname, "./%s/gen_%d_%.2lf.bin", dirname, generation, max);
+        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname, generation, max);
         write_out_chromosome(fname, chroms[best_index], game.seed);
     }
 
