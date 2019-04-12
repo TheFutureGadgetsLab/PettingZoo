@@ -38,6 +38,7 @@ add_executable(
     src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
+    src/randfuncts.cpp
     src/rendering.cpp
     src/main.cpp
     src/chromosome.cpp
@@ -63,25 +64,9 @@ add_executable(
     src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
+    src/randfuncts.cpp
 )
 
 # Link libraries
 target_link_libraries(train m)
 target_link_libraries(train OpenMP::OpenMP_CXX)
-
-###############################################################
-#
-#                       Debug
-#
-###############################################################
-add_executable(
-    debug
-    src/debug.cpp
-    src/genetic.cpp
-    src/chromosome.cpp
-    src/neural_network.cpp
-    src/gamelogic.cpp
-    src/levelgen.cpp
-)
-
-target_link_libraries(debug m)

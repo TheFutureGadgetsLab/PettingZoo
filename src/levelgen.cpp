@@ -7,13 +7,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <defs.hpp>
-#include <cstdarg>
 #include <levelgen.hpp>
 #include <gamelogic.hpp>
+#include <randfuncts.hpp>
 
-int randint(unsigned int *seedp, int max);
-int randrange(unsigned int *seedp, int min, int max);
-int choose(unsigned int *seedp, int nargs, ...);
 // void game.setTileAt(game, int x, int y, unsigned char val);
 void create_hole(Game& game, int origin, int width);
 void create_pipe(Game& game, int origin, int width, int height);
@@ -84,7 +81,7 @@ void generate_flat_region(Game& game, int origin, int length)
 	type = 0;
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
-		if (chance(&game.seed_state, 15)) {
+		if (chance(15, &game.seed_state)) {
 			plat_len = randrange(&game.seed_state, 3, 8);
 			// Ensure platform doesnt extend past region
 			if (x + plat_len >= origin + length)
@@ -100,7 +97,7 @@ void generate_flat_region(Game& game, int origin, int length)
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (base_plat == 0 && type == BRICKS && chance(&game.seed_state, 75)) {
+				if (base_plat == 0 && type == BRICKS && chance(75, &game.seed_state)) {
 					int t_platlen = plat_len;
 					if (t_platlen % 2 == 0)
 						t_platlen++;
@@ -179,7 +176,7 @@ int generate_obstacle(Game& game, int origin)
 
 	width = randrange(&game.seed_state, 3, 7);
 	height = randrange(&game.seed_state, 3, 5);
-	do_pipe = chance(&game.seed_state, 50);
+	do_pipe = chance(50, &game.seed_state);
 
 	create_stair_gap(game, origin, height, width, do_pipe);
 
@@ -382,65 +379,4 @@ void levelgen_clear_level(Game& game)
 			game.setTileAt(x, y, EMPTY);
 		}
 	}
-}
-
-/**
- * @brief Return an integer where 0 <= x <= max
- * 
- * @param seedp Reentrant seed pointer
- * @param max Max value for randint
- * @return int Random integer
- */
-int randint(unsigned int *seedp, int max)
-{
-	return rand_r(seedp) % (max + 1);
-}
-
-/**
- * @brief Return an integer where min <= x <= max
- * 
- * @param seedp Reentrant seed pointer
- * @param min Min value in range
- * @param max Max value in range
- * @return int Random integer
- */
-int randrange(unsigned int *seedp, int min, int max)
-{
-	if (min == max)
-		return max;
-	return min + (rand_r(seedp) % (abs(max - min) + 1));
-}
-
-/**
- * @brief Returns 1 'percent' percent of the time
- * 
- * @param seedp Reentrant seed pointer
- * @param percent Percent chance
- * @return int True or false
- */
-int chance(unsigned int *seedp, float percent)
-{
-	return ((float)rand_r(seedp) / (float)RAND_MAX) < (percent / 100.0f);
-}
-
-/**
- * @brief Returns a random integer in list of integers
- * 
- * @param seedp Reentrant seed pointer
- * @param nargs Number of items to choose from
- * @param ... Items
- * @return int Chosen item
- */
-int choose(unsigned int *seedp, int nargs, ...)
-{
-	va_list args;
-	va_start(args, nargs);
-	int array[nargs];
-	int i;
-
-	for (i = 0; i < nargs; i++) {
-		array[i] = va_arg(args, int);
-	}
-	
-	return array[randint(seedp, nargs - 1)];
 }

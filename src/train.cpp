@@ -1,12 +1,10 @@
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include <genetic.hpp>
 #include <chromosome.hpp>
 #include <neural_network.hpp>
 #include <gamelogic.hpp>
-#include <levelgen.hpp>
 #include <unistd.h>
 #include <vector>
 

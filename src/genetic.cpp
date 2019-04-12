@@ -14,9 +14,9 @@
 #include <gamelogic.hpp>
 #include <sys/stat.h>
 #include <vector>
+#include <randfuncts.hpp>
 
 void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
-int chance_gen(float percent, unsigned int *seedState);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
 void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState);
 
@@ -117,7 +117,7 @@ void select_and_breed(Player *players, std::vector<Chromosome> & curGen, std::ve
     //Select survivors
     while (n_survivors < params.gen_size / 2) {
         game = rand_r(&seedState) % params.gen_size;
-        if (chance_gen(players[game].fitness / best, &seedState)) {
+        if (chance(players[game].fitness / best, &seedState)) {
             survivors[n_survivors] = &curGen[game];
             n_survivors += 1;
         }
@@ -199,17 +199,6 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
 }
 
 /**
- * @brief Return 1 if random number is <= percent, otherwise 0
- * 
- * @param percent Percent chance between 0.0 and 100.0
- * @return int 1 or 0
- */
-int chance_gen(float percent, unsigned int *seedState)
-{
-	return ((float)rand_r(seedState) / (float)RAND_MAX) < (percent / 100.0f);
-}
-
-/**
  * @brief Randomly mutate this floating point data with a given mutate probability
  *        Data can mutate in the range of 0-200%
  * 
@@ -224,7 +213,7 @@ void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedSta
 
     size_t i;
     for (i = 0; i < length; i++) {
-        if (chance_gen(mutate_rate, seedState))
+        if (chance(mutate_rate, seedState))
             data[i] *= ((float)rand_r(seedState) / (float)RAND_MAX) * 2.0;
     }
 }

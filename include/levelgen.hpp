@@ -29,7 +29,6 @@
 #define FLAG          10
 
 void levelgen_gen_map(Game& game, unsigned int seed);
-int chance(unsigned int *seedp, float percent);
 void levelgen_clear_level(Game& game);
 
 #endif
