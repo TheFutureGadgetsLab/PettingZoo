@@ -105,22 +105,6 @@ void calc_hidden_layers(Chromosome& chrom, std::vector<float>& node_outs)
             node_outs[cur_node] = softsign(sum);
         }
     }
-    // for (layer = 1; layer < chrom.hlc; layer++) {
-    //     // Grab the adjacency matrix for this layer
-    //     hidden_adj = chrom.hidden_adj + (layer - 1) * chrom.npl * chrom.npl;
-    //     // Loop over nodes in this layer
-    //     for (node = 0; node < chrom.npl; node++) {
-    //         sum = 0.0f;
-    //         cur_node = layer * chrom.npl + node;
-
-    //         // Calculate linear sum of outputs and weights
-    //         for (weight = 0; weight < chrom.npl; weight++) {
-    //             sum += hidden_adj[node * chrom.npl + weight] * node_outs[(layer - 1) * chrom.npl + weight];
-    //         }
-
-    //         node_outs[cur_node] = softsign(sum);
-    //     }
-    // }
 }
 
 /**
