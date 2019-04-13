@@ -10,14 +10,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <defs.hpp>
+#include <vector>
 
 class Chromosome {
     public:
-    float *input_adj;  // Adjacency matrix describing input layer to first hidden layer
-    float *hidden_adj; // Adjacency matrix describing the hidden layers
-    float *out_adj;    // Adjacency matrix describing last hidden layer to the output nodes
-    float *input_tiles;
-    float *node_outputs;
+    std::vector<float> input_adj;  // Adjacency matrix describing input layer to first hidden layer
+    std::vector<std::vector<float>> hiddenLayers; // Adjacency matrix describing the hidden layers
+    std::vector<float> out_adj;    // Adjacency matrix describing last hidden layer to the output nodes
+    std::vector<float> input_tiles;
+    std::vector<float> node_outputs;
     
     // Sizes are number of elements, not bytes
     size_t input_adj_size;
@@ -32,8 +33,6 @@ class Chromosome {
     Chromosome(Params&);
     
     Chromosome(const char*);
-    Chromosome(const Chromosome &); // Copy constructor
-    ~Chromosome();
     void generate(unsigned int);
 };
 

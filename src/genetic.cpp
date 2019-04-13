@@ -16,9 +16,10 @@
 #include <vector>
 #include <randfuncts.hpp>
 
-void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
+void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
-void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState);
+void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState);
+
 
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
@@ -155,25 +156,23 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
 
     // Cross input adj layers and mutate
     split_loc = rand_r(&seedState) % (parentA.input_adj_size + 1);
-    split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, parentA.input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
-    mutate(childB.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
+    split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, split_loc);
+    mutate(childA.input_adj, params.mutate_rate, &seedState);
+    mutate(childB.input_adj, params.mutate_rate, &seedState);
 
     // Cross hidden layers and mutate
-    size_t section_size = parentA.npl * parentA.npl;
-    for (hl = 0; hl < parentA.hlc - 1; hl++) {
-        split_loc = rand_r(&seedState) % (section_size + 1);
-        split(parentA.hidden_adj + section_size * hl, parentB.hidden_adj + section_size * hl,
-              childA.hidden_adj + section_size * hl, childB.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate(childA.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
-        mutate(childB.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
+        split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
+        mutate(childA.hiddenLayers[layer], params.mutate_rate, &seedState);
+        mutate(childB.hiddenLayers[layer], params.mutate_rate, &seedState);
     }
-
+        
     // Cross output adj layer and mutate
     split_loc = rand_r(&seedState) % (parentA.out_adj_size + 1);
-    split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, parentA.out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
-    mutate(childB.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
+    split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, split_loc);
+    mutate(childA.out_adj, params.mutate_rate, &seedState);
+    mutate(childB.out_adj, params.mutate_rate, &seedState);
 }
 
 /**
@@ -188,14 +187,15 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
  * @param length Length in bytes to be copied
  * @param split location the split occurs
  */
-void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
+void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split)
 {
-    // Must cast for pointer arithmetic
-    memcpy(childA, parentA, split);
-    memcpy((uint8_t *)childA + split, (uint8_t *)parentB + split, length - split);
+    // Copy split elements of parentA into childA
+    std::copy(parentA.begin(), parentA.begin() + split, childA.begin());
+    std::copy(parentB.begin() + split, parentB.end(), childA.begin() + split);
 
-    memcpy(childB, parentB, split);
-    memcpy((uint8_t *)childB + split, (uint8_t *)parentA + split, length - split);
+    // Copy split elements of parentA into childA
+    std::copy(parentB.begin(), parentB.begin() + split, childB.begin());
+    std::copy(parentA.begin() + split, parentA.end(), childB.begin() + split);
 }
 
 /**
@@ -206,13 +206,13 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
  * @param length Length of the array
  * @param mutate_rate Probability of mutation
  */
-void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState)
+void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState)
 {
     if (mutate_rate == 0.0f)
         return;
 
     size_t i;
-    for (i = 0; i < length; i++) {
+    for (i = 0; i < data.size(); i++) {
         if (chance(mutate_rate, seedState))
             data[i] *= ((float)rand_r(seedState) / (float)RAND_MAX) * 2.0;
     }

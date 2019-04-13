@@ -59,19 +59,19 @@ Chromosome::Chromosome(const char *fname)
     hidden_adj_size = (hlc - 1) * (npl * npl);
     out_adj_size = BUTTON_COUNT * npl;
 
-    input_adj = new float[input_adj_size];
-    hidden_adj = new float[hidden_adj_size];
-    out_adj = new float[out_adj_size];
+    // input_adj = new float[input_adj_size];
+    // hidden_adj = new float[hidden_adj_size];
+    // out_adj = new float[out_adj_size];
 
-    input_tiles = new float[in_w * in_h];
-    node_outputs = new float[npl * hlc];
+    // input_tiles = new float[in_w * in_h];
+    // node_outputs = new float[npl * hlc];
 
-    // Matrices       
-    read = fread(input_adj, sizeof(float), input_adj_size, file);
-    read = fread(hidden_adj, sizeof(float), hidden_adj_size, file);
-    read = fread(out_adj, sizeof(float), out_adj_size, file);
+    // // Matrices       
+    // read = fread(input_adj, sizeof(float), input_adj_size, file);
+    // read = fread(hidden_adj, sizeof(float), hidden_adj_size, file);
+    // read = fread(out_adj, sizeof(float), out_adj_size, file);
 
-    fclose(file);
+    // fclose(file);
 }
 
 Chromosome::Chromosome(Params& params)
@@ -85,40 +85,17 @@ Chromosome::Chromosome(Params& params)
     hidden_adj_size = (hlc - 1) * (npl * npl);
     out_adj_size = BUTTON_COUNT * npl;
 
-    input_adj = new float[input_adj_size];
-    hidden_adj = new float[hidden_adj_size];
-    out_adj = new float[out_adj_size];
+    input_adj.resize(input_adj_size);
+    
+    hiddenLayers.resize(hlc - 1);
+    for (int i = 0; i < hiddenLayers.size(); i++) {
+        hiddenLayers[i].resize(npl * npl);
+    }
 
-    input_tiles = new float[in_w * in_h];
-    node_outputs = new float[npl * hlc];
-}
+    out_adj.resize(out_adj_size);
 
-// Copy Constructor
-Chromosome::Chromosome(const Chromosome& old)
-{
-    in_h = old.in_h;
-    in_w = old.in_w;
-    hlc = old.hlc;
-    npl = old.npl;
-
-    input_adj_size = (in_h * in_w) * npl;
-    hidden_adj_size = (hlc - 1) * (npl * npl);
-    out_adj_size = BUTTON_COUNT * npl;
-
-    input_adj = new float[input_adj_size];
-    hidden_adj = new float[hidden_adj_size];
-    out_adj = new float[out_adj_size];
-
-    input_tiles = new float[in_w * in_h];
-    node_outputs = new float[npl * hlc];
-
-    // Copy over NN
-    memcpy(input_adj, old.input_adj, input_adj_size * sizeof(float));
-    memcpy(hidden_adj, old.hidden_adj, hidden_adj_size * sizeof(float));
-    memcpy(out_adj, old.out_adj, out_adj_size * sizeof(float));
-
-    memcpy(input_tiles, old.input_tiles, in_w * in_h * sizeof(float));
-    memcpy(node_outputs, old.node_outputs, npl * hlc * sizeof(float));
+    input_tiles.resize(in_w * in_h);
+    node_outputs.resize(npl * hlc);
 }
 
 /**
@@ -137,28 +114,15 @@ void Chromosome::generate(unsigned int seed)
         input_adj[weight] = gen_random_weight(&seedp);
     }
 
-    for (int weight = 0; weight < hidden_adj_size; weight++) {
-        hidden_adj[weight] = gen_random_weight(&seedp);
+    for (int layer = 0; layer < hiddenLayers.size(); layer++) {
+        for (int weight = 0; weight < hiddenLayers[layer].size(); weight++) {
+            hiddenLayers[layer][weight] = gen_random_weight(&seedp);
+        }
     }
 
     for (int weight = 0; weight < out_adj_size; weight++) {
         out_adj[weight] = gen_random_weight(&seedp);
     }
-}
-
-/**
- * @brief Frees the memory used by chrom
- * 
- * @param chrom chromsome to free
- */
-Chromosome::~Chromosome()
-{
-    delete [] input_adj;
-    delete [] hidden_adj;
-    delete [] out_adj;
-
-    delete [] input_tiles;
-    delete [] node_outputs;
 }
 
 /**
@@ -168,49 +132,49 @@ Chromosome::~Chromosome()
  */
 void print_chromosome(Chromosome *chrom)
 {
-    printf("-------------------------------------------\n");
-    uint8_t *cur_uint;
-    float *cur_float;
-    int r, c, hl;
+    // printf("-------------------------------------------\n");
+    // uint8_t *cur_uint;
+    // float *cur_float;
+    // int r, c, hl;
 
-    printf("\nInput to first hidden layer adj:\n");
-    cur_float = chrom->input_adj;
-    for (r = 0; r < chrom->npl; r++) {
-        for (c = 0; c < chrom->in_h * chrom->in_w; c++) {
-            printf("%*.3lf\t", 6, *cur_float);
-            cur_float++;
-        }
-        puts("");
-    }
+    // printf("\nInput to first hidden layer adj:\n");
+    // cur_float = chrom->input_adj;
+    // for (r = 0; r < chrom->npl; r++) {
+    //     for (c = 0; c < chrom->in_h * chrom->in_w; c++) {
+    //         printf("%*.3lf\t", 6, *cur_float);
+    //         cur_float++;
+    //     }
+    //     puts("");
+    // }
 
-    puts("");
-    cur_float = chrom->hidden_adj;
-    for (hl = 0; hl < chrom->hlc - 1; hl++) {
-        printf("Hidden layer %d to %d act:\n", hl + 1, hl + 2);
-        for (r = 0; r < chrom->npl; r++) {
-            for (c = 0; c < chrom->npl; c++) {
-                printf("%*.3lf\t", 6, *cur_float);
-                cur_float++;
-            }
-            puts("");
-        }
-        puts("");
-    }
+    // puts("");
+    // cur_float = chrom->hidden_adj;
+    // for (hl = 0; hl < chrom->hlc - 1; hl++) {
+    //     printf("Hidden layer %d to %d act:\n", hl + 1, hl + 2);
+    //     for (r = 0; r < chrom->npl; r++) {
+    //         for (c = 0; c < chrom->npl; c++) {
+    //             printf("%*.3lf\t", 6, *cur_float);
+    //             cur_float++;
+    //         }
+    //         puts("");
+    //     }
+    //     puts("");
+    // }
 
-    printf("Hidden layer %d to output act:\n", chrom->hlc);
-    cur_float = chrom->out_adj;
-    for (r = 0; r < BUTTON_COUNT; r++) {
-        for (c = 0; c < chrom->npl; c++) {
-            printf("%*.3lf\t", 6, *cur_float);
-            cur_float++;
-        }
-        puts("");
-    }
+    // printf("Hidden layer %d to output act:\n", chrom->hlc);
+    // cur_float = chrom->out_adj;
+    // for (r = 0; r < BUTTON_COUNT; r++) {
+    //     for (c = 0; c < chrom->npl; c++) {
+    //         printf("%*.3lf\t", 6, *cur_float);
+    //         cur_float++;
+    //     }
+    //     puts("");
+    // }
 
-    printf("\nChromosome:\n");
-    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", chrom->in_h, chrom->in_w, chrom->npl, chrom->hlc);
-    printf("Size: %ld bytes\n", (chrom->input_adj_size + chrom->hidden_adj_size + chrom->out_adj_size) * sizeof(float));
-    printf("-------------------------------------------\n");
+    // printf("\nChromosome:\n");
+    // printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", chrom->in_h, chrom->in_w, chrom->npl, chrom->hlc);
+    // printf("Size: %ld bytes\n", (chrom->input_adj_size + chrom->hidden_adj_size + chrom->out_adj_size) * sizeof(float));
+    // printf("-------------------------------------------\n");
 }
 
 /**
@@ -252,9 +216,9 @@ void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_see
     fwrite(&chrom.hlc, sizeof(chrom.hlc), 1, file);
     fwrite(&chrom.npl, sizeof(chrom.npl), 1, file);
 
-    fwrite(chrom.input_adj, sizeof(*chrom.input_adj), chrom.input_adj_size, file);
-    fwrite(chrom.hidden_adj, sizeof(*chrom.hidden_adj), chrom.hidden_adj_size, file);
-    fwrite(chrom.out_adj, sizeof(*chrom.out_adj), chrom.out_adj_size, file);
+    // fwrite(chrom.input_adj, sizeof(*chrom.input_adj), chrom.input_adj_size, file);
+    // fwrite(chrom.hidden_adj, sizeof(*chrom.hidden_adj), chrom.hidden_adj_size, file);
+    // fwrite(chrom.out_adj, sizeof(*chrom.out_adj), chrom.out_adj_size, file);
 
     fclose(file);
 }

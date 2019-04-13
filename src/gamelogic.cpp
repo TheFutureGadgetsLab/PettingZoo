@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////
 //
@@ -279,15 +280,12 @@ bool Game::tileSolid(int x, int y)
 	return true;
 }
 
-void Game::getInputTiles(Player& player, float *out, uint8_t in_h, uint8_t in_w)
+void Game::getInputTiles(Player& player, std::vector<float>& out, uint8_t in_h, uint8_t in_w)
 {
 	int tile_x1, tile_y1;
 	int tile_x2, tile_y2;
-	int x, y;
-	float *tmp;
+	int x, y, i;
 	uint8_t tile;
-
-	tmp = out;
 
 	//Calculate bounds for drawing tiles
 	tile_x1 = player.body.tile_x - in_w / 2;
@@ -295,7 +293,7 @@ void Game::getInputTiles(Player& player, float *out, uint8_t in_h, uint8_t in_w)
 	tile_y1 = player.body.tile_y - in_h / 2;
 	tile_y2 = player.body.tile_y + in_h / 2;
 
-	//Loop over tiles and draw them
+	i = 0;
 	for (y = tile_y1; y < tile_y2; y++) {
 		for (x = tile_x1; x < tile_x2; x++) {
 			// Report walls on left and right side of level
@@ -307,17 +305,17 @@ void Game::getInputTiles(Player& player, float *out, uint8_t in_h, uint8_t in_w)
 				tile = tiles[y * LEVEL_WIDTH + x];
 
 			if (tile == EMPTY || tile == FLAG)
-				*tmp = 0.0f;
+				out[i] = 0.0f;
 			else if (tile == PIPE_BOTTOM || tile == PIPE_MIDDLE || tile == PIPE_TOP || tile == GRASS || tile == DIRT || tile == BRICKS)
-				*tmp = (1.0f / 3.0f);
+				out[i] = (1.0f / 3.0f);
 			else if (tile == SPIKES_TOP)
-				*tmp = (2.0f / 3.0f);
+				out[i] = (2.0f / 3.0f);
 			else if (tile == SPIKES_BOTTOM)
-				*tmp = 1.0f;
+				out[i] = 1.0f;
 			else
 				exit(-1);
 
-			tmp++;
+			i++;
 		}
 	}
 }
