@@ -69,7 +69,7 @@ void Body::reset()
 //
 ///////////////////////////////////////////////////////////////
 
-void Game::setTileAt(int x, int y, uint8_t value)
+void Game::setTileAt(int x, int y, int value)
 {
 	if (!inBounds(x, y))
 		return;
@@ -77,7 +77,7 @@ void Game::setTileAt(int x, int y, uint8_t value)
 	tiles[y * LEVEL_WIDTH + x] = value;
 }
 
-uint8_t Game::getTileAt(int x, int y)
+int Game::getTileAt(int x, int y)
 {
 	if (!inBounds(x, y))
 		return 0;
@@ -280,12 +280,12 @@ bool Game::tileSolid(int x, int y)
 	return true;
 }
 
-void Game::getInputTiles(Player& player, std::vector<float>& out, uint8_t in_h, uint8_t in_w)
+void Game::getInputTiles(Player& player, std::vector<float>& out, int in_h, int in_w)
 {
 	int tile_x1, tile_y1;
 	int tile_x2, tile_y2;
 	int x, y, i;
-	uint8_t tile;
+	int tile;
 
 	//Calculate bounds for drawing tiles
 	tile_x1 = player.body.tile_x - in_w / 2;

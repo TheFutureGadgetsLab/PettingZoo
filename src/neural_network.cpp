@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <chromosome.hpp>
 #include <neural_network.hpp>
-#include <stdint.h>
 #include <time.h>
 #include <math.h>
 #include <gamelogic.hpp>

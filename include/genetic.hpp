@@ -12,9 +12,9 @@
 #include <chromosome.hpp>
 #include <vector>
 
-void run_generation(Game& game, Player* players, std::vector<Chromosome> & generation, Params& params);
-void select_and_breed(Player *players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params);
-void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params);
+void run_generation(Game& game, std::vector<Player>& players, std::vector<Chromosome> & generation, Params& params);
+void select_and_breed(std::vector<Player>& players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params);
+void get_gen_stats(char *dirname, Game& game, std::vector<Player>& players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params);
 void create_output_dir(char *dirname, unsigned int seed, Params& params);
 
 #endif

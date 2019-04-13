@@ -81,7 +81,7 @@ void generate_flat_region(Game& game, int origin, int length)
 	type = 0;
 	for (x = origin; x < origin + length; x++) {
 		// Generate platform with 15% chance
-		if (chance(15, &game.seed_state)) {
+		if (chance(&game.seed_state, 15)) {
 			plat_len = randrange(&game.seed_state, 3, 8);
 			// Ensure platform doesnt extend past region
 			if (x + plat_len >= origin + length)
@@ -97,7 +97,7 @@ void generate_flat_region(Game& game, int origin, int length)
 
 			// Only insert plat if length > 0
 			if (plat_len > 0) {
-				if (base_plat == 0 && type == BRICKS && chance(75, &game.seed_state)) {
+				if (base_plat == 0 && type == BRICKS && chance(&game.seed_state, 75)) {
 					int t_platlen = plat_len;
 					if (t_platlen % 2 == 0)
 						t_platlen++;
@@ -176,7 +176,7 @@ int generate_obstacle(Game& game, int origin)
 
 	width = randrange(&game.seed_state, 3, 7);
 	height = randrange(&game.seed_state, 3, 5);
-	do_pipe = chance(50, &game.seed_state);
+	do_pipe = chance(&game.seed_state, 50);
 
 	create_stair_gap(game, origin, height, width, do_pipe);
 

@@ -58,7 +58,26 @@ int choose(unsigned int *seedp, int nargs, ...)
  * @param percent Percent chance between 0.0 and 100.0
  * @return int 1 or 0
  */
-bool chance(float percent, unsigned int *seedState)
+bool chance(unsigned int *seedState, float percent)
 {
 	return ((float)rand_r(seedState) / (float)RAND_MAX) < (percent / 100.0f);
+}
+
+/**
+ * @brief Generate a random weight in range [-1, 1]
+ * 
+ * @param seedp random number generator seed
+ * @return float number between [-1, 1]
+ */
+float gen_random_weight(unsigned int *seedp)
+{
+    float weight, chance;
+
+    weight = (float)rand_r(seedp) / RAND_MAX;
+
+    // Flip sign on even
+    if (rand_r(seedp) % 2 == 0)
+        weight = weight * -1;
+
+    return weight;
 }

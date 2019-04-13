@@ -40,7 +40,7 @@ add_executable(
     src/levelgen.cpp
     src/randfuncts.cpp
     src/rendering.cpp
-    src/main.cpp
+    src/pettingzoo.cpp
     src/chromosome.cpp
 )
 

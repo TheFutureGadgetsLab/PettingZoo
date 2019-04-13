@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <chromosome.hpp>
-#include <stdint.h>
 #include <defs.hpp>
 #include <sys/stat.h>
 #include <string.h>
@@ -21,17 +20,6 @@ float gen_random_weight(unsigned int *seedp);
 //                  Chromosome Class
 //
 ///////////////////////////////////////////////////////////////
-/**
- * @brief Initializes and allocates a given chromosome with the given size
- * 
- * This allocates memory and the chromosome MUST be freed with free_chromosome(...)
- * 
- * @param chrom The chromsome to initialize
- * @param in_w Input matrix width
- * @param in_h Input matrix height
- * @param hlc Hidden layer count
- * @param npl Nodes per layer
- */
 Chromosome::Chromosome(const char *fname)
 {
     FILE *file = NULL;
@@ -74,6 +62,13 @@ Chromosome::Chromosome(const char *fname)
     // fclose(file);
 }
 
+/**
+ * @brief Initializes and allocates a given chromosome with the given size
+ * 
+ * This allocates memory and the chromosome MUST be freed with free_chromosome(...)
+ * 
+ * @param params Parameters to use in chromosome initialization
+ */
 Chromosome::Chromosome(Params& params)
 {
     in_h = params.in_h;
@@ -130,62 +125,43 @@ void Chromosome::generate(unsigned int seed)
  * 
  * @param chrom the chromsome to print the properties of
  */
-void print_chromosome(Chromosome *chrom)
+void Chromosome::print()
 {
     printf("-------------------------------------------\n");
     int r, c, hl;
 
     printf("\nInput to first hidden layer adj:\n");
-    for (r = 0; r < chrom->npl; r++) {
-        for (c = 0; c < chrom->in_h * chrom->in_w; c++) {
-            printf("%*.3lf\t", 6, chrom->input_adj[r * chrom->in_h * chrom->in_w + c]);
+    for (r = 0; r < this->npl; r++) {
+        for (c = 0; c < this->in_h * this->in_w; c++) {
+            printf("%*.3lf\t", 6, this->input_adj[r * this->in_h * this->in_w + c]);
         }
         puts("");
     }
 
     puts("");
-    for (hl = 0; hl < chrom->hlc - 1; hl++) {
+    for (hl = 0; hl < this->hlc - 1; hl++) {
         printf("Hidden layer %d to %d act:\n", hl + 1, hl + 2);
-        for (r = 0; r < chrom->npl; r++) {
-            for (c = 0; c < chrom->npl; c++) {
-                printf("%*.3lf\t", 6, chrom->hiddenLayers[hl][r * chrom->npl + c]);
+        for (r = 0; r < this->npl; r++) {
+            for (c = 0; c < this->npl; c++) {
+                printf("%*.3lf\t", 6, this->hiddenLayers[hl][r * this->npl + c]);
             }
             puts("");
         }
         puts("");
     }
 
-    printf("Hidden layer %d to output act:\n", chrom->hlc);
+    printf("Hidden layer %d to output act:\n", this->hlc);
     for (r = 0; r < BUTTON_COUNT; r++) {
-        for (c = 0; c < chrom->npl; c++) {
-            printf("%*.3lf\t", 6, chrom->out_adj[r * chrom->npl + c]);
+        for (c = 0; c < this->npl; c++) {
+            printf("%*.3lf\t", 6, this->out_adj[r * this->npl + c]);
         }
         puts("");
     }
 
     printf("\nChromosome:\n");
-    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", chrom->in_h, chrom->in_w, chrom->npl, chrom->hlc);
-    printf("Size: %ld bytes\n", (chrom->input_adj_size + chrom->hidden_adj_size + chrom->out_adj_size) * sizeof(float));
+    printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", this->in_h, this->in_w, this->npl, this->hlc);
+    printf("Size: %ld bytes\n", (this->input_adj_size + this->hidden_adj_size + this->out_adj_size) * sizeof(float));
     printf("-------------------------------------------\n");
-}
-
-/**
- * @brief Generate a random weight in range [-1, 1]
- * 
- * @param seedp random number generator seed
- * @return float number between [-1, 1]
- */
-float gen_random_weight(unsigned int *seedp)
-{
-    float weight, chance;
-
-    weight = (float)rand_r(seedp) / RAND_MAX;
-
-    // Flip sign on even
-    if (rand_r(seedp) % 2 == 0)
-        weight = weight * -1;
-
-    return weight;
 }
 
 /**

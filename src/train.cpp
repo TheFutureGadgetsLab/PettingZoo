@@ -72,10 +72,9 @@ int main(int argc, char **argv)
     create_output_dir(dir_name, seed, params);
 
     Game game;
-    Player *players;
     std::vector<Chromosome> genA(params.gen_size, Chromosome(params));
     std::vector<Chromosome> genB(params.gen_size, Chromosome(params));
-    players = new Player[params.gen_size];
+    std::vector<Player> players(params.gen_size);
     std::vector<unsigned int> chrom_seeds(params.gen_size);
 
     printf("Running with %d chromosomes for %d generations\n", params.gen_size, params.generations);
@@ -86,8 +85,8 @@ int main(int argc, char **argv)
     fflush(stdout);
 
     // Populate list of seeds for parallel generation
-    for (int chrom = 0; chrom < params.gen_size; chrom++) {
-        chrom_seeds[chrom] = rand();
+    for (unsigned int& seed : chrom_seeds) {
+        seed = rand();
     }
 
     // Generate chromosomes in parallel
@@ -103,8 +102,8 @@ int main(int argc, char **argv)
         // Generate map for generation
         game.genMap(level_seed);
 
-        for (int player = 0; player < params.gen_size; player++) {
-            players[player].reset();
+        for (Player &player : players) {
+            player.reset();
         }
 
         run_generation(game, players, genA, params);
@@ -123,8 +122,6 @@ int main(int argc, char **argv)
         }
     }
     puts("----------------------------\n");
-
-    delete [] players;
 
     return 0;
 }
