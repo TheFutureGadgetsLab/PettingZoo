@@ -19,11 +19,6 @@ class Chromosome {
     std::vector<float> input_tiles;               // Buffer for input to the network
     std::vector<float> node_outputs;              // Buffer for outputs of the network
     
-    // Sizes are number of elements, not bytes
-    size_t input_adj_size;
-    size_t hidden_adj_size;
-    size_t out_adj_size;
-
     int npl; // Nodes in each hidden layer
     int in_w; // Width of input rectangle around player
     int in_h; // Height of input rectangle around player

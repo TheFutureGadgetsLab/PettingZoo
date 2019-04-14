@@ -69,7 +69,7 @@ int main(int argc, char **argv)
         run_generation(game, players, genA, params);
 
         // Write out and/or print stats
-        get_gen_stats(dir_name, game, players, genA, 1, 1, gen, params);
+        get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
 
         if (gen != params.generations - 1) {
             printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);

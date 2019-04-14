@@ -152,7 +152,7 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
     unsigned int seedState = seed;
 
     // Cross input adj layers and mutate
-    split_loc = rand_r(&seedState) % (parentA.input_adj_size + 1);
+    split_loc = rand_r(&seedState) % (parentA.input_adj.size() + 1);
     split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, split_loc);
     mutate(childA.input_adj, params.mutate_rate, &seedState);
     mutate(childB.input_adj, params.mutate_rate, &seedState);
@@ -166,7 +166,7 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
     }
         
     // Cross output adj layer and mutate
-    split_loc = rand_r(&seedState) % (parentA.out_adj_size + 1);
+    split_loc = rand_r(&seedState) % (parentA.out_adj.size() + 1);
     split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, split_loc);
     mutate(childA.out_adj, params.mutate_rate, &seedState);
     mutate(childB.out_adj, params.mutate_rate, &seedState);
