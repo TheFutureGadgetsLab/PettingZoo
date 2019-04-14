@@ -7,38 +7,37 @@
 #ifndef CHROMOSOME_H
 #define CHROMOSOME_H
 
-#include <stdint.h>
 #include <stdlib.h>
 #include <defs.hpp>
+#include <vector>
 
 class Chromosome {
     public:
-    float *input_adj;  // Adjacency matrix describing input layer to first hidden layer
-    float *hidden_adj; // Adjacency matrix describing the hidden layers
-    float *out_adj;    // Adjacency matrix describing last hidden layer to the output nodes
-    float *input_tiles;
-    float *node_outputs;
+    std::vector<float> input_adj;                 // Adjacency matrix describing input layer to first hidden layer
+    std::vector<std::vector<float>> hiddenLayers; // Adjacency matrix describing the hidden layers
+    std::vector<float> out_adj;                   // Adjacency matrix describing last hidden layer to the output nodes
+    std::vector<float> input_tiles;               // Buffer for input to the network
+    std::vector<float> node_outputs;              // Buffer for outputs of the network
     
     // Sizes are number of elements, not bytes
     size_t input_adj_size;
     size_t hidden_adj_size;
     size_t out_adj_size;
 
-    uint16_t npl; // Nodes in each hidden layer
-    uint8_t in_w; // Width of input rectangle around player
-    uint8_t in_h; // Height of input rectangle around player
-    uint8_t hlc;  // Number of hidden layers
+    int npl; // Nodes in each hidden layer
+    int in_w; // Width of input rectangle around player
+    int in_h; // Height of input rectangle around player
+    int hlc;  // Number of hidden layers
 
     Chromosome(Params&);
     
     Chromosome(const char*);
-    Chromosome(const Chromosome &); // Copy constructor
-    ~Chromosome();
     void generate(unsigned int);
+    void print();
+    void writeToFile(char *fname, unsigned int level_seed);
+
 };
 
-void print_chromosome(Chromosome *chrom);
-void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed);
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
 unsigned int getStatsFromFile(const char *fname, Params& params);
 

@@ -23,7 +23,7 @@ public:
 		return true;
 	}
 
-    bool load_map(const uint8_t *tiles, int width, int height) {
+    bool load_map(const int *tiles, int width, int height) {
         // resize the vertex array to fit the level size
         m_vertices.setPrimitiveType(sf::Quads);
         m_vertices.resize(width * height * 4);

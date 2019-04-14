@@ -1,15 +1,13 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include <stdint.h>
-
 // Genetic/NN run parameters
 class Params {
     public:
-    uint8_t in_h = 12;
-    uint8_t in_w = 12;
-    uint8_t hlc = 2;
-    uint16_t npl = 128;
+    int in_h = 12;
+    int in_w = 12;
+    int hlc = 2;
+    int npl = 128;
     int gen_size = 100;
     int generations = 1;
     float mutate_rate = 0.001f;

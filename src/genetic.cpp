@@ -5,7 +5,6 @@
  * @date 2018-12-11
  */
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <genetic.hpp>
@@ -15,10 +14,12 @@
 #include <sys/stat.h>
 #include <vector>
 #include <randfuncts.hpp>
+#include <algorithm>
+#include <string>
 
-void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split);
+void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
-void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState);
+void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState);
 
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
@@ -28,7 +29,7 @@ void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedSta
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(Game& game, Player* players, std::vector<Chromosome> &  generation, Params& params)
+void run_generation(Game& game, std::vector<Player>& players, std::vector<Chromosome>& generation, Params& params)
 {
     int g;
     int ret;
@@ -95,9 +96,9 @@ void run_generation(Game& game, Player* players, std::vector<Chromosome> &  gene
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(Player *players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params)
+void select_and_breed(std::vector<Player>& players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params)
 {
-    int game;
+    int chrom;
     float best, sum;
     Chromosome *survivors[params.gen_size / 2];
     int n_survivors = 0;
@@ -106,30 +107,27 @@ void select_and_breed(Player *players, std::vector<Chromosome> & curGen, std::ve
     //Find the worst and best score
     best = players[0].fitness;
     sum = 0;
-    for (game = 0; game < params.gen_size; game++) {
-        sum += players[game].fitness;
-        if (players[game].fitness > best) {
-            best = players[game].fitness;
-        }
+
+    for (Player& player : players) {
+        sum += player.fitness;
+        best = std::max(best, player.fitness);
     }
 
-    printf("\tSelecting survivors\n");
     //Select survivors
     while (n_survivors < params.gen_size / 2) {
-        game = rand_r(&seedState) % params.gen_size;
-        if (chance(players[game].fitness / best, &seedState)) {
-            survivors[n_survivors] = &curGen[game];
+        chrom = rand_r(&seedState) % params.gen_size;
+        if (chance(&seedState, players[chrom].fitness / best)) {
+            survivors[n_survivors] = &curGen[chrom];
             n_survivors += 1;
         }
     }
 
     //Generate seeds for breeding
     std::vector<unsigned int> seeds(params.gen_size / 2);
-    for (int chrom = 0; chrom < params.gen_size / 2; chrom++) {
-        seeds[chrom] = rand_r(&seedState);
+    for (unsigned int& seed : seeds) {
+        seed = rand_r(&seedState);
     }
 
-    printf("\tBreeding survivors\n");
     //Breed
     #pragma omp parallel for
     for (int surv = 0; surv < params.gen_size / 2; surv++) {
@@ -155,47 +153,45 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
 
     // Cross input adj layers and mutate
     split_loc = rand_r(&seedState) % (parentA.input_adj_size + 1);
-    split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, parentA.input_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
-    mutate(childB.input_adj, parentA.input_adj_size, params.mutate_rate, &seedState);
+    split(parentA.input_adj, parentB.input_adj, childA.input_adj, childB.input_adj, split_loc);
+    mutate(childA.input_adj, params.mutate_rate, &seedState);
+    mutate(childB.input_adj, params.mutate_rate, &seedState);
 
     // Cross hidden layers and mutate
-    size_t section_size = parentA.npl * parentA.npl;
-    for (hl = 0; hl < parentA.hlc - 1; hl++) {
-        split_loc = rand_r(&seedState) % (section_size + 1);
-        split(parentA.hidden_adj + section_size * hl, parentB.hidden_adj + section_size * hl,
-              childA.hidden_adj + section_size * hl, childB.hidden_adj + section_size * hl, section_size * sizeof(float), split_loc * sizeof(float));
-        mutate(childA.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
-        mutate(childB.hidden_adj + section_size * hl, section_size, params.mutate_rate, &seedState);
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
+        split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
+        mutate(childA.hiddenLayers[layer], params.mutate_rate, &seedState);
+        mutate(childB.hiddenLayers[layer], params.mutate_rate, &seedState);
     }
-
+        
     // Cross output adj layer and mutate
     split_loc = rand_r(&seedState) % (parentA.out_adj_size + 1);
-    split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, parentA.out_adj_size * sizeof(float), split_loc * sizeof(float));
-    mutate(childA.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
-    mutate(childB.out_adj, parentA.out_adj_size, params.mutate_rate, &seedState);
+    split(parentA.out_adj, parentB.out_adj, childA.out_adj, childB.out_adj, split_loc);
+    mutate(childA.out_adj, params.mutate_rate, &seedState);
+    mutate(childB.out_adj, params.mutate_rate, &seedState);
 }
 
 /**
- * @brief Copies 'split' bytes into childA from parentA, then after that copies the rest of the section
+ * @brief Copies 'split' floats into childA from parentA, then after that copies the rest of the section
  *        (length - split) into childA from parentB. This is then done with childB, but the copy order
  *        is reversed (parentB first then parentA).
  * 
- * @param parentA Pointer to beginning of parentA data
- * @param parentB Pointer to beginning of parentB data
- * @param childA Pointer to beginning of childA data
- * @param childB Pointer to beginning of parentB data
- * @param length Length in bytes to be copied
- * @param split location the split occurs
+ * @param parentA parentA chromosome
+ * @param parentB parentB chromosome
+ * @param childA childA chromosome
+ * @param childB childB chromosome
+ * @param split where the split occurs
  */
-void split(void *parentA, void *parentB, void *childA, void *childB, size_t length, size_t split)
+void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split)
 {
-    // Must cast for pointer arithmetic
-    memcpy(childA, parentA, split);
-    memcpy((uint8_t *)childA + split, (uint8_t *)parentB + split, length - split);
+    // Copy split elements of parentA into childA
+    std::copy(parentA.begin(), parentA.begin() + split, childA.begin());
+    std::copy(parentB.begin() + split, parentB.end(), childA.begin() + split);
 
-    memcpy(childB, parentB, split);
-    memcpy((uint8_t *)childB + split, (uint8_t *)parentA + split, length - split);
+    // Copy split elements of parentA into childA
+    std::copy(parentB.begin(), parentB.begin() + split, childB.begin());
+    std::copy(parentA.begin() + split, parentA.end(), childB.begin() + split);
 }
 
 /**
@@ -206,14 +202,13 @@ void split(void *parentA, void *parentB, void *childA, void *childB, size_t leng
  * @param length Length of the array
  * @param mutate_rate Probability of mutation
  */
-void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedState)
+void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState)
 {
     if (mutate_rate == 0.0f)
         return;
 
-    size_t i;
-    for (i = 0; i < length; i++) {
-        if (chance(mutate_rate, seedState))
+    for (int i = 0; i < data.size(); i++) {
+        if (chance(seedState, mutate_rate))
             data[i] *= ((float)rand_r(seedState) / (float)RAND_MAX) * 2.0;
     }
 }
@@ -230,51 +225,50 @@ void mutate(float *data, size_t length, float mutate_rate, unsigned int *seedSta
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
 {
-    int g, completed, timedout, died, best_index;
+    int completed, timedout, died, best_index, index;
     float max, min, avg;
     char fname[256];
     FILE *run_data;
 
-    completed = 0;
-    timedout = 0;
-    died = 0;
+    completed = timedout = died = 0;
     avg = 0.0f;
-    max = players[0].fitness;
-    min = players[0].fitness;
-    best_index = 0;
-    for(g = 0; g < params.gen_size; g++) {
-        avg += players[g].fitness;
+    max = min = players[0].fitness;
+    best_index = index = 0;
+    for (Player& player : players) {
+        avg += player.fitness;
 
-        if (players[g].fitness > max) {
-            max = players[g].fitness;
-            best_index = g;
-        } else if (players[g].fitness < min) {
-            min = players[g].fitness;
-        }
-
-        if (players[g].death_type == PLAYER_COMPLETE)
+        if (player.fitness > max) {
+            max = player.fitness;
+            best_index = index;
+        } 
+           
+        min = std::min(min, player.fitness);
+        
+        if (player.death_type == PLAYER_COMPLETE)
             completed++;
-        else if (players[g].death_type == PLAYER_TIMEOUT)
+        else if (player.death_type == PLAYER_TIMEOUT)
             timedout++;
-        else if (players[g].death_type == PLAYER_DEAD)
+        else if (player.death_type == PLAYER_DEAD)
             died++;
 
         if (!quiet)
-            printf("Player %d fitness: %0.4lf\n", g, players[g].fitness);
+            printf("Player %d fitness: %0.4lf\n", index, player.fitness);
+        
+        index++;
     }
 
     // Write out best chromosome
     if (write_winner) {
-        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname, generation, max);
-        write_out_chromosome(fname, chroms[best_index], game.seed);
+        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max);
+        chroms[best_index].writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;
 
     // Write progress to file
-    sprintf(fname, "%s/run_data.txt", dirname);
+    sprintf(fname, "%s/run_data.txt", dirname.c_str());
     run_data = fopen(fname, "a");
     fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
     fclose(run_data);
@@ -294,16 +288,16 @@ void get_gen_stats(char *dirname, Game& game, Player *players, std::vector<Chrom
  * @param seed The game seed
  * @param params The parameters obj
  */
-void create_output_dir(char *dirname, unsigned int seed, Params& params)
+void create_output_dir(std::string& dirname, unsigned int seed, Params& params)
 {
     FILE* out_file;
     char name[4069];
 
     // Create run directory
-    mkdir(dirname, S_IRWXU | S_IRWXG | S_IRWXO);
+    mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     // Create run data file
-    sprintf(name, "%s/run_data.txt", dirname);
+    sprintf(name, "%s/run_data.txt", dirname.c_str());
     out_file = fopen(name, "w+");
 
     // Write out run data header

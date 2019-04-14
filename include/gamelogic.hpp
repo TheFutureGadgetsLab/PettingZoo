@@ -9,7 +9,7 @@
 #define GAMELOGIC_H
 
 #include <defs.hpp>
-#include <stdint.h>
+#include <vector>
 
 // Fitness measurement parameters
 #define FIT_TIME_WEIGHT 2.0f
@@ -54,7 +54,7 @@ class Body {
 class Player {
 	public:
 	Body body;
-	uint8_t left, right, jump;
+	char left, right, jump;
 	float time, fitness;
 	int score, buttonpresses, death_type;
 
@@ -65,12 +65,12 @@ class Player {
 // Game class
 class Game {
 	public:
-	uint8_t tiles[LEVEL_SIZE];
+	int tiles[LEVEL_SIZE];
 	unsigned int seed, seed_state;
 
-	void setTileAt(int, int, uint8_t);
-	uint8_t getTileAt(int, int);
-	void getInputTiles(Player&, float*, uint8_t, uint8_t);
+	void setTileAt(int, int, int);
+	int getTileAt(int, int);
+	void getInputTiles(Player&, std::vector<float>&, int, int);
 	bool inBounds(int, int);
 	void genMap(unsigned int seed);
 	int update(Player& player);

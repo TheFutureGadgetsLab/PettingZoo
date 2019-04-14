@@ -4,6 +4,7 @@
 int randint(unsigned int *seedp, int max);
 int randrange(unsigned int *seedp, int min, int max);
 int choose(unsigned int *seedp, int nargs, ...);
-bool chance(float percent, unsigned int *seedState);
+bool chance(unsigned int *seedState, float percent);
+float gen_random_weight(unsigned int *seedp);
 
 #endif
