@@ -34,9 +34,10 @@ class Chromosome {
     Chromosome(const char*);
     void generate(unsigned int);
     void print();
+    void writeToFile(char *fname, unsigned int level_seed);
+
 };
 
-void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed);
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
 unsigned int getStatsFromFile(const char *fname, Params& params);
 

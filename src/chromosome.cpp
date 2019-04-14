@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <algorithm>
+#include <fstream>
 
 float gen_random_weight(unsigned int *seedp);
 
@@ -26,13 +27,18 @@ Chromosome::Chromosome(const char *fname)
     struct stat st;
     size_t read;
     unsigned int level_seed;
+    std::ifstream data_file;
 
-    if (stat(fname, &st) == -1) {
-		printf("Error reading file '%s'!\n", fname);
-		exit(EXIT_FAILURE);
-	}
+    // if (stat(fname, &st) == -1) {
+	// 	printf("Error reading file '%s'!\n", fname);
+	// 	exit(EXIT_FAILURE);
+	// }
 
-    file = fopen(fname, "rb");
+    // file = fopen(fname, "rb");
+
+    data_file.open(fname, std::ios::in | std::ios::binary);
+    // descriptorsValues.resize(NUMBER_OF_ITEMS);
+    // data_file.read(reinterpret_cast<char*>(&descriptorsValues[0]), NUMBER_OF_ITEMS*sizeof(float));
 
     // Level seed
     read = fread(&level_seed, sizeof(level_seed), 1, file);
@@ -47,19 +53,19 @@ Chromosome::Chromosome(const char *fname)
     hidden_adj_size = (hlc - 1) * (npl * npl);
     out_adj_size = BUTTON_COUNT * npl;
 
-    // input_adj = new float[input_adj_size];
-    // hidden_adj = new float[hidden_adj_size];
-    // out_adj = new float[out_adj_size];
+    input_adj = new float[input_adj_size];
+    hidden_adj = new float[hidden_adj_size];
+    out_adj = new float[out_adj_size];
 
-    // input_tiles = new float[in_w * in_h];
-    // node_outputs = new float[npl * hlc];
+    input_tiles = new float[in_w * in_h];
+    node_outputs = new float[npl * hlc];
 
-    // // Matrices       
-    // read = fread(input_adj, sizeof(float), input_adj_size, file);
-    // read = fread(hidden_adj, sizeof(float), hidden_adj_size, file);
-    // read = fread(out_adj, sizeof(float), out_adj_size, file);
+    // Matrices       
+    read = fread(input_adj, sizeof(float), input_adj_size, file);
+    read = fread(hidden_adj, sizeof(float), hidden_adj_size, file);
+    read = fread(out_adj, sizeof(float), out_adj_size, file);
 
-    // fclose(file);
+    data_file.close();
 }
 
 /**
@@ -171,24 +177,28 @@ void Chromosome::print()
  * @param chrom the chromosome to write to disk from
  * @param level_seed the seed of the level, which will be written along with the chromosome data
  */
-void write_out_chromosome(char *fname, Chromosome& chrom, unsigned int level_seed)
+void Chromosome::writeToFile(char *fname, unsigned int level_seed)
 {
-    FILE *file = fopen(fname, "wb");
+    std::ofstream data_file;
+    data_file.open(fname, std::ios::out | std::ios::binary);
 
     // Level seed
-    fwrite(&level_seed, sizeof(level_seed), 1, file);
+    data_file.write(reinterpret_cast<char*>(&level_seed), sizeof(float));
 
-    //Chromosome
-    fwrite(&chrom.in_h, sizeof(chrom.in_h), 1, file);
-    fwrite(&chrom.in_w, sizeof(chrom.in_w), 1, file);
-    fwrite(&chrom.hlc, sizeof(chrom.hlc), 1, file);
-    fwrite(&chrom.npl, sizeof(chrom.npl), 1, file);
+    // Chromosome structure
+    data_file.write(reinterpret_cast<char*>(&this->in_h), sizeof(this->in_h)); 
+    data_file.write(reinterpret_cast<char*>(&this->in_w), sizeof(this->in_w)); 
+    data_file.write(reinterpret_cast<char*>(&this->hlc), sizeof(this->hlc)); 
+    data_file.write(reinterpret_cast<char*>(&this->npl), sizeof(this->npl)); 
 
-    // fwrite(chrom.input_adj, sizeof(*chrom.input_adj), chrom.input_adj_size, file);
-    // fwrite(chrom.hidden_adj, sizeof(*chrom.hidden_adj), chrom.hidden_adj_size, file);
-    // fwrite(chrom.out_adj, sizeof(*chrom.out_adj), chrom.out_adj_size, file);
+    // Layers
+    data_file.write(reinterpret_cast<char*>(&this->input_adj[0]), this->input_adj.size()*sizeof(float)); 
+    for (std::vector<float>& layer : this->hiddenLayers) {
+        data_file.write(reinterpret_cast<char*>(&layer[0]), layer.size()*sizeof(float)); 
+    }
+    data_file.write(reinterpret_cast<char*>(&this->out_adj[0]), this->out_adj.size()*sizeof(float)); 
 
-    fclose(file);
+    data_file.close();
 }
 
 /**

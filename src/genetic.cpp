@@ -261,7 +261,7 @@ void get_gen_stats(char *dirname, Game& game, std::vector<Player>& players, std:
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname, generation, max);
-        write_out_chromosome(fname, chroms[best_index], game.seed);
+        chroms[best_index].writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;
