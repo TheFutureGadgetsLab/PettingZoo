@@ -7,65 +7,25 @@
 #include <gamelogic.hpp>
 #include <unistd.h>
 #include <vector>
+#include <string>   
+
+int getArgs(int argc, char **argv, std::string& dir_name, Params &params);
 
 int main(int argc, char **argv)
 {
-    // Default global parameters
     Params params;
-    int opt;
-    char *dir_name = NULL;
- 
-    while ((opt = getopt(argc, argv, "hi:l:n:c:g:m:o:")) != -1) {
-        switch (opt) {
-        // Output dir name
-        case 'o':
-            dir_name = optarg;
-            break;
-        // NN input size
-        case 'i':
-            params.in_h = atoi(optarg);
-            params.in_w = atoi(optarg);
-            break;
-        // HLC
-        case 'l':
-            params.hlc = atoi(optarg);
-            break;
-        // NPL
-        case 'n':
-            params.npl = atoi(optarg);
-            break;
-        // Chromosome count
-        case 'c':
-            params.gen_size = atoi(optarg);
-            break;
-        // Generations
-        case 'g':
-            params.generations = atoi(optarg);
-            break;
-        // Mutate rate
-        case 'm':
-            params.mutate_rate = atof(optarg);
-            break;
-        case 'h':
-        default: /* '?' */
-            printf("Usage: %s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
-            printf("  -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", params.in_h);
-            printf("  -l    Number of hidden layers in the neural networks (default %d)\n",  params.hlc);
-            printf("  -n    Nodes in each hidden layer (default %d)\n", params.npl);
-            printf("  -c    Number of chromosomes in each generation (default %d)\n", params.gen_size);
-            printf("  -g    Number of generations to run (default %d)\n", params.generations);            
-            printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", params.mutate_rate);
-            printf("  -o    Output directory name\n");
-            return 0;
-        }
+    std::string dir_name;
+    if (getArgs(argc, argv, dir_name, params) == -1) {
+        return 0;
     }
+
     unsigned int seed, level_seed;
     // seed = (unsigned int)time(NULL);
     seed = 10;
     srand(seed);
     level_seed = rand();
 
-    if (dir_name == NULL) {
+    if (dir_name.empty() == true) {
         printf("Output directory is required!\n");
         exit(EXIT_FAILURE);
     }
@@ -122,6 +82,59 @@ int main(int argc, char **argv)
         }
     }
     puts("----------------------------\n");
+
+    return 0;
+}
+
+int getArgs(int argc, char **argv, std::string& dir_name, Params &params)
+{
+    // Default global parameters
+    int opt;
+ 
+    while ((opt = getopt(argc, argv, "hi:l:n:c:g:m:o:")) != -1) {
+        switch (opt) {
+        // Output dir name
+        case 'o':
+            dir_name = optarg;
+            break;
+        // NN input size
+        case 'i':
+            params.in_h = atoi(optarg);
+            params.in_w = atoi(optarg);
+            break;
+        // HLC
+        case 'l':
+            params.hlc = atoi(optarg);
+            break;
+        // NPL
+        case 'n':
+            params.npl = atoi(optarg);
+            break;
+        // Chromosome count
+        case 'c':
+            params.gen_size = atoi(optarg);
+            break;
+        // Generations
+        case 'g':
+            params.generations = atoi(optarg);
+            break;
+        // Mutate rate
+        case 'm':
+            params.mutate_rate = atof(optarg);
+            break;
+        case 'h':
+        default: /* '?' */
+            printf("Usage: %s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
+            printf("  -i    Size (in tiles) of the input area to the chromosomes (default %d)\n", params.in_h);
+            printf("  -l    Number of hidden layers in the neural networks (default %d)\n",  params.hlc);
+            printf("  -n    Nodes in each hidden layer (default %d)\n", params.npl);
+            printf("  -c    Number of chromosomes in each generation (default %d)\n", params.gen_size);
+            printf("  -g    Number of generations to run (default %d)\n", params.generations);            
+            printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", params.mutate_rate);
+            printf("  -o    Output directory name\n");
+            return -1;
+        }
+    }
 
     return 0;
 }

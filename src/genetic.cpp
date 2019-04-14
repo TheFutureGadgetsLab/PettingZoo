@@ -15,6 +15,7 @@
 #include <vector>
 #include <randfuncts.hpp>
 #include <algorithm>
+#include <string>
 
 void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
@@ -224,7 +225,7 @@ void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(char *dirname, Game& game, std::vector<Player>& players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int completed, timedout, died, best_index, index;
     float max, min, avg;
@@ -260,14 +261,14 @@ void get_gen_stats(char *dirname, Game& game, std::vector<Player>& players, std:
 
     // Write out best chromosome
     if (write_winner) {
-        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname, generation, max);
+        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max);
         chroms[best_index].writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;
 
     // Write progress to file
-    sprintf(fname, "%s/run_data.txt", dirname);
+    sprintf(fname, "%s/run_data.txt", dirname.c_str());
     run_data = fopen(fname, "a");
     fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
     fclose(run_data);
@@ -287,16 +288,16 @@ void get_gen_stats(char *dirname, Game& game, std::vector<Player>& players, std:
  * @param seed The game seed
  * @param params The parameters obj
  */
-void create_output_dir(char *dirname, unsigned int seed, Params& params)
+void create_output_dir(std::string& dirname, unsigned int seed, Params& params)
 {
     FILE* out_file;
     char name[4069];
 
     // Create run directory
-    mkdir(dirname, S_IRWXU | S_IRWXG | S_IRWXO);
+    mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     // Create run data file
-    sprintf(name, "%s/run_data.txt", dirname);
+    sprintf(name, "%s/run_data.txt", dirname.c_str());
     out_file = fopen(name, "w+");
 
     // Write out run data header
