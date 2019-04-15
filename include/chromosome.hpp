@@ -13,11 +13,9 @@
 
 class Chromosome {
     public:
-    std::vector<float> input_adj;                 // Adjacency matrix describing input layer to first hidden layer
+    std::vector<float> inputLayer;                 // Adjacency matrix describing input layer to first hidden layer
     std::vector<std::vector<float>> hiddenLayers; // Adjacency matrix describing the hidden layers
-    std::vector<float> out_adj;                   // Adjacency matrix describing last hidden layer to the output nodes
-    std::vector<float> input_tiles;               // Buffer for input to the network
-    std::vector<float> node_outputs;              // Buffer for outputs of the network
+    std::vector<float> outputLayer;                   // Adjacency matrix describing last hidden layer to the output nodes
     
     int npl; // Nodes in each hidden layer
     int in_w; // Width of input rectangle around player

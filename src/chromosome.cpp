@@ -37,27 +37,23 @@ Chromosome::Chromosome(const char *fname)
     data_file.read(reinterpret_cast<char*>(&hlc), sizeof(hlc));
     data_file.read(reinterpret_cast<char*>(&npl), sizeof(npl));
 
-    input_adj.resize(in_h * in_w * npl);
+    inputLayer.resize(in_h * in_w * npl);
     
     hiddenLayers.resize(hlc - 1);
     for (int i = 0; i < hiddenLayers.size(); i++) {
         hiddenLayers[i].resize(npl * npl);
     }
 
-    out_adj.resize(BUTTON_COUNT * npl);
-
-    input_tiles.resize(in_w * in_h);
-    node_outputs.resize(npl * hlc);
-
+    outputLayer.resize(BUTTON_COUNT * npl);
 
     // Matrices    
-    data_file.read(reinterpret_cast<char*>(&input_adj[0]), input_adj.size() * sizeof(float));
+    data_file.read(reinterpret_cast<char*>(&inputLayer[0]), inputLayer.size() * sizeof(float));
 
     for (std::vector<float>& layer : hiddenLayers) {
         data_file.read(reinterpret_cast<char*>(&layer[0]), layer.size() * sizeof(float));
     }
 
-    data_file.read(reinterpret_cast<char*>(&out_adj[0]), out_adj.size() * sizeof(float));
+    data_file.read(reinterpret_cast<char*>(&outputLayer[0]), outputLayer.size() * sizeof(float));
 
     data_file.close();
 }
@@ -76,17 +72,14 @@ Chromosome::Chromosome(Params& params)
     hlc = params.hlc;
     npl = params.npl;
 
-    input_adj.resize(in_h * in_w * npl);
+    inputLayer.resize(in_h * in_w * npl);
     
     hiddenLayers.resize(hlc - 1);
     for (int i = 0; i < hiddenLayers.size(); i++) {
         hiddenLayers[i].resize(npl * npl);
     }
 
-    out_adj.resize(BUTTON_COUNT * npl);
-
-    input_tiles.resize(in_w * in_h);
-    node_outputs.resize(npl * hlc);
+    outputLayer.resize(BUTTON_COUNT * npl);
 }
 
 /**
@@ -101,8 +94,8 @@ void Chromosome::generate(unsigned int seed)
 
     seedp = seed;
 
-    for (int weight = 0; weight < input_adj.size(); weight++) {
-        input_adj[weight] = gen_random_weight(&seedp);
+    for (int weight = 0; weight < inputLayer.size(); weight++) {
+        inputLayer[weight] = gen_random_weight(&seedp);
     }
 
     for (int layer = 0; layer < hiddenLayers.size(); layer++) {
@@ -111,8 +104,8 @@ void Chromosome::generate(unsigned int seed)
         }
     }
 
-    for (int weight = 0; weight < out_adj.size(); weight++) {
-        out_adj[weight] = gen_random_weight(&seedp);
+    for (int weight = 0; weight < outputLayer.size(); weight++) {
+        outputLayer[weight] = gen_random_weight(&seedp);
     }
 }
 
@@ -129,7 +122,7 @@ void Chromosome::print()
     printf("\nInput to first hidden layer adj:\n");
     for (r = 0; r < this->npl; r++) {
         for (c = 0; c < this->in_h * this->in_w; c++) {
-            printf("%*.3lf\t", 6, this->input_adj[r * this->in_h * this->in_w + c]);
+            printf("%*.3lf\t", 6, this->inputLayer[r * this->in_h * this->in_w + c]);
         }
         puts("");
     }
@@ -149,14 +142,14 @@ void Chromosome::print()
     printf("Hidden layer %d to output act:\n", this->hlc);
     for (r = 0; r < BUTTON_COUNT; r++) {
         for (c = 0; c < this->npl; c++) {
-            printf("%*.3lf\t", 6, this->out_adj[r * this->npl + c]);
+            printf("%*.3lf\t", 6, this->outputLayer[r * this->npl + c]);
         }
         puts("");
     }
 
     printf("\nChromosome:\n");
     printf("in_w:\t%d\nin_h:\t%d\nnpl:\t%d\nhlc:\t%d\n", this->in_h, this->in_w, this->npl, this->hlc);
-    printf("Size: %ld bytes\n", (input_adj.size() + hiddenLayers.size() * hiddenLayers[0].size() + out_adj.size()) * sizeof(float));
+    printf("Size: %ld bytes\n", (inputLayer.size() + hiddenLayers.size() * hiddenLayers[0].size() + outputLayer.size()) * sizeof(float));
     printf("-------------------------------------------\n");
 }
 
@@ -182,11 +175,11 @@ void Chromosome::writeToFile(char *fname, unsigned int level_seed)
     data_file.write(reinterpret_cast<char*>(&this->npl), sizeof(this->npl)); 
 
     // Layers
-    data_file.write(reinterpret_cast<char*>(&this->input_adj[0]), this->input_adj.size()*sizeof(float)); 
+    data_file.write(reinterpret_cast<char*>(&this->inputLayer[0]), this->inputLayer.size()*sizeof(float)); 
     for (std::vector<float>& layer : this->hiddenLayers) {
         data_file.write(reinterpret_cast<char*>(&layer[0]), layer.size()*sizeof(float)); 
     }
-    data_file.write(reinterpret_cast<char*>(&this->out_adj[0]), this->out_adj.size()*sizeof(float)); 
+    data_file.write(reinterpret_cast<char*>(&this->outputLayer[0]), this->outputLayer.size()*sizeof(float)); 
 
     data_file.close();
 }

@@ -15,7 +15,7 @@
 
 void calc_first_layer(Chromosome& chrom, std::vector<float>& inputs, std::vector<float>& node_outputs);
 void calc_hidden_layers(Chromosome& chrom, std::vector<float>& node_outputs);
-void calc_output(Chromosome& chrom, std::vector<float>& node_outputs, float* net_outs);
+void calc_output(Chromosome& chrom, std::vector<float>& node_outputs, std::vector<float>& net_outs);
 
 // Activation functions
 float sigmoid(float x);
@@ -37,13 +37,15 @@ float tanh_bounded(float x);
  */
 int evaluate_frame(Game& game, Player& player, Chromosome& chrom)
 {
-    float network_outputs[BUTTON_COUNT];
+    std::vector<float> network_outputs(3);
+    std::vector<float> inputs(chrom.in_h * chrom.in_w);
+    std::vector<float> node_outputs(chrom.npl * chrom.hlc);
 
-    game.getInputTiles(player, chrom.input_tiles, chrom.in_h, chrom.in_w);
+    game.getInputTiles(player, inputs, chrom.in_h, chrom.in_w);
     
-    calc_first_layer(chrom, chrom.input_tiles, chrom.node_outputs);
-    calc_hidden_layers(chrom, chrom.node_outputs);
-    calc_output(chrom, chrom.node_outputs, network_outputs);
+    calc_first_layer(chrom, inputs, node_outputs);
+    calc_hidden_layers(chrom, node_outputs);
+    calc_output(chrom, node_outputs, network_outputs);
 
     // Assign button presses based on output probability
     player.right = network_outputs[RIGHT] > 0.0f;
@@ -71,7 +73,7 @@ void calc_first_layer(Chromosome& chrom, std::vector<float>& inputs, std::vector
 
         // Calculate linear sum of outputs and weights
         for (weight = 0; weight < chrom.in_h * chrom.in_w; weight++) {
-            sum += chrom.input_adj[node * chrom.in_h * chrom.in_w + weight] * inputs[weight];
+            sum += chrom.inputLayer[node * chrom.in_h * chrom.in_w + weight] * inputs[weight];
         }
 
         node_outputs[node] = softsign(sum);
@@ -113,7 +115,7 @@ void calc_hidden_layers(Chromosome& chrom, std::vector<float>& node_outs)
  * @param node_outs Outputs from previous layer
  * @param net_outs Where to store network outputs
  */
-void calc_output(Chromosome& chrom, std::vector<float>& node_outs, float* net_outs)
+void calc_output(Chromosome& chrom, std::vector<float>& node_outs, std::vector<float>& net_outs)
 {
     int bttn, weight;
     float sum;
@@ -123,7 +125,7 @@ void calc_output(Chromosome& chrom, std::vector<float>& node_outs, float* net_ou
         sum = 0.0f;
         // Linear sum
         for (weight = 0; weight < chrom.npl; weight++) {
-            sum += chrom.out_adj[bttn * chrom.npl + weight] * node_outs[(chrom.hlc - 1) * chrom.npl + weight];
+            sum += chrom.outputLayer[bttn * chrom.npl + weight] * node_outs[(chrom.hlc - 1) * chrom.npl + weight];
         }
 
         net_outs[bttn] = softsign(sum);
