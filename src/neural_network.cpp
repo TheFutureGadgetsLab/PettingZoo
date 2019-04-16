@@ -38,14 +38,14 @@ float tanh_bounded(float x);
 int evaluate_frame(Game& game, Player& player, Chromosome& chrom)
 {
     std::vector<float> network_outputs(3);
-    std::vector<float> inputs(chrom.in_h * chrom.in_w);
-    std::vector<float> node_outputs(chrom.npl * chrom.hlc);
+    std::vector<float> tileInputs(chrom.in_h * chrom.in_w);
+    std::vector<float> nodeBuf(chrom.npl * chrom.hlc);
 
-    game.getInputTiles(player, inputs, chrom.in_h, chrom.in_w);
+    game.getInputTiles(player, tileInputs, chrom.in_h, chrom.in_w);
     
-    calc_first_layer(chrom, inputs, node_outputs);
-    calc_hidden_layers(chrom, node_outputs);
-    calc_output(chrom, node_outputs, network_outputs);
+    calc_first_layer(chrom, tileInputs, nodeBuf);
+    calc_hidden_layers(chrom, nodeBuf);
+    calc_output(chrom, nodeBuf, network_outputs);
 
     // Assign button presses based on output probability
     player.right = network_outputs[RIGHT] > 0.0f;

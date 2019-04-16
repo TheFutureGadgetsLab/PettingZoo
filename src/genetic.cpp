@@ -19,7 +19,7 @@
 
 void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
-void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState);
+void mutate(Chromosome& chrom, float mutateRate);
 
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
@@ -154,22 +154,16 @@ void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& ch
     // Cross input adj layers and mutate
     split_loc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
     split(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, split_loc);
-    mutate(childA.inputLayer, params.mutate_rate, &seedState);
-    mutate(childB.inputLayer, params.mutate_rate, &seedState);
 
     // Cross hidden layers and mutate
     for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
         split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
         split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
-        mutate(childA.hiddenLayers[layer], params.mutate_rate, &seedState);
-        mutate(childB.hiddenLayers[layer], params.mutate_rate, &seedState);
     }
         
     // Cross output adj layer and mutate
     split_loc = rand_r(&seedState) % (parentA.outputLayer.size() + 1);
     split(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
-    mutate(childA.outputLayer, params.mutate_rate, &seedState);
-    mutate(childB.outputLayer, params.mutate_rate, &seedState);
 }
 
 /**
@@ -194,6 +188,14 @@ void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector
     std::copy(parentA.begin() + split, parentA.end(), childB.begin() + split);
 }
 
+void mutateGeneration(std::vector<Chromosome>& generation, float mutateRate)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < generation.size(); i++) {
+        mutate(generation[i], mutateRate);
+    }
+}
+
 /**
  * @brief Randomly mutate this floating point data with a given mutate probability
  *        Data can mutate in the range of 0-200%
@@ -202,14 +204,32 @@ void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector
  * @param length Length of the array
  * @param mutate_rate Probability of mutation
  */
-void mutate(std::vector<float>& data, float mutate_rate, unsigned int *seedState)
+void mutate(Chromosome& chrom, float mutateRate)
 {
-    if (mutate_rate == 0.0f)
+    if (mutateRate == 0.0f)
         return;
 
-    for (int i = 0; i < data.size(); i++) {
-        if (chance(seedState, mutate_rate))
-            data[i] *= ((float)rand_r(seedState) / (float)RAND_MAX) * 2.0;
+    std::uniform_real_distribution<> weightGenerator(-1.0f, 1.0f);
+    std::uniform_real_distribution<> chanceGenerator(0.0f, 1.0f);
+
+    for (float& weight : chrom.inputLayer) {
+        if (chanceGenerator(chrom.engine) < mutateRate) {
+            weight *= weightGenerator(chrom.engine);
+        }
+    }
+
+    for (std::vector<float>& layer : chrom.hiddenLayers) {
+        for (float& weight : layer) {
+            if (chanceGenerator(chrom.engine) < mutateRate) {
+                weight *= weightGenerator(chrom.engine);
+            }
+        }
+    }
+
+    for (float& weight : chrom.outputLayer) {
+        if (chanceGenerator(chrom.engine) < mutateRate) {
+            weight *= weightGenerator(chrom.engine);
+        }
     }
 }
 

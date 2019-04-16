@@ -14,8 +14,6 @@
 #include <algorithm>
 #include <fstream>
 
-float gen_random_weight(unsigned int *seedp);
-
 ///////////////////////////////////////////////////////////////
 //
 //                  Chromosome Class
@@ -82,30 +80,33 @@ Chromosome::Chromosome(Params& params)
     outputLayer.resize(BUTTON_COUNT * npl);
 }
 
+void Chromosome::seed(unsigned int seed)
+{
+    engine.seed(seed);
+}
+
 /**
  * @brief Generates a random chromosome using the given seed (must have been initialized first)
  * 
  * @param chrom Chromosome to store weights in
  * @param seed used to seed random number generator
  */
-void Chromosome::generate(unsigned int seed)
+void Chromosome::generate()
 {
-    unsigned int seedp;
-
-    seedp = seed;
+    std::uniform_real_distribution<> weightGenerator(-1.0f, 1.0f);
 
     for (int weight = 0; weight < inputLayer.size(); weight++) {
-        inputLayer[weight] = gen_random_weight(&seedp);
+        inputLayer[weight] = weightGenerator(engine);
     }
 
     for (int layer = 0; layer < hiddenLayers.size(); layer++) {
         for (int weight = 0; weight < hiddenLayers[layer].size(); weight++) {
-            hiddenLayers[layer][weight] = gen_random_weight(&seedp);
+            hiddenLayers[layer][weight] = weightGenerator(engine);
         }
     }
 
     for (int weight = 0; weight < outputLayer.size(); weight++) {
-        outputLayer[weight] = gen_random_weight(&seedp);
+        outputLayer[weight] = weightGenerator(engine);
     }
 }
 

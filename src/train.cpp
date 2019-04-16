@@ -52,7 +52,8 @@ int main(int argc, char **argv)
     // Generate chromosomes in parallel
     #pragma omp parallel for
     for (int g = 0; g < params.gen_size; g++) {
-        genA[g].generate(chrom_seeds[g]);
+        genA[g].seed(chrom_seeds[g]);
+        genA[g].generate();
     }
 
     for (int gen = 0; gen < params.generations; gen++) {
@@ -74,8 +75,10 @@ int main(int argc, char **argv)
         if (gen != params.generations - 1) {
             printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
 
-            // Usher in the new generation
+            // Breed new generation
             select_and_breed(players, genA, genB, params);
+            // Mutate new generation
+            mutateGeneration(genB, params.mutate_rate);
 
             // Swap generations
             genA.swap(genB);

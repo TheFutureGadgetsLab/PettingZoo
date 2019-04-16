@@ -10,25 +10,27 @@
 #include <stdlib.h>
 #include <defs.hpp>
 #include <vector>
+#include <random>
 
 class Chromosome {
     public:
     std::vector<float> inputLayer;                 // Adjacency matrix describing input layer to first hidden layer
     std::vector<std::vector<float>> hiddenLayers; // Adjacency matrix describing the hidden layers
     std::vector<float> outputLayer;                   // Adjacency matrix describing last hidden layer to the output nodes
-    
+    std::minstd_rand engine;
+
     int npl; // Nodes in each hidden layer
     int in_w; // Width of input rectangle around player
     int in_h; // Height of input rectangle around player
     int hlc;  // Number of hidden layers
 
     Chromosome(Params&);
-    
     Chromosome(const char*);
-    void generate(unsigned int);
+
+    void seed(unsigned int);
+    void generate();
     void print();
     void writeToFile(char *fname, unsigned int level_seed);
-
 };
 
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
