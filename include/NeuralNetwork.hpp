@@ -10,6 +10,9 @@ class NeuralNetwork{
 public:
 
     int inW, inH, hlc, npl;
+    float fitness;
+    int deathType;
+
     std::minstd_rand engine;
 
     arma::Mat<float> inputLayer;

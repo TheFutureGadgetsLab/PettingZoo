@@ -16,6 +16,8 @@
 #include <string>
 #include <NeuralNetwork.hpp>
 
+bool comparator(const NeuralNetwork& a, const NeuralNetwork& b);
+
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
  * 
@@ -26,7 +28,6 @@
  */
 void run_generation(Game& game, std::vector<Player>& players, std::vector<NeuralNetwork>& generation, Params& params)
 {
-    int g;
     int ret;
     int fitness_idle_updates;
     float max_fitness;
@@ -35,7 +36,7 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Neural
 
     // Loop over the entire generation
     #pragma omp parallel for private(ret, fitness_idle_updates, max_fitness, playerNeedsUpdate, playerLastTileX, playerLastTileY)
-    for (g = 0; g < params.gen_size; g++) {
+    for (int g = 0; g < params.gen_size; g++) {
         fitness_idle_updates = 0;
         max_fitness = -1.0f;
 
@@ -78,6 +79,9 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Neural
             if (ret == PLAYER_DEAD || ret == PLAYER_TIMEOUT || ret == PLAYER_COMPLETE)
                 break;
         }
+
+        generation[g].fitness = players[g].fitness;
+        generation[g].deathType = players[g].death_type;
     }
 }
 
@@ -127,7 +131,6 @@ void select_and_breed(std::vector<Player>& players, std::vector<NeuralNetwork> &
     //Breed
     #pragma omp parallel for
     for (int surv = 0; surv < params.gen_size / 2; surv++) {
-        // single_point_breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], params, seeds[surv]);
         breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], seeds[surv]);
     }
 }
@@ -152,44 +155,37 @@ void mutateGeneration(std::vector<NeuralNetwork>& generation, float mutateRate)
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& players, std::vector<NeuralNetwork> & chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(std::string& dirname, Game& game, std::vector<NeuralNetwork>& chroms, int quiet, int write_winner, int generation, Params& params)
 {
-    int completed, timedout, died, best_index, index;
-    float max, min, avg;
+    int completed, timedout, died;
+    float avg;
     char fname[256];
     FILE *run_data;
 
     completed = timedout = died = 0;
     avg = 0.0f;
-    max = min = players[0].fitness;
-    best_index = index = 0;
-    for (Player& player : players) {
-        avg += player.fitness;
 
-        if (player.fitness > max) {
-            max = player.fitness;
-            best_index = index;
-        } 
-           
-        min = std::min(min, player.fitness);
-        
-        if (player.death_type == PLAYER_COMPLETE)
+    auto max = std::max_element(chroms.begin(), chroms.end(), comparator);
+    auto min = std::min_element(chroms.begin(), chroms.end(), comparator);
+
+    for (int index = 0; index < chroms.size(); index++) {
+        avg += chroms[index].fitness;
+
+        if (chroms[index].deathType == PLAYER_COMPLETE)
             completed++;
-        else if (player.death_type == PLAYER_TIMEOUT)
+        else if (chroms[index].deathType == PLAYER_TIMEOUT)
             timedout++;
-        else if (player.death_type == PLAYER_DEAD)
+        else if (chroms[index].deathType == PLAYER_DEAD)
             died++;
 
         if (!quiet)
-            printf("Player %d fitness: %0.4lf\n", index, player.fitness);
-        
-        index++;
+            printf("Player %d fitness: %0.4lf\n", index, chroms[index].fitness);
     }
-
+    
     // Write out best chromosome
     if (write_winner) {
-        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max);
-        chroms[best_index].writeToFile(fname, game.seed);
+        sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max->fitness);
+        max->writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;
@@ -197,15 +193,15 @@ void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& player
     // Write progress to file
     sprintf(fname, "%s/run_data.txt", dirname.c_str());
     run_data = fopen(fname, "a");
-    fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max, min);
+    fprintf(run_data, "%d, %d, %d, %lf, %lf, %lf\n", completed, timedout, died, avg, max->fitness, min->fitness);
     fclose(run_data);
     
     // Print out progress
     printf("\nDied:        %.2lf%%\nTimed out:   %.2lf%%\nCompleted:   %.2lf%%\nAvg fitness: %.2lf\n",
             (float)died / params.gen_size * 100, (float)timedout / params.gen_size * 100,
             (float)completed / params.gen_size * 100, avg);
-    printf("Max fitness: %.2lf\n", max);
-    printf("Min fitness: %.2lf\n", min);
+    printf("Max fitness: %.2lf\n", max->fitness);
+    printf("Min fitness: %.2lf\n", min->fitness);
 }
 
 /**
@@ -233,4 +229,9 @@ void create_output_dir(std::string& dirname, unsigned int seed, Params& params)
     
     // Close file
     fclose(out_file);
+}
+
+bool comparator(const NeuralNetwork& a, const NeuralNetwork& b)
+{
+    return a.fitness < b.fitness;
 }

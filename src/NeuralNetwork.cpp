@@ -9,6 +9,8 @@ void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float
 
 NeuralNetwork::NeuralNetwork(Params params)
 {
+    fitness = 0;
+
     inW = params.in_w;
     inH = params.in_h;
     hlc = params.hlc;
@@ -26,6 +28,8 @@ NeuralNetwork::NeuralNetwork(Params params)
 
 NeuralNetwork::NeuralNetwork(std::string fname)
 {
+    fitness = 0;
+
     unsigned int level_seed;
     std::ifstream inFile;
 
@@ -212,19 +216,20 @@ void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float
 {
     arma::Mat<float> pAt = parentA.t();
     arma::Mat<float> pBt = parentB.t();
-    arma::Mat<float> cAt = childA.t();
-    arma::Mat<float> cBt = childB.t();
+
+    childA.reshape(childA.n_cols, childA.n_rows);
+    childB.reshape(childB.n_cols, childB.n_rows);
 
     // Copy split elements of parentA into childA
-    std::copy(pAt.begin(), pAt.begin() + splitLoc, cAt.begin());
-    std::copy(pBt.begin() + splitLoc, pBt.end(), cAt.begin() + splitLoc);
+    std::copy(pAt.begin(), pAt.begin() + splitLoc, childA.begin());
+    std::copy(pBt.begin() + splitLoc, pBt.end(), childA.begin() + splitLoc);
 
     // Copy splitLoc elements of pAt into childA
-    std::copy(pBt.begin(), pBt.begin() + splitLoc, cBt.begin());
-    std::copy(pAt.begin() + splitLoc, pAt.end(), cBt.begin() + splitLoc);
+    std::copy(pBt.begin(), pBt.begin() + splitLoc, childB.begin());
+    std::copy(pAt.begin() + splitLoc, pAt.end(), childB.begin() + splitLoc);
 
-    childA = cAt.t();
-    childB = cBt.t();
+    childA = childA.t();
+    childB = childB.t();
 }
 
 unsigned int getStatsFromFile(std::string fname, Params& params)
