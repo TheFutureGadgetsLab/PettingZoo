@@ -22,6 +22,9 @@ public:
     void generate();
     void print();
     void evaluate(Game& game, Player& player);
+    void mutate(float mutateRate);
 };
+
+void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
 
 #endif

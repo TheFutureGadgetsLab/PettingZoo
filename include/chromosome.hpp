@@ -35,6 +35,7 @@ class Chromosome {
 
 unsigned int extract_from_file(const char *fname, Chromosome *chrom);
 unsigned int getStatsFromFile(const char *fname, Params& params);
+void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
 
 /*
 

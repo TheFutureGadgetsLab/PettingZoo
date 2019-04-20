@@ -5,6 +5,8 @@
 #include <gamelogic.hpp>
 #include <NeuralNetwork.hpp>
 
+void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
+
 NeuralNetwork::NeuralNetwork(Params params)
 {
     inW = params.in_w;
@@ -54,7 +56,7 @@ void NeuralNetwork::seed(unsigned int seed)
 
 void NeuralNetwork::print()
 {
-    printf("-------------------------------------------\n");
+    printf("-------------------------------------------");
     int r, c, hl;
 
     printf("\nInput to first hidden layer adj:\n");
@@ -66,7 +68,7 @@ void NeuralNetwork::print()
     }
 
     printf("Hidden layer %d to output act:\n", this->hlc);
-    std::cout << outputLayer << std::endl << std::endl;
+    std::cout << outputLayer << std::endl;
 
 
     printf("\nChromosome:\n");
@@ -94,4 +96,81 @@ void NeuralNetwork::evaluate(Game& game, Player& player)
     player.right = output(RIGHT) > 0.0f;
     player.left  = output(LEFT)  > 0.0f;
     player.jump  = output(JUMP)  > 0.0f;
+}
+
+void NeuralNetwork::mutate(float mutateRate)
+{
+    
+    if (mutateRate == 0.0f)
+        return;
+    
+    arma::Mat<float> tmpTranspose;
+
+    std::uniform_real_distribution<> weightGenerator(-1.0f, 1.0f);
+    std::uniform_real_distribution<> chanceGenerator(0.0f, 1.0f);
+
+    tmpTranspose = inputLayer.t();
+    for (float& weight : tmpTranspose) {
+        if (chanceGenerator(engine) < mutateRate) {
+            weight *= weightGenerator(engine);
+        }
+    }
+    inputLayer = tmpTranspose.t();
+
+    for (arma::Mat<float>& layer : hiddenLayers) {
+        tmpTranspose = layer.t();
+        for (float& weight : tmpTranspose) {
+            if (chanceGenerator(engine) < mutateRate) {
+                weight *= weightGenerator(engine);
+            }
+        }
+        layer = tmpTranspose.t();
+    }
+
+    tmpTranspose = outputLayer.t();
+    for (float& weight : tmpTranspose) {
+        if (chanceGenerator(engine) < mutateRate) {
+            weight *= weightGenerator(engine);
+        }
+    }
+    outputLayer = tmpTranspose.t();
+}
+
+void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    int split_loc, hl;
+    unsigned int seedState = seed;
+
+    // Cross input adj layers and mutate
+    split_loc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
+    split(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, split_loc);
+
+    // Cross hidden layers and mutate
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
+        split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
+    }
+        
+    // Cross output adj layer and mutate
+    split_loc = rand_r(&seedState) % (parentA.outputLayer.size() + 1);
+    split(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
+}
+
+void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
+{
+    arma::Mat<float> pAt = parentA.t();
+    arma::Mat<float> pBt = parentB.t();
+    arma::Mat<float> cAt = childA.t();
+    arma::Mat<float> cBt = childB.t();
+
+    // Copy split elements of parentA into childA
+    std::copy(pAt.begin(), pAt.begin() + splitLoc, cAt.begin());
+    std::copy(pBt.begin() + splitLoc, pBt.end(), cAt.begin() + splitLoc);
+
+    // Copy splitLoc elements of pAt into childA
+    std::copy(pBt.begin(), pBt.begin() + splitLoc, cBt.begin());
+    std::copy(pAt.begin() + splitLoc, pAt.end(), cBt.begin() + splitLoc);
+
+    childA = cAt.t();
+    childB = cBt.t();
 }

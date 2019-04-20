@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <levelgen.hpp>
 #include <chromosome.hpp>
-#include <neural_network.hpp>
+#include <NeuralNetwork.hpp>
 
 #define GAME_EXIT  1
 #define GAME_RESET 2
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     Params params;
 	bool draw_overlay, replay_ai;
 	int opt, ret;
-	Chromosome *chrom;
+	NeuralNetwork *chrom;
 	Game game;
 	Player player;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
@@ -37,8 +37,8 @@ int main(int argc, char **argv)
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			seed = getStatsFromFile(optarg, params);
-			chrom = new Chromosome(optarg);
+			// seed = getStatsFromFile(optarg, params);
+			// chrom = new Chromosome(optarg);
 			break;
 		default:
 			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
 		}
 		
 		//Get buttons if replaying NN
-		if (replay_ai) {
- 			evaluate_frame(game, player, *chrom);
-		}
+		// if (replay_ai) {
+ 			// evaluate_frame(game, player, *chrom);
+		// }
 
 		ret = game.update(player);
 

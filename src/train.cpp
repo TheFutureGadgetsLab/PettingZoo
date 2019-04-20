@@ -73,17 +73,17 @@ int main(int argc, char **argv)
         // Write out and/or print stats
         get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
 
-        // if (gen != params.generations - 1) {
-        //     printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
+        if (gen != params.generations - 1) {
+            printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
 
-        //     // Breed new generation
-        //     select_and_breed(players, genA, genB, params);
-        //     // Mutate new generation
-        //     mutateGeneration(genB, params.mutate_rate);
+            // Breed new generation
+            select_and_breed(players, genA, genB, params);
+            // Mutate new generation
+            mutateGeneration(genB, params.mutate_rate);
 
-        //     // Swap generations
-        //     genA.swap(genB);
-        // }
+            // Swap generations
+            genA.swap(genB);
+        }
     }
     puts("----------------------------\n");
 

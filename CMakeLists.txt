@@ -36,7 +36,6 @@ find_library(SFML_SYSTEM_LIB sfml-system)
 # Compile into petting zoo
 add_executable(
     pettingzoo
-    src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
@@ -62,7 +61,6 @@ add_executable(
     src/train.cpp
     src/genetic.cpp
     src/chromosome.cpp
-    src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
@@ -87,6 +85,7 @@ add_executable(
     src/neural_network.cpp
     src/NeuralNetwork.cpp
     src/gamelogic.cpp
+    src/genetic.cpp
     src/levelgen.cpp
     src/chromosome.cpp
     src/randfuncts.cpp

@@ -18,10 +18,6 @@
 #include <string>
 #include <NeuralNetwork.hpp>
 
-void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
-void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
-void mutate(Chromosome& chrom, float mutateRate);
-
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
  * 
@@ -98,11 +94,11 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Neural
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(std::vector<Player>& players, std::vector<Chromosome> & curGen, std::vector<Chromosome> & newGen, Params& params)
+void select_and_breed(std::vector<Player>& players, std::vector<NeuralNetwork> & curGen, std::vector<NeuralNetwork> & newGen, Params& params)
 {
     int chrom;
     float best, sum;
-    Chromosome *survivors[params.gen_size / 2];
+    NeuralNetwork *survivors[params.gen_size / 2];
     int n_survivors = 0;
     unsigned int seedState = rand();
     
@@ -133,105 +129,16 @@ void select_and_breed(std::vector<Player>& players, std::vector<Chromosome> & cu
     //Breed
     #pragma omp parallel for
     for (int surv = 0; surv < params.gen_size / 2; surv++) {
-        single_point_breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)],
-            newGen[surv * 2], newGen[surv * 2 + 1], params, seeds[surv]);
+        // single_point_breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], params, seeds[surv]);
+        breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], seeds[surv]);
     }
 }
 
-/**
- * @brief Chooses as single point in each section of the chromosomes and childA is set up as
- *        ParentA | Parent B, while childB is set up as ParentB | ParentA
- * 
- * @param parentA The chromosome to breed with B
- * @param parentB The chromosome to breed with
- * @param childA Pointer to memory where child A will be held
- * @param childB Pointer to memory where child B will be held
- * @param params The run parameters obj
- */
-void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed)
-{
-    int split_loc, hl;
-    unsigned int seedState = seed;
-
-    // Cross input adj layers and mutate
-    split_loc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
-    split(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, split_loc);
-
-    // Cross hidden layers and mutate
-    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
-        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
-        split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
-    }
-        
-    // Cross output adj layer and mutate
-    split_loc = rand_r(&seedState) % (parentA.outputLayer.size() + 1);
-    split(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
-}
-
-/**
- * @brief Copies 'split' floats into childA from parentA, then after that copies the rest of the section
- *        (length - split) into childA from parentB. This is then done with childB, but the copy order
- *        is reversed (parentB first then parentA).
- * 
- * @param parentA parentA chromosome
- * @param parentB parentB chromosome
- * @param childA childA chromosome
- * @param childB childB chromosome
- * @param split where the split occurs
- */
-void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split)
-{
-    // Copy split elements of parentA into childA
-    std::copy(parentA.begin(), parentA.begin() + split, childA.begin());
-    std::copy(parentB.begin() + split, parentB.end(), childA.begin() + split);
-
-    // Copy split elements of parentA into childA
-    std::copy(parentB.begin(), parentB.begin() + split, childB.begin());
-    std::copy(parentA.begin() + split, parentA.end(), childB.begin() + split);
-}
-
-void mutateGeneration(std::vector<Chromosome>& generation, float mutateRate)
+void mutateGeneration(std::vector<NeuralNetwork>& generation, float mutateRate)
 {
     #pragma omp parallel for
     for (int i = 0; i < generation.size(); i++) {
-        mutate(generation[i], mutateRate);
-    }
-}
-
-/**
- * @brief Randomly mutate this floating point data with a given mutate probability
- *        Data can mutate in the range of 0-200%
- * 
- * @param data Float array to be mutated
- * @param length Length of the array
- * @param mutate_rate Probability of mutation
- */
-void mutate(Chromosome& chrom, float mutateRate)
-{
-    if (mutateRate == 0.0f)
-        return;
-
-    std::uniform_real_distribution<> weightGenerator(-1.0f, 1.0f);
-    std::uniform_real_distribution<> chanceGenerator(0.0f, 1.0f);
-
-    for (float& weight : chrom.inputLayer) {
-        if (chanceGenerator(chrom.engine) < mutateRate) {
-            weight *= weightGenerator(chrom.engine);
-        }
-    }
-
-    for (std::vector<float>& layer : chrom.hiddenLayers) {
-        for (float& weight : layer) {
-            if (chanceGenerator(chrom.engine) < mutateRate) {
-                weight *= weightGenerator(chrom.engine);
-            }
-        }
-    }
-
-    for (float& weight : chrom.outputLayer) {
-        if (chanceGenerator(chrom.engine) < mutateRate) {
-            weight *= weightGenerator(chrom.engine);
-        }
+        generation[i].mutate(mutateRate);
     }
 }
 

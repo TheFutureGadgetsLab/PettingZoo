@@ -9,25 +9,42 @@
 int main(int argc, const char **argv) {
     // Initialize the random generator
     // arma::arma_rng::set_seed_random();
-    // arma::Mat<float> C = arma::Mat<float>(dim, dim);
     Params params;
-    Game game;
-    Player player;
+    params.in_h = 2;
+    params.in_w = 2;
+    params.hlc  = 2;
+    params.npl  = 4;
 
-    NeuralNetwork net(params);
-    Chromosome chrom(params);
+    NeuralNetwork pAn(params), pBn(params), cAn(params), cBn(params);
+    Chromosome pAc(params), pBc(params), cAc(params), cBc(params);
     
-    net.seed(1);
-    chrom.seed(1);
+    pAn.seed(1);
+    pBn.seed(2);
+    cAn.seed(3);
+    cBn.seed(4);
 
-    net.generate();
-    chrom.generate();
-    
-    game.genMap(1);
+    pAc.seed(1);
+    pBc.seed(2);
+    cAc.seed(3);
+    cBc.seed(4);
 
-    evaluate_frame(game, player, chrom);
+    pAn.generate();
+    pBn.generate();
+    cAn.generate();
+    cBn.generate();
 
-    net.evaluate(game, player);
+    pAc.generate();
+    pBc.generate();
+    cAc.generate();
+    cBc.generate();
+
+    pAn.print();
+    pBn.print();
+
+    breed(pAn, pBn, cAn, cBn, 4);
+
+    cAc.print();
+    cAn.print();
 
     return 0;
 }
