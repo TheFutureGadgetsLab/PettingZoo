@@ -4,6 +4,7 @@
 #include <genetic.hpp>
 #include <chromosome.hpp>
 #include <neural_network.hpp>
+#include <NeuralNetwork.hpp>
 #include <gamelogic.hpp>
 #include <unistd.h>
 #include <vector>
@@ -32,8 +33,8 @@ int main(int argc, char **argv)
     create_output_dir(dir_name, seed, params);
 
     Game game;
-    std::vector<Chromosome> genA(params.gen_size, Chromosome(params));
-    std::vector<Chromosome> genB(params.gen_size, Chromosome(params));
+    std::vector<NeuralNetwork> genA(params.gen_size, NeuralNetwork(params));
+    std::vector<NeuralNetwork> genB(params.gen_size, NeuralNetwork(params));
     std::vector<Player> players(params.gen_size);
     std::vector<unsigned int> chrom_seeds(params.gen_size);
 
@@ -72,17 +73,17 @@ int main(int argc, char **argv)
         // Write out and/or print stats
         get_gen_stats(dir_name, game, players, genA, 0, 1, gen, params);
 
-        if (gen != params.generations - 1) {
-            printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
+        // if (gen != params.generations - 1) {
+        //     printf("\nBreeding generation %d/%d\n", gen + 2, params.generations);
 
-            // Breed new generation
-            select_and_breed(players, genA, genB, params);
-            // Mutate new generation
-            mutateGeneration(genB, params.mutate_rate);
+        //     // Breed new generation
+        //     select_and_breed(players, genA, genB, params);
+        //     // Mutate new generation
+        //     mutateGeneration(genB, params.mutate_rate);
 
-            // Swap generations
-            genA.swap(genB);
-        }
+        //     // Swap generations
+        //     genA.swap(genB);
+        // }
     }
     puts("----------------------------\n");
 

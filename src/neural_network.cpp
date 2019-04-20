@@ -76,7 +76,7 @@ void calc_first_layer(Chromosome& chrom, std::vector<float>& inputs, std::vector
             sum += chrom.inputLayer[node * chrom.in_h * chrom.in_w + weight] * inputs[weight];
         }
 
-        node_outputs[node] = softsign(sum);
+        node_outputs[node] = tanh(sum);
     }
 }
 
@@ -103,7 +103,7 @@ void calc_hidden_layers(Chromosome& chrom, std::vector<float>& node_outs)
                 sum += chrom.hiddenLayers[layer][node * chrom.npl + weight] * node_outs[layer * chrom.npl + weight];
             }
 
-            node_outs[cur_node] = softsign(sum);
+            node_outs[cur_node] = tanh(sum);
         }
     }
 }
@@ -128,7 +128,7 @@ void calc_output(Chromosome& chrom, std::vector<float>& node_outs, std::vector<f
             sum += chrom.outputLayer[bttn * chrom.npl + weight] * node_outs[(chrom.hlc - 1) * chrom.npl + weight];
         }
 
-        net_outs[bttn] = softsign(sum);
+        net_outs[bttn] = tanh(sum);
     }
 }
 

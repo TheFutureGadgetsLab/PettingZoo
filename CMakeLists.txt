@@ -9,6 +9,7 @@ include_directories(include)
 #
 ###############################################################
 find_package(OpenMP)
+find_package(Armadillo)
 
 # Set march
 include(CheckCXXCompilerFlag)
@@ -65,8 +66,31 @@ add_executable(
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
+    src/NeuralNetwork.cpp
 )
 
 # Link libraries
 target_link_libraries(train m)
 target_link_libraries(train OpenMP::OpenMP_CXX)
+target_link_libraries(train ${ARMADILLO_LIBRARIES})
+
+
+###############################################################
+#
+#                       Training
+#
+###############################################################
+# Compile
+add_executable(
+    armadillo
+    src/armadilloTest.cpp
+    src/neural_network.cpp
+    src/NeuralNetwork.cpp
+    src/gamelogic.cpp
+    src/levelgen.cpp
+    src/chromosome.cpp
+    src/randfuncts.cpp
+)
+
+# Link libraries
+target_link_libraries(armadillo ${ARMADILLO_LIBRARIES})

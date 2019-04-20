@@ -16,6 +16,7 @@
 #include <randfuncts.hpp>
 #include <algorithm>
 #include <string>
+#include <NeuralNetwork.hpp>
 
 void split(std::vector<float>& parentA, std::vector<float>& parentB, std::vector<float>& childA, std::vector<float>& childB, size_t split);
 void single_point_breed(Chromosome& parentA, Chromosome& parentB, Chromosome& childA, Chromosome& childB, Params& params, unsigned int seed);
@@ -29,7 +30,7 @@ void mutate(Chromosome& chrom, float mutateRate);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(Game& game, std::vector<Player>& players, std::vector<Chromosome>& generation, Params& params)
+void run_generation(Game& game, std::vector<Player>& players, std::vector<NeuralNetwork>& generation, Params& params)
 {
     int g;
     int ret;
@@ -51,7 +52,8 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Chromo
         // Run game loop until player dies
         while (1) {
             if (playerNeedsUpdate) {
-                evaluate_frame(game, players[g], generation[g]);
+                // evaluate_frame(game, players[g], generation[g]);
+                generation[g].evaluate(game, players[g]);
             }
     
             ret = game.update(players[g]);
@@ -245,7 +247,7 @@ void mutate(Chromosome& chrom, float mutateRate)
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& players, std::vector<Chromosome> & chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& players, std::vector<NeuralNetwork> & chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int completed, timedout, died, best_index, index;
     float max, min, avg;
@@ -282,7 +284,7 @@ void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& player
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max);
-        chroms[best_index].writeToFile(fname, game.seed);
+        // chroms[best_index].writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;
