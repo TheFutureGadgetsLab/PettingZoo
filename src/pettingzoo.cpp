@@ -7,7 +7,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <levelgen.hpp>
-#include <chromosome.hpp>
 #include <NeuralNetwork.hpp>
 
 #define GAME_EXIT  1
@@ -37,8 +36,8 @@ int main(int argc, char **argv)
 		// Read in replay file to watch NN
 		case 'f':
 			replay_ai = true;
-			// seed = getStatsFromFile(optarg, params);
-			// chrom = new Chromosome(optarg);
+			seed = getStatsFromFile(optarg, params);
+			chrom = new NeuralNetwork(optarg);
 			break;
 		default:
 			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);
@@ -71,9 +70,9 @@ int main(int argc, char **argv)
 		}
 		
 		//Get buttons if replaying NN
-		// if (replay_ai) {
- 			// evaluate_frame(game, player, *chrom);
-		// }
+		if (replay_ai) {
+ 			chrom->evaluate(game, player);
+		}
 
 		ret = game.update(player);
 

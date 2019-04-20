@@ -41,7 +41,7 @@ add_executable(
     src/randfuncts.cpp
     src/rendering.cpp
     src/pettingzoo.cpp
-    src/chromosome.cpp
+    src/NeuralNetwork.cpp
 )
 
 # Link libraries
@@ -49,6 +49,8 @@ target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
+target_link_libraries(pettingzoo ${ARMADILLO_LIBRARIES})
+
 
 ###############################################################
 #
@@ -60,7 +62,6 @@ add_executable(
     train
     src/train.cpp
     src/genetic.cpp
-    src/chromosome.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
@@ -82,12 +83,10 @@ target_link_libraries(train ${ARMADILLO_LIBRARIES})
 add_executable(
     armadillo
     src/armadilloTest.cpp
-    src/neural_network.cpp
     src/NeuralNetwork.cpp
     src/gamelogic.cpp
     src/genetic.cpp
     src/levelgen.cpp
-    src/chromosome.cpp
     src/randfuncts.cpp
 )
 

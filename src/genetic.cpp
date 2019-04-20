@@ -8,8 +8,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <genetic.hpp>
-#include <chromosome.hpp>
-#include <neural_network.hpp>
 #include <gamelogic.hpp>
 #include <sys/stat.h>
 #include <vector>
@@ -191,7 +189,7 @@ void get_gen_stats(std::string& dirname, Game& game, std::vector<Player>& player
     // Write out best chromosome
     if (write_winner) {
         sprintf(fname, "./%s/gen_%04d_%.2lf.bin", dirname.c_str(), generation, max);
-        // chroms[best_index].writeToFile(fname, game.seed);
+        chroms[best_index].writeToFile(fname, game.seed);
     }
 
     avg /= params.gen_size;

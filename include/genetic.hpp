@@ -9,7 +9,6 @@
 
 #include <defs.hpp>
 #include <gamelogic.hpp>
-#include <chromosome.hpp>
 #include <vector>
 #include <string>
 #include <NeuralNetwork.hpp>

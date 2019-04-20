@@ -24,6 +24,35 @@ NeuralNetwork::NeuralNetwork(Params params)
     outputLayer = arma::Mat<float>(BUTTON_COUNT, npl);
 }
 
+NeuralNetwork::NeuralNetwork(std::string fname)
+{
+    unsigned int level_seed;
+    std::ifstream inFile;
+
+    inFile.open(fname, std::ios::in | std::ios::binary);
+
+    // Level seed
+    inFile.read(reinterpret_cast<char*>(&level_seed), sizeof(level_seed));
+    
+    // Header
+    inFile.read(reinterpret_cast<char*>(&inH), sizeof(inH));
+    inFile.read(reinterpret_cast<char*>(&inW), sizeof(inW));
+    inFile.read(reinterpret_cast<char*>(&hlc), sizeof(hlc));
+    inFile.read(reinterpret_cast<char*>(&npl), sizeof(npl));
+
+    // Layers
+    inputLayer.load(inFile); 
+
+    hiddenLayers.resize(hlc - 1);
+    for (arma::Mat<float>& layer : hiddenLayers) {
+        layer.load(inFile); 
+    }
+    
+    outputLayer.load(inFile);
+
+    inFile.close();
+}
+
 void NeuralNetwork::generate()
 {
     std::uniform_real_distribution<> weightGen(-1.0, 1.0);
@@ -100,7 +129,6 @@ void NeuralNetwork::evaluate(Game& game, Player& player)
 
 void NeuralNetwork::mutate(float mutateRate)
 {
-    
     if (mutateRate == 0.0f)
         return;
     
@@ -134,6 +162,30 @@ void NeuralNetwork::mutate(float mutateRate)
         }
     }
     outputLayer = tmpTranspose.t();
+}
+
+void NeuralNetwork::writeToFile(std::string fname, unsigned int level_seed)
+{
+    std::ofstream outFile;
+    outFile.open(fname, std::ios::out | std::ios::binary);
+
+    // Level seed
+    outFile.write(reinterpret_cast<char*>(&level_seed), sizeof(level_seed));
+
+    // Chromosome structure
+    outFile.write(reinterpret_cast<char*>(&inH), sizeof(inH)); 
+    outFile.write(reinterpret_cast<char*>(&inW), sizeof(inW)); 
+    outFile.write(reinterpret_cast<char*>(&hlc), sizeof(hlc)); 
+    outFile.write(reinterpret_cast<char*>(&npl), sizeof(npl)); 
+
+    // Layers
+    inputLayer.save(outFile); 
+    for (arma::Mat<float>& layer : hiddenLayers) {
+        layer.save(outFile); 
+    }
+    outputLayer.save(outFile);
+    
+    outFile.close();
 }
 
 void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
@@ -173,4 +225,25 @@ void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float
 
     childA = cAt.t();
     childB = cBt.t();
+}
+
+unsigned int getStatsFromFile(std::string fname, Params& params)
+{
+    unsigned int level_seed;
+    std::ifstream data_file;
+
+    data_file.open(fname, std::ios::in | std::ios::binary);
+
+    // Level seed
+    data_file.read(reinterpret_cast<char*>(&level_seed), sizeof(level_seed));
+
+    // Chromosome header
+    data_file.read(reinterpret_cast<char*>(&params.in_h), sizeof(params.in_h));
+    data_file.read(reinterpret_cast<char*>(&params.in_w), sizeof(params.in_w));
+    data_file.read(reinterpret_cast<char*>(&params.hlc), sizeof(params.hlc));
+    data_file.read(reinterpret_cast<char*>(&params.npl), sizeof(params.npl));
+
+    data_file.close();
+
+    return level_seed;
 }

@@ -10,7 +10,7 @@ class Params {
     int npl = 128;
     int gen_size = 100;
     int generations = 1;
-    float mutate_rate = 0.000f;
+    float mutate_rate = 0.001f;
 };
 
 // Time in seconds until NN is considered timedout

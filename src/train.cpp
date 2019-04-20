@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <genetic.hpp>
-#include <chromosome.hpp>
-#include <neural_network.hpp>
 #include <NeuralNetwork.hpp>
 #include <gamelogic.hpp>
 #include <unistd.h>

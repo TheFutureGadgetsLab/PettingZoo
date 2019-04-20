@@ -17,14 +17,17 @@ public:
     arma::Mat<float> outputLayer;
 
     NeuralNetwork(Params params);
+    NeuralNetwork(std::string fname);
 
     void seed(unsigned int seed);
     void generate();
     void print();
     void evaluate(Game& game, Player& player);
     void mutate(float mutateRate);
+    void writeToFile(std::string fname, unsigned int level_seed);
 };
 
 void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+unsigned int getStatsFromFile(std::string fname, Params& params);
 
 #endif

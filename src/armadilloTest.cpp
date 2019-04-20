@@ -1,13 +1,11 @@
 #include <iostream>
 #include <armadillo>
 #include <gamelogic.hpp>
-#include <chromosome.hpp>
-#include <neural_network.hpp>
 #include <NeuralNetwork.hpp>
 #include <chrono> 
+#include <fstream>
 
 int main(int argc, const char **argv) {
-    // Initialize the random generator
     // arma::arma_rng::set_seed_random();
     Params params;
     params.in_h = 2;
@@ -15,36 +13,32 @@ int main(int argc, const char **argv) {
     params.hlc  = 2;
     params.npl  = 4;
 
-    NeuralNetwork pAn(params), pBn(params), cAn(params), cBn(params);
-    Chromosome pAc(params), pBc(params), cAc(params), cBc(params);
-    
-    pAn.seed(1);
-    pBn.seed(2);
-    cAn.seed(3);
-    cBn.seed(4);
+    NeuralNetwork pAn(params);
 
-    pAc.seed(1);
-    pBc.seed(2);
-    cAc.seed(3);
-    cBc.seed(4);
+    arma::Mat<float> save1 = arma::randu<arma::Mat<float>>(3, 3);
+    arma::Mat<float> save2 = arma::randu<arma::Mat<float>>(3, 3);
 
-    pAn.generate();
-    pBn.generate();
-    cAn.generate();
-    cBn.generate();
+    std::ofstream out_file;
+    out_file.open("test.bin", std::ios::out | std::ios::binary);
 
-    pAc.generate();
-    pBc.generate();
-    cAc.generate();
-    cBc.generate();
+    save1.save(out_file);
+    save2.save(out_file);
 
-    pAn.print();
-    pBn.print();
+    out_file.close();
 
-    breed(pAn, pBn, cAn, cBn, 4);
+    arma::Mat<float> load1;
+    arma::Mat<float> load2;
 
-    cAc.print();
-    cAn.print();
+    std::ifstream in_file;
+    in_file.open("test.bin", std::ios::in | std::ios::binary);
+
+    load1.load(in_file);
+    load2.load(in_file);
+
+    std::cout << "Save1:\n" << save1 << std::endl;
+    std::cout << "Save2:\n" << save2 << std::endl;
+    std::cout << "load1:\n" << load1 << std::endl;
+    std::cout << "load2:\n" << load2 << std::endl;
 
     return 0;
 }
