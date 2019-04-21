@@ -59,7 +59,7 @@ NeuralNetwork::NeuralNetwork(std::string fname)
 
 void NeuralNetwork::generate()
 {
-    std::uniform_real_distribution<> weightGen(-1.0, 1.0);
+    std::uniform_real_distribution<float> weightGen(-1.0, 1.0);
 
     for (int row = 0; row < inputLayer.n_rows; row++) {
         for (int col = 0; col < inputLayer.n_cols; col++) {
@@ -136,36 +136,17 @@ void NeuralNetwork::mutate(float mutateRate)
     if (mutateRate == 0.0f)
         return;
     
-    arma::Mat<float> tmpTranspose;
+    std::uniform_real_distribution<float> weightGen(-1.0f, 1.0f);
+    std::uniform_real_distribution<float> chanceGen(0.0f, 1.0f);
 
-    std::uniform_real_distribution<> weightGenerator(-1.0f, 1.0f);
-    std::uniform_real_distribution<> chanceGenerator(0.0f, 1.0f);
-
-    tmpTranspose = inputLayer.t();
-    for (float& weight : tmpTranspose) {
-        if (chanceGenerator(engine) < mutateRate) {
-            weight *= weightGenerator(engine);
-        }
-    }
-    inputLayer = tmpTranspose.t();
-
+    // For each value in the matrix, if random num is < mutateRate then the value is multiplied by a randon number, otherwise it doesnt change
+    inputLayer.for_each( [&](float& val) { if (chanceGen(engine) < mutateRate) val *= weightGen(engine); } );
+    
     for (arma::Mat<float>& layer : hiddenLayers) {
-        tmpTranspose = layer.t();
-        for (float& weight : tmpTranspose) {
-            if (chanceGenerator(engine) < mutateRate) {
-                weight *= weightGenerator(engine);
-            }
-        }
-        layer = tmpTranspose.t();
+        layer.for_each( [&](float& val) { if (chanceGen(engine) < mutateRate) val *= weightGen(engine); } );
     }
 
-    tmpTranspose = outputLayer.t();
-    for (float& weight : tmpTranspose) {
-        if (chanceGenerator(engine) < mutateRate) {
-            weight *= weightGenerator(engine);
-        }
-    }
-    outputLayer = tmpTranspose.t();
+    outputLayer.for_each( [&](float& val) { if (chanceGen(engine) < mutateRate) val *= weightGen(engine); } );
 }
 
 void NeuralNetwork::writeToFile(std::string fname, unsigned int level_seed)
@@ -217,8 +198,8 @@ void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float
     arma::Mat<float> pAt = parentA.t();
     arma::Mat<float> pBt = parentB.t();
 
-    childA.reshape(childA.n_cols, childA.n_rows);
-    childB.reshape(childB.n_cols, childB.n_rows);
+    childA.set_size(childA.n_cols, childA.n_rows);
+    childB.set_size(childB.n_cols, childB.n_rows);
 
     // Copy split elements of parentA into childA
     std::copy(pAt.begin(), pAt.begin() + splitLoc, childA.begin());
