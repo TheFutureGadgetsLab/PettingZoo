@@ -5,7 +5,10 @@
 #include <gamelogic.hpp>
 #include <NeuralNetwork.hpp>
 
-void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
+void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
+void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
 
 NeuralNetwork::NeuralNetwork(Params params)
 {
@@ -60,25 +63,19 @@ NeuralNetwork::NeuralNetwork(std::string fname)
 void NeuralNetwork::generate()
 {
     std::uniform_real_distribution<float> weightGen(-1.0, 1.0);
-
-    for (int row = 0; row < inputLayer.n_rows; row++) {
-        for (int col = 0; col < inputLayer.n_cols; col++) {
-            inputLayer(row, col) =  weightGen(engine);
-        }
+    
+    for (float& val : inputLayer) {
+        val = weightGen(engine);
     }
 
     for (arma::Mat<float>& layer : hiddenLayers) {
-        for (int row = 0; row < layer.n_rows; row++) {
-            for (int col = 0; col < layer.n_cols; col++) {
-                layer(row, col) =  weightGen(engine);
-            }
+        for (float& val : layer) {
+            val = weightGen(engine);
         }
     }
 
-    for (int row = 0; row < outputLayer.n_rows; row++) {
-        for (int col = 0; col < outputLayer.n_cols; col++) {
-            outputLayer(row, col) =  weightGen(engine);
-        }
+    for (float& val : outputLayer) {
+        val = weightGen(engine);
     }
 }
 
@@ -112,23 +109,23 @@ void NeuralNetwork::print()
 
 void NeuralNetwork::evaluate(Game& game, Player& player)
 {
-    arma::Mat<float> output, netInput;
+    arma::Mat<float> input;
     std::vector<float> tiles(inW * inH);
 
     game.getInputTiles(player, tiles, inH, inW);
-    netInput = arma::Mat<float>(tiles);
+    input = arma::Mat<float>(tiles);
 
-    output = arma::tanh(inputLayer * netInput);
-
+    input = arma::tanh(inputLayer * input);
+    
     for (arma::Mat<float>& layer : hiddenLayers) {
-        output = arma::tanh(layer * output);
+        input = arma::tanh(layer * input);
     }
 
-    output = arma::tanh(outputLayer * output);
+    input = arma::tanh(outputLayer * input);
     
-    player.right = output(RIGHT) > 0.0f;
-    player.left  = output(LEFT)  > 0.0f;
-    player.jump  = output(JUMP)  > 0.0f;
+    player.right = input(RIGHT) > 0.0f;
+    player.left  = input(LEFT)  > 0.0f;
+    player.jump  = input(JUMP)  > 0.0f;
 }
 
 void NeuralNetwork::mutate(float mutateRate)
@@ -173,46 +170,6 @@ void NeuralNetwork::writeToFile(std::string fname, unsigned int level_seed)
     outFile.close();
 }
 
-void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
-{
-    int split_loc, hl;
-    unsigned int seedState = seed;
-
-    // Cross input adj layers and mutate
-    split_loc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
-    split(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, split_loc);
-
-    // Cross hidden layers and mutate
-    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
-        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
-        split(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
-    }
-        
-    // Cross output adj layer and mutate
-    split_loc = rand_r(&seedState) % (parentA.outputLayer.size() + 1);
-    split(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
-}
-
-void split(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
-{
-    arma::Mat<float> pAt = parentA.t();
-    arma::Mat<float> pBt = parentB.t();
-
-    childA.set_size(childA.n_cols, childA.n_rows);
-    childB.set_size(childB.n_cols, childB.n_rows);
-
-    // Copy split elements of parentA into childA
-    std::copy(pAt.begin(), pAt.begin() + splitLoc, childA.begin());
-    std::copy(pBt.begin() + splitLoc, pBt.end(), childA.begin() + splitLoc);
-
-    // Copy splitLoc elements of pAt into childA
-    std::copy(pBt.begin(), pBt.begin() + splitLoc, childB.begin());
-    std::copy(pAt.begin() + splitLoc, pAt.end(), childB.begin() + splitLoc);
-
-    childA = childA.t();
-    childB = childB.t();
-}
-
 unsigned int getStatsFromFile(std::string fname, Params& params)
 {
     unsigned int level_seed;
@@ -232,4 +189,82 @@ unsigned int getStatsFromFile(std::string fname, Params& params)
     data_file.close();
 
     return level_seed;
+}
+
+void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    // MMOnNeuronBreed(parentA, parentB, childA, childB, seed);
+    MMIntraNeuronBreed(parentA, parentB, childA, childB, seed);
+}
+
+void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    int split_loc, hl;
+    unsigned int seedState = seed;
+
+    // Cross input adj layers and mutate
+    split_loc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
+    MMIntraSplit(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, split_loc);
+
+    // Cross hidden layers and mutate
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        split_loc = rand_r(&seedState) % (parentA.hiddenLayers[layer].size() + 1);
+        MMIntraSplit(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], split_loc);
+    }
+        
+    // Cross output adj layer and mutate
+    split_loc = rand_r(&seedState) % (parentA.outputLayer.size() + 1);
+    MMIntraSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
+}
+
+void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    int splitLoc, hl;
+    unsigned int seedState = seed;
+
+    // Cross input adj layers and mutate
+    splitLoc = rand_r(&seedState) % (parentA.inputLayer.n_rows);
+    MMOnNeuronSplit(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, splitLoc);
+
+    // Cross hidden layers and mutate
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        splitLoc = rand_r(&seedState) % (parentA.hiddenLayers[layer].n_rows);
+        MMOnNeuronSplit(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], splitLoc);
+    }
+        
+    // Cross output adj layer and mutate
+    splitLoc = rand_r(&seedState) % (parentA.outputLayer.n_rows);
+    MMOnNeuronSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, splitLoc);
+}
+
+void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
+{
+    arma::Mat<float> pAt = parentA.t();
+    arma::Mat<float> pBt = parentB.t();
+
+    childA.set_size(childA.n_cols, childA.n_rows);
+    childB.set_size(childB.n_cols, childB.n_rows);
+
+    // Copy split elements of parentA into childA
+    std::copy(pAt.begin(), pAt.begin() + splitLoc, childA.begin());
+    std::copy(pBt.begin() + splitLoc, pBt.end(), childA.begin() + splitLoc);
+
+    // Copy splitLoc elements of pAt into childA
+    std::copy(pBt.begin(), pBt.begin() + splitLoc, childB.begin());
+    std::copy(pAt.begin() + splitLoc, pAt.end(), childB.begin() + splitLoc);
+
+    childA = childA.t();
+    childB = childB.t();
+}
+
+void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
+{
+    if (splitLoc == 0) {
+        childA = parentB;
+        childB = parentA;
+        return;
+    }
+
+    childA = arma::join_vert(parentA.rows(0, splitLoc - 1), parentB.rows(splitLoc, parentB.n_rows - 1));
+    childB = arma::join_vert(parentB.rows(0, splitLoc - 1), parentA.rows(splitLoc, parentA.n_rows - 1));
 }

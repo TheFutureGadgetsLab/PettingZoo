@@ -7,19 +7,41 @@
 #include <random>
 
 int main(int argc, const char **argv) {
-    std::mt19937 engine;  // Mersenne twister random number engine
-    std::uniform_real_distribution<float> chance(-1.0, 1.0);
-    std::uniform_real_distribution<float> weight(0.0, 1.0);
+    Params params;
 
-    // arma::arma_rng::set_seed_random();
-    arma::Mat<float> A = arma::randu<arma::Mat<float>>(5, 5);
-    arma::Mat<float> mutateMatrix = arma::Mat<float>(5, 5);
+    params.in_h = 2;
+    params.in_w = 2;
+    params.hlc = 2;
+    params.npl = 8;
 
-    mutateMatrix.imbue( [&]() { if (chance(engine) < 0.5) return weight(engine); else return 1.0f;} );
+    NeuralNetwork parentA(params), parentB(params), childA(params), childB(params);
 
+    parentA.seed(1);
+    parentB.seed(2);
+    childA.seed(3);
+    childB.seed(4);
+
+    parentA.generate();
+    parentB.generate();
+
+    parentA.print();
+    parentB.print();
+
+    breed(parentA, parentB, childA, childB, 1);
+
+    childA.print();
+    childB.print();
+    
+    arma::Mat<double> A = arma::randu(3, 3);
+    arma::Mat<double> B = arma::randu(3, 3);
+    
     std::cout << A << std::endl;
-    std::cout << mutateMatrix << std::endl;
-    std::cout << A % mutateMatrix << std::endl;
+    std::cout << B << std::endl;
+
+    int splitLoc = 2;
+
+    std::cout << arma::join_vert(A.rows(0, splitLoc - 1), B.rows(splitLoc, B.n_rows - 1)) << std::endl;
+    std::cout << arma::join_vert(B.rows(0, splitLoc - 1), A.rows(splitLoc, A.n_rows - 1)) << std::endl;
 
     return 0;
 }
