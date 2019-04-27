@@ -19,10 +19,9 @@ int main(int argc, char **argv)
     }
 
     unsigned int seed, level_seed;
-    // seed = (unsigned int)time(NULL);
+    seed = (unsigned int)time(NULL);
     seed = 10;
     srand(seed);
-    level_seed = rand();
 
     if (dir_name.empty() == true) {
         printf("Output directory is required!\n");
@@ -60,6 +59,9 @@ int main(int argc, char **argv)
         printf("Running generation %d/%d\n", gen + 1, params.generations);
 
         // Generate map for generation
+        // if (gen % 10 == 0) {
+            // level_seed = rand();
+        // }
         game.genMap(level_seed);
 
         for (Player &player : players) {
@@ -93,7 +95,7 @@ int getArgs(int argc, char **argv, std::string& dir_name, Params &params)
     // Default global parameters
     int opt;
  
-    while ((opt = getopt(argc, argv, "hi:l:n:c:g:m:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "hi:l:n:c:g:m:o:b:")) != -1) {
         switch (opt) {
         // Output dir name
         case 'o':
@@ -124,6 +126,10 @@ int getArgs(int argc, char **argv, std::string& dir_name, Params &params)
         case 'm':
             params.mutate_rate = atof(optarg);
             break;
+        // Mutate rate
+        case 'b':
+            params.breedType = atoi(optarg);
+            break;
         case 'h':
         default: /* '?' */
             printf("Usage: %s -o OUTPUT_DIR [-i INPUT_SIZE] [-l HLC] [-n NPL] [-c GEN_SIZE] [-g GENERATIONS] [-m MUTATE_RATE]\n", argv[0]);
@@ -133,6 +139,7 @@ int getArgs(int argc, char **argv, std::string& dir_name, Params &params)
             printf("  -c    Number of chromosomes in each generation (default %d)\n", params.gen_size);
             printf("  -g    Number of generations to run (default %d)\n", params.generations);            
             printf("  -m    Percent chance of mutation (float from 0 - 100, default %lf)\n", params.mutate_rate);
+            printf("  -b    Breed type, 0: intra, 1: On, 2: interp, default %d)\n", params.breedType);
             printf("  -o    Output directory name\n");
             return -1;
         }

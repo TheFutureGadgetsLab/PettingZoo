@@ -30,7 +30,7 @@ public:
     void writeToFile(std::string fname, unsigned int level_seed);
 };
 
-void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed, int breedType);
 unsigned int getStatsFromFile(std::string fname, Params& params);
 
 #endif

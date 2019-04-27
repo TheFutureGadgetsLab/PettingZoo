@@ -47,7 +47,6 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Neural
         // Run game loop until player dies
         while (1) {
             if (playerNeedsUpdate) {
-                // evaluate_frame(game, players[g], generation[g]);
                 generation[g].evaluate(game, players[g]);
             }
     
@@ -131,7 +130,7 @@ void select_and_breed(std::vector<Player>& players, std::vector<NeuralNetwork> &
     //Breed
     #pragma omp parallel for
     for (int surv = 0; surv < params.gen_size / 2; surv++) {
-        breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], seeds[surv]);
+        breed(*survivors[surv], *survivors[(surv + 1) % (params.gen_size / 2)], newGen[surv * 2], newGen[surv * 2 + 1], seeds[surv], params.breedType);
     }
 }
 

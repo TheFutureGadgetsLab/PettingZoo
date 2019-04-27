@@ -6,9 +6,12 @@
 #include <NeuralNetwork.hpp>
 
 void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
-void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
 void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+void interpolateBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+
+void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
 void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
+void interpolateSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, float mag);
 
 NeuralNetwork::NeuralNetwork(Params params)
 {
@@ -191,10 +194,18 @@ unsigned int getStatsFromFile(std::string fname, Params& params)
     return level_seed;
 }
 
-void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed, int breedType)
 {
-    // MMOnNeuronBreed(parentA, parentB, childA, childB, seed);
-    MMIntraNeuronBreed(parentA, parentB, childA, childB, seed);
+    if (breedType == 0) {
+        MMIntraNeuronBreed(parentA, parentB, childA, childB, seed);
+    } else if (breedType == 1) {
+        MMOnNeuronBreed(parentA, parentB, childA, childB, seed);
+    } else if (breedType == 2) {
+        interpolateBreed(parentA, parentB, childA, childB, seed);
+    } else {
+        printf("Unrecognized breed type!\n");
+        exit(-1);
+    }
 }
 
 void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
@@ -217,26 +228,6 @@ void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNe
     MMIntraSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, split_loc);
 }
 
-void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
-{
-    int splitLoc, hl;
-    unsigned int seedState = seed;
-
-    // Cross input adj layers and mutate
-    splitLoc = rand_r(&seedState) % (parentA.inputLayer.n_rows);
-    MMOnNeuronSplit(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, splitLoc);
-
-    // Cross hidden layers and mutate
-    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
-        splitLoc = rand_r(&seedState) % (parentA.hiddenLayers[layer].n_rows);
-        MMOnNeuronSplit(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], splitLoc);
-    }
-        
-    // Cross output adj layer and mutate
-    splitLoc = rand_r(&seedState) % (parentA.outputLayer.n_rows);
-    MMOnNeuronSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, splitLoc);
-}
-
 void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
 {
     arma::Mat<float> pAt = parentA.t();
@@ -257,9 +248,36 @@ void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Ma
     childB = childB.t();
 }
 
+void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    int splitLoc, hl;
+    unsigned int seedState = seed;
+
+    // Cross input adj layers and mutate
+    splitLoc = rand_r(&seedState) % (parentA.inputLayer.size() + 1);
+    splitLoc = ceilf((float)splitLoc / (float)parentA.inputLayer.n_cols);
+    MMOnNeuronSplit(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, splitLoc);
+
+    // Cross hidden layers and mutate
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        splitLoc = rand_r(&seedState) % (parentA.hiddenLayers[layer].n_elem + 1);
+        splitLoc = ceilf((float)splitLoc / (float)parentA.hiddenLayers[layer].n_cols);
+        MMOnNeuronSplit(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], splitLoc);
+    }
+        
+    // Cross output adj layer and mutate
+    splitLoc = rand_r(&seedState) % (parentA.outputLayer.n_elem + 1);
+    splitLoc = ceilf((float)splitLoc / (float)parentA.outputLayer.n_cols);
+    MMOnNeuronSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, splitLoc);
+}
+
 void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc)
 {
-    if (splitLoc == 0) {
+    if (splitLoc == parentA.n_rows) {
+        childA = parentA;
+        childB = parentB;
+        return;
+    } else if (splitLoc == 0) {
         childA = parentB;
         childB = parentA;
         return;
@@ -267,4 +285,30 @@ void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma:
 
     childA = arma::join_vert(parentA.rows(0, splitLoc - 1), parentB.rows(splitLoc, parentB.n_rows - 1));
     childB = arma::join_vert(parentB.rows(0, splitLoc - 1), parentA.rows(splitLoc, parentA.n_rows - 1));
+}
+
+void interpolateBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+{
+    std::uniform_real_distribution<float> magnitude(0.0f, 1.0f);
+    std::minstd_rand engine(seed);
+    float mag;
+
+    mag = magnitude(engine);
+    interpolateSplit(parentA.inputLayer, parentB.inputLayer, childA.inputLayer, childB.inputLayer, mag);
+
+    // Cross hidden layers and mutate
+    for (int layer = 0; layer < parentA.hiddenLayers.size(); layer++) {
+        mag = magnitude(engine);
+        interpolateSplit(parentA.hiddenLayers[layer], parentB.hiddenLayers[layer], childA.hiddenLayers[layer], childB.hiddenLayers[layer], mag);
+    }
+        
+    // Cross output adj layer and mutate
+    mag = magnitude(engine);
+    interpolateSplit(parentA.outputLayer, parentB.outputLayer, childA.outputLayer, childB.outputLayer, mag);
+}
+
+void interpolateSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, float mag)
+{
+    childA = (parentA + parentB) * mag;
+    childB = (parentA + parentB) * (1 - mag);
 }
