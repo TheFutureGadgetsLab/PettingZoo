@@ -6,9 +6,8 @@
 #include <gamelogic.hpp>
 #include <vector>
 
-class NeuralNetwork{
+class CNN{
 public:
-
     int inW, inH, hlc, npl;
     float fitness;
     int deathType;
@@ -19,8 +18,8 @@ public:
     std::vector<arma::Mat<float>> hiddenLayers;
     arma::Mat<float> outputLayer;
 
-    NeuralNetwork(Params params);
-    NeuralNetwork(std::string fname);
+    CNN(Params params);
+    CNN(std::string fname);
 
     void seed(unsigned int seed);
     void generate();
@@ -30,7 +29,7 @@ public:
     void writeToFile(std::string fname, unsigned int level_seed);
 };
 
-void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed, int breedType);
+void breed(CNN& parentA, CNN& parentB, CNN& childA, CNN& childB, unsigned int seed, int breedType);
 unsigned int getStatsFromFile(std::string fname, Params& params);
 
 #endif

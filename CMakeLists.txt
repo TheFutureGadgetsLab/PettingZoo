@@ -41,7 +41,7 @@ add_executable(
     src/randfuncts.cpp
     src/rendering.cpp
     src/pettingzoo.cpp
-    src/NeuralNetwork.cpp
+    src/FFNN.cpp
 )
 
 # Link libraries
@@ -65,7 +65,7 @@ add_executable(
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
-    src/NeuralNetwork.cpp
+    src/FFNN.cpp
 )
 
 # Link libraries
@@ -83,7 +83,7 @@ target_link_libraries(train ${ARMADILLO_LIBRARIES})
 add_executable(
     armadillo
     src/armadilloTest.cpp
-    src/NeuralNetwork.cpp
+    src/FFNN.cpp
     src/gamelogic.cpp
     src/genetic.cpp
     src/levelgen.cpp

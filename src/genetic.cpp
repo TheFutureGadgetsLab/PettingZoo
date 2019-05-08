@@ -14,9 +14,9 @@
 #include <randfuncts.hpp>
 #include <algorithm>
 #include <string>
-#include <NeuralNetwork.hpp>
+#include <FFNN.hpp>
 
-bool comparator(const NeuralNetwork& a, const NeuralNetwork& b);
+bool comparator(const FFNN& a, const FFNN& b);
 
 /**
  * @brief This function takes a game, players, and chromosomes to be evaluated.
@@ -26,7 +26,7 @@ bool comparator(const NeuralNetwork& a, const NeuralNetwork& b);
  * @param generation A collection of chromosomes
  * @param params The run parameters
  */
-void run_generation(Game& game, std::vector<Player>& players, std::vector<NeuralNetwork>& generation, Params& params)
+void run_generation(Game& game, std::vector<Player>& players, std::vector<FFNN>& generation, Params& params)
 {
     int ret;
     int fitness_idle_updates;
@@ -95,11 +95,11 @@ void run_generation(Game& game, std::vector<Player>& players, std::vector<Neural
  * @param new_generation Where the new chromosomes will be stored
  * @param params Parameters describing the run
  */
-void select_and_breed(std::vector<Player>& players, std::vector<NeuralNetwork> & curGen, std::vector<NeuralNetwork> & newGen, Params& params)
+void select_and_breed(std::vector<Player>& players, std::vector<FFNN> & curGen, std::vector<FFNN> & newGen, Params& params)
 {
     int chrom;
     float best, sum;
-    NeuralNetwork *survivors[params.gen_size / 2];
+    FFNN *survivors[params.gen_size / 2];
     int n_survivors = 0;
     unsigned int seedState = rand();
     
@@ -134,7 +134,7 @@ void select_and_breed(std::vector<Player>& players, std::vector<NeuralNetwork> &
     }
 }
 
-void mutateGeneration(std::vector<NeuralNetwork>& generation, float mutateRate)
+void mutateGeneration(std::vector<FFNN>& generation, float mutateRate)
 {
     #pragma omp parallel for
     for (int i = 0; i < generation.size(); i++) {
@@ -154,7 +154,7 @@ void mutateGeneration(std::vector<NeuralNetwork>& generation, float mutateRate)
  * @param generation The generation number
  * @param params The parameters obj
  */
-void get_gen_stats(std::string& dirname, Game& game, std::vector<NeuralNetwork>& chroms, int quiet, int write_winner, int generation, Params& params)
+void get_gen_stats(std::string& dirname, Game& game, std::vector<FFNN>& chroms, int quiet, int write_winner, int generation, Params& params)
 {
     int completed, timedout, died;
     float avg;
@@ -230,7 +230,7 @@ void create_output_dir(std::string& dirname, unsigned int seed, Params& params)
     fclose(out_file);
 }
 
-bool comparator(const NeuralNetwork& a, const NeuralNetwork& b)
+bool comparator(const FFNN& a, const FFNN& b)
 {
     return a.fitness < b.fitness;
 }

@@ -3,17 +3,17 @@
 #include <random>
 #include <defs.hpp>
 #include <gamelogic.hpp>
-#include <NeuralNetwork.hpp>
+#include <FFNN.hpp>
 
-void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
-void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
-void interpolateBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed);
+void MMIntraNeuronBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed);
+void MMOnNeuronBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed);
+void interpolateBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed);
 
 void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
 void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, int splitLoc);
 void interpolateSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Mat<float>& childA, arma::Mat<float>& childB, float mag);
 
-NeuralNetwork::NeuralNetwork(Params params)
+FFNN::FFNN(Params params)
 {
     fitness = 0;
 
@@ -32,7 +32,7 @@ NeuralNetwork::NeuralNetwork(Params params)
     outputLayer = arma::Mat<float>(BUTTON_COUNT, npl);
 }
 
-NeuralNetwork::NeuralNetwork(std::string fname)
+FFNN::FFNN(std::string fname)
 {
     fitness = 0;
 
@@ -63,7 +63,7 @@ NeuralNetwork::NeuralNetwork(std::string fname)
     inFile.close();
 }
 
-void NeuralNetwork::generate()
+void FFNN::generate()
 {
     std::uniform_real_distribution<float> weightGen(-1.0, 1.0);
     
@@ -82,12 +82,12 @@ void NeuralNetwork::generate()
     }
 }
 
-void NeuralNetwork::seed(unsigned int seed)
+void FFNN::seed(unsigned int seed)
 {
     engine.seed(seed);
 }
 
-void NeuralNetwork::print()
+void FFNN::print()
 {
     printf("-------------------------------------------");
     int r, c, hl;
@@ -110,7 +110,7 @@ void NeuralNetwork::print()
     printf("-------------------------------------------\n");
 }
 
-void NeuralNetwork::evaluate(Game& game, Player& player)
+void FFNN::evaluate(Game& game, Player& player)
 {
     arma::Mat<float> input;
     std::vector<float> tiles(inW * inH);
@@ -131,7 +131,7 @@ void NeuralNetwork::evaluate(Game& game, Player& player)
     player.jump  = input(JUMP)  > 0.0f;
 }
 
-void NeuralNetwork::mutate(float mutateRate)
+void FFNN::mutate(float mutateRate)
 {
     if (mutateRate == 0.0f)
         return;
@@ -149,7 +149,7 @@ void NeuralNetwork::mutate(float mutateRate)
     outputLayer.for_each( [&](float& val) { if (chanceGen(engine) < mutateRate) val *= weightGen(engine); } );
 }
 
-void NeuralNetwork::writeToFile(std::string fname, unsigned int level_seed)
+void FFNN::writeToFile(std::string fname, unsigned int level_seed)
 {
     std::ofstream outFile;
     outFile.open(fname, std::ios::out | std::ios::binary);
@@ -194,7 +194,7 @@ unsigned int getStatsFromFile(std::string fname, Params& params)
     return level_seed;
 }
 
-void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed, int breedType)
+void breed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed, int breedType)
 {
     if (breedType == 0) {
         MMIntraNeuronBreed(parentA, parentB, childA, childB, seed);
@@ -208,7 +208,7 @@ void breed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA
     }
 }
 
-void MMIntraNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+void MMIntraNeuronBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed)
 {
     int split_loc, hl;
     unsigned int seedState = seed;
@@ -248,7 +248,7 @@ void MMIntraSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma::Ma
     childB = childB.t();
 }
 
-void MMOnNeuronBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+void MMOnNeuronBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed)
 {
     int splitLoc, hl;
     unsigned int seedState = seed;
@@ -287,7 +287,7 @@ void MMOnNeuronSplit(arma::Mat<float>& parentA, arma::Mat<float>& parentB, arma:
     childB = arma::join_vert(parentB.rows(0, splitLoc - 1), parentA.rows(splitLoc, parentA.n_rows - 1));
 }
 
-void interpolateBreed(NeuralNetwork& parentA, NeuralNetwork& parentB, NeuralNetwork& childA, NeuralNetwork& childB, unsigned int seed)
+void interpolateBreed(FFNN& parentA, FFNN& parentB, FFNN& childA, FFNN& childB, unsigned int seed)
 {
     std::uniform_real_distribution<float> magnitude(0.0f, 1.0f);
     std::minstd_rand engine(seed);

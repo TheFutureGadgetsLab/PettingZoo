@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <genetic.hpp>
-#include <NeuralNetwork.hpp>
+#include <FFNN.hpp>
 #include <gamelogic.hpp>
 #include <unistd.h>
 #include <vector>
@@ -30,8 +30,8 @@ int main(int argc, char **argv)
     create_output_dir(dir_name, seed, params);
 
     Game game;
-    std::vector<NeuralNetwork> genA(params.gen_size, NeuralNetwork(params));
-    std::vector<NeuralNetwork> genB(params.gen_size, NeuralNetwork(params));
+    std::vector<FFNN> genA(params.gen_size, FFNN(params));
+    std::vector<FFNN> genB(params.gen_size, FFNN(params));
     std::vector<Player> players(params.gen_size);
     std::vector<unsigned int> chrom_seeds(params.gen_size);
 

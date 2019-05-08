@@ -7,7 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <levelgen.hpp>
-#include <NeuralNetwork.hpp>
+#include <FFNN.hpp>
 
 #define GAME_EXIT  1
 #define GAME_RESET 2
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     Params params;
 	bool draw_overlay, replay_ai;
 	int opt, ret;
-	NeuralNetwork *chrom;
+	FFNN *chrom;
 	Game game;
 	Player player;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "PettingZoo");
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 		case 'f':
 			replay_ai = true;
 			seed = getStatsFromFile(optarg, params);
-			chrom = new NeuralNetwork(optarg);
+			chrom = new FFNN(optarg);
 			break;
 		default:
 			printf("Usage: %s [-f PATH_TO_CHROMOSOME]\n", argv[0]);

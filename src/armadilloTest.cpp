@@ -1,7 +1,7 @@
 #include <iostream>
 #include <armadillo>
 #include <gamelogic.hpp>
-#include <NeuralNetwork.hpp>
+#include <FFNN.hpp>
 #include <chrono> 
 #include <fstream>
 #include <random>
@@ -14,7 +14,7 @@ int main(int argc, const char **argv) {
     params.hlc = 2;
     params.npl = 5;
 
-    NeuralNetwork parentA(params), parentB(params), childA(params), childB(params);
+    FFNN parentA(params), parentB(params), childA(params), childB(params);
 
     parentA.seed(1);
     parentB.seed(2);
