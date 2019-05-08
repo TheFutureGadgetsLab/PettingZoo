@@ -19,7 +19,6 @@
 ///////////////////////////////////////////////////////////////
 Player::Player()
 {
-	// body = Body();
 	reset();
 }
 
@@ -153,6 +152,8 @@ int Game::update(Player& player)
 
 	// Player completed level
 	if (player.body.px + PLAYER_RIGHT >= (LEVEL_WIDTH - 4) * TILE_SIZE) {
+		// Reward for finishing
+		player.fitness += 2000;
 		player.death_type = PLAYER_COMPLETE;
 		return PLAYER_COMPLETE;
 	}

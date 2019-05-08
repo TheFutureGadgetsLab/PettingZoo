@@ -10,6 +10,7 @@ class Params {
     int npl = 128;
     int gen_size = 100;
     int generations = 1;
+    int breedType = 0; // 0: Intra, 1: On, 2: Interp
     float mutate_rate = 0.001f;
 };
 

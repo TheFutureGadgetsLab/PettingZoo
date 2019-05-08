@@ -9,6 +9,7 @@ include_directories(include)
 #
 ###############################################################
 find_package(OpenMP)
+find_package(Armadillo)
 
 # Set march
 include(CheckCXXCompilerFlag)
@@ -35,13 +36,12 @@ find_library(SFML_SYSTEM_LIB sfml-system)
 # Compile into petting zoo
 add_executable(
     pettingzoo
-    src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
     src/rendering.cpp
     src/pettingzoo.cpp
-    src/chromosome.cpp
+    src/FFNN.cpp
 )
 
 # Link libraries
@@ -49,6 +49,8 @@ target_link_libraries(pettingzoo "${SFML_GRAPHICS_LIB}")
 target_link_libraries(pettingzoo "${SFML_WINDOW_LIB}")
 target_link_libraries(pettingzoo "${SFML_SYSTEM_LIB}")
 target_link_libraries(pettingzoo m)
+target_link_libraries(pettingzoo ${ARMADILLO_LIBRARIES})
+
 
 ###############################################################
 #
@@ -60,13 +62,33 @@ add_executable(
     train
     src/train.cpp
     src/genetic.cpp
-    src/chromosome.cpp
-    src/neural_network.cpp
     src/gamelogic.cpp
     src/levelgen.cpp
     src/randfuncts.cpp
+    src/FFNN.cpp
 )
 
 # Link libraries
 target_link_libraries(train m)
 target_link_libraries(train OpenMP::OpenMP_CXX)
+target_link_libraries(train ${ARMADILLO_LIBRARIES})
+
+
+###############################################################
+#
+#                       Training
+#
+###############################################################
+# Compile
+add_executable(
+    armadillo
+    src/armadilloTest.cpp
+    src/FFNN.cpp
+    src/gamelogic.cpp
+    src/genetic.cpp
+    src/levelgen.cpp
+    src/randfuncts.cpp
+)
+
+# Link libraries
+target_link_libraries(armadillo ${ARMADILLO_LIBRARIES})
