@@ -22,6 +22,7 @@ int main(int argc, char **argv)
     seed = (unsigned int)time(NULL);
     seed = 10;
     srand(seed);
+    level_seed = rand();
 
     if (dir_name.empty() == true) {
         printf("Output directory is required!\n");
