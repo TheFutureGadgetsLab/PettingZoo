@@ -25,10 +25,11 @@ FIT_BUTTONS_WEIGHT = 0.2
 COIN_VALUE         = 1000
 
 # Misc
-TILE_SIZE   = 32
-SPRITE_SIZE = 32
-UPDATES_PS  = 60
-MAX_TIME    = 60
+TILE_SIZE    = 32
+SPRITE_SIZE  = 32
+UPDATES_PS   = 60
+MAX_TIME     = 60
+GROUND_LEVEL = 4
 
 # Misc return values for game update / physics
 PLAYER_COMPLETE = -3
