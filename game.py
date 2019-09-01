@@ -66,6 +66,7 @@ class Game():
         self.tiles[:, :] = 0
         self.tiles[:pz.GROUND_LEVEL, :] = pz.DIRT
         self.tiles[:, 5:10] = pz.EMPTY
+        self.tiles[:, 12:15] = pz.DIRT
         self.tiles = np.flipud(self.tiles)
     
     def update(self, keys):
@@ -132,15 +133,15 @@ class Game():
 
 
         # Player physics
-        tile_x  = int((body.pos.x + body.vel.x + 16) // pz.TILE_SIZE)
-        tile_y  = int((body.pos.y + body.vel.y + 16) // pz.TILE_SIZE)
+        target_tile = 
+        tile_x     = int((body.pos.x + body.vel.x + 16) // pz.TILE_SIZE)
+        tile_y     = int((body.pos.y + body.vel.y + 16) // pz.TILE_SIZE)
         feet_tile  = int((body.pos.y + body.vel.y + 33) // pz.TILE_SIZE)
-        head_tile   = int((body.pos.y + body.vel.y - 1) // pz.TILE_SIZE)
+        head_tile  = int((body.pos.y + body.vel.y - 1) // pz.TILE_SIZE)
         right_tile = int((body.pos.x + body.vel.x + PLAYER_RIGHT + 1) // pz.TILE_SIZE)
         left_tile  = int((body.pos.x + body.vel.x + PLAYER_LEFT - 1) // pz.TILE_SIZE)
 
-        body.tile_x = tile_x
-        body.tile_y = tile_y
+        body.tile = Vector2(tile_x, tile_y)
 
         body.vel.y += GRAVITY
         body.vel.x /= INTERTA
@@ -180,15 +181,13 @@ class Game():
                 if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
                     return PLAYER_DEAD
             
-            body.pos.y = (head_tile+ 1) * pz.TILE_SIZE
+            body.pos.y = (head_tile + 1) * pz.TILE_SIZE
 
         # Apply body.velocity
-        body.pos.x = int(body.pos.x + body.vel.x)
-        body.pos.y = int(body.pos.y + body.vel.y)
+        body.pos = floor_vec(body.pos + body.vel)
 
         # Update tile position
-        body.tile_x = (body.pos.x + 16) // pz.TILE_SIZE
-        body.tile_y = (body.pos.y + 16) // pz.TILE_SIZE
+        body.tile = floor_vec((body.pos + pz.HALF_TILE) / pz.TILE_SIZE)
     
     def tileSolid(self, row, col):
         if (col > self.tiles.shape[1]) or (col < 0):
@@ -200,3 +199,6 @@ class Game():
             return True
         
         return False
+
+def floor_vec(vec):
+    return Vector2(floor(vec.x), floor(vec.y))
