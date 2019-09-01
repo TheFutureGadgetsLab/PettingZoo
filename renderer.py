@@ -50,28 +50,31 @@ class Renderer():
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
 
-        self.textures = {}
-        self.load_assets()
-
-        self.player = sf.Sprite(self.textures[pz.LAMP])
-        self.player.position = (0, 0)
-        self.running = True
-
+        self.player  = None
         self.tilemap = None
-
-        self.font = sf.Font.from_file("/home/supa/lin_storage/pettingzoo/assets/Vera.ttf")
-        self.pos_text  = sf.Text(font=self.font)
-        self.vel_text  = sf.Text(font=self.font)
-        self.tile_text = sf.Text(font=self.font)
-        self.vel_text.move((0, 25))
-        self.tile_text.move((0, 50))
+        self.font = None
+        self.debug_hud_text  = None
 
         self.keys = [0, 0, 0]
 
+        self.textures = {}
+        self.load_assets()
+
+        self.running = True
+
     def load_assets(self):
+        # Textures not in spritesheet
         for id, path in asset_files.items():
             self.textures[id] = sf.Texture.from_file(asset_files[id])
-        
+
+        # Text/Font
+        self.font = sf.Font.from_file("/home/supa/lin_storage/pettingzoo/assets/Vera.ttf")
+        self.debug_hud_text = sf.Text(font=self.font)
+        self.debug_hud_text.color = sf.Color.BLACK
+
+        self.player = sf.Sprite(self.textures[pz.LAMP])
+        self.player.position = (0, 0)
+
     def handle_input(self):
         for event in self.window.events:
             if event == sf.Event.CLOSED:
@@ -99,16 +102,10 @@ class Renderer():
                 sprite.position = (x, y)
 
                 self.window.draw(sprite)
-    
 
     def draw_overlay(self, game):
-        self.pos_text.string  = f"Lamp pos: {self.player.position}"
-        self.vel_text.string  = f"Lamp vel: {game.player.vx:.2f}, {game.player.vy:.2f}"
-        self.tile_text.string = f"Tile:     {game.player.tile_x, game.player.tile_y}"
-
-        self.window.draw(self.pos_text)
-        self.window.draw(self.vel_text)
-        self.window.draw(self.tile_text)
+        self.debug_hud_text.string = f"Lamp pos: {game.player.pos}\nLamp vel: {game.player.vel} \nTile: {game.player.tile}"
+        self.window.draw(self.debug_hud_text)
 
     # @profile
     def run(self, game):
@@ -130,7 +127,7 @@ class Renderer():
                 game.setup_game()
                 continue
 
-            self.player.position = (game.player.px, game.player.py)
+            self.player.position = game.player.pos
 
             self.window.view = self.view
             self.window.clear(sf.Color(135, 206, 235))
