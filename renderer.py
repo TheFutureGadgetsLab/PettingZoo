@@ -5,19 +5,8 @@ import numpy as np
 import time
 
 asset_files = {
-    pz.COBBLE   : "/home/supa/lin_storage/pettingzoo/assets/cobble.png",
     pz.COIN     : "/home/supa/lin_storage/pettingzoo/assets/coin.png",
-    pz.DIRT     : "/home/supa/lin_storage/pettingzoo/assets/dirt.png",
-    pz.GRASS    : "/home/supa/lin_storage/pettingzoo/assets/grass.png",
-    pz.GRID     : "/home/supa/lin_storage/pettingzoo/assets/grid.png",
     pz.LAMP     : "/home/supa/lin_storage/pettingzoo/assets/lamp.png",
-    pz.PIPE_BOT : "/home/supa/lin_storage/pettingzoo/assets/pipe_bottom.png",
-    pz.PIPE_MID : "/home/supa/lin_storage/pettingzoo/assets/pipe_middle.png",
-    pz.PIPE_TOP : "/home/supa/lin_storage/pettingzoo/assets/pipe_top.png",
-    pz.SPIKE_BOT: "/home/supa/lin_storage/pettingzoo/assets/spike_bottom.png",
-    pz.SPIKE_TOP: "/home/supa/lin_storage/pettingzoo/assets/spike_top.png",
-    pz.LAMP     : "/home/supa/lin_storage/pettingzoo/assets/lamp.png",
-    pz.BG       : "/home/supa/lin_storage/pettingzoo/assets/bg.png",
     pz.GRID     : "/home/supa/lin_storage/pettingzoo/assets/grid.png",
 }
 
@@ -59,6 +48,7 @@ class Renderer():
     def __init__(self, width=800, height=600):
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
+        self.window.key_repeat_enabled = False
 
         self.textures = {}
         self.load_assets()
@@ -83,27 +73,21 @@ class Renderer():
             self.textures[id] = sf.Texture.from_file(asset_files[id])
         
     def handle_input(self):
-        # for event in self.window.events:
-        while True:
-            event = self.window.poll_event()
-            if not event:
-                break
+        for event in self.window.events:
             if event == sf.Event.CLOSED:
                 self.running = False
                 
-            if event == sf.Event.KEY_PRESSED:
-                print("Event")
-                if sf.Keyboard.is_key_pressed(sf.Keyboard.ESCAPE):
-                    self.running = False
-                if self.check_key_list([sf.Keyboard.RIGHT, sf.Keyboard.D]):
-                    self.keys[pz.RIGHT] = 1
-                if self.check_key_list([sf.Keyboard.LEFT, sf.Keyboard.A]):
-                    self.keys[pz.LEFT] = 1
-                if self.check_key_list([sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]):
-                    self.keys[pz.JUMP] = 1
+            if event in [sf.Event.KEY_PRESSED, sf.Event.KEY_RELEASED]:
+                pressed = event == sf.Event.KEY_PRESSED
 
-    def check_key_list(self, keys):
-        return True in [sf.Keyboard.is_key_pressed(key) for key in keys]
+                if event['code'] in [sf.Keyboard.ESCAPE]:
+                    self.running = False
+                if event['code'] in [sf.Keyboard.RIGHT, sf.Keyboard.D]:
+                    self.keys[pz.RIGHT] = pressed
+                if event['code'] in [sf.Keyboard.LEFT, sf.Keyboard.A]:
+                    self.keys[pz.LEFT] = pressed
+                if event['code'] in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
+                    self.keys[pz.JUMP] = pressed
 
     def draw_grid(self, game):
         for row in range(game.tiles.shape[0]):
@@ -111,16 +95,11 @@ class Renderer():
                 x = col * 32
                 y = row * 32
 
-                self.draw_tile(pz.GRID, x, y)
+                sprite = sf.Sprite(self.textures[pz.GRID])
+                sprite.position = (x, y)
+
+                self.window.draw(sprite)
     
-    def draw_tile(self, id, x, y):
-        if id == 0:
-            return
-
-        sprite = sf.Sprite(self.textures[id])
-        sprite.position = (x, y)
-
-        self.window.draw(sprite)
 
     def draw_overlay(self, game):
         self.pos_text.string  = f"Lamp pos: {self.player.position}"
@@ -141,12 +120,10 @@ class Renderer():
         
         last_draw = time.perf_counter()
         while self.running:
-            self.keys = [0, 0, 0]
             self.handle_input()
             while (time.perf_counter() - last_draw) < (1.0 / pz.UPDATES_PS):
                 self.handle_input()
 
-            print(self.keys)
             ret = game.update(self.keys)
 
             if ret in [pz.PLAYER_DEAD, pz.PLAYER_TIMEOUT, pz.PLAYER_COMPLETE]:
@@ -159,10 +136,9 @@ class Renderer():
             self.window.clear(sf.Color(135, 206, 235))
             
             self.window.draw(self.tilemap)
+            self.draw_grid(game)
             self.window.draw(self.player)
             self.draw_overlay(game)
 
             self.window.display()
             last_draw = time.perf_counter()
-
-            

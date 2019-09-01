@@ -63,6 +63,7 @@ class Game():
         self.player.reset()
         self.tiles[:, :] = 0
         self.tiles[:pz.GROUND_LEVEL, :] = pz.DIRT
+        self.tiles[:, 5:10] = pz.EMPTY
         self.tiles = np.flipud(self.tiles)
     
     def print_state(self):
@@ -115,9 +116,6 @@ class Game():
             self.player.death_type = PLAYER_COMPLETE
             return PLAYER_COMPLETE
 
-        # self.print_state()
-        print(self.player.__dict__)
-    
     def physicsSim(self, body, jump):
         # Jumping
         if jump and body.can_jump:
