@@ -66,7 +66,6 @@ class Game():
         self.tiles[:, :] = 0
         self.tiles[:pz.GROUND_LEVEL, :] = pz.DIRT
         self.tiles[:, 5:10] = pz.EMPTY
-        self.tiles[:, 12:15] = pz.DIRT
         self.tiles = np.flipud(self.tiles)
     
     def update(self, keys):
@@ -133,7 +132,6 @@ class Game():
 
 
         # Player physics
-        target_tile = 
         tile_x     = int((body.pos.x + body.vel.x + 16) // pz.TILE_SIZE)
         tile_y     = int((body.pos.y + body.vel.y + 16) // pz.TILE_SIZE)
         feet_tile  = int((body.pos.y + body.vel.y + 33) // pz.TILE_SIZE)
@@ -195,7 +193,7 @@ class Game():
         if row > self.tiles.shape[0]:
             return False
 
-        if self.tiles[int(row), int(col)] in [pz.COBBLE, pz.DIRT, pz.GRASS, pz.PIPE_BOT, pz.PIPE_MID, pz.PIPE_TOP, pz.SPIKE_BOT, pz.SPIKE_TOP]:
+        if self.tiles[int(row), int(col)] in pz.SOLID_TILES:
             return True
         
         return False

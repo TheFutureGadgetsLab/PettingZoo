@@ -1,8 +1,8 @@
 from sfml import sf
+from sfml.sf import Vector2
 import defs as pz
 import pysnooper
 import numpy as np
-import time
 
 asset_files = {
     pz.COIN     : "/home/supa/lin_storage/pettingzoo/assets/coin.png",
@@ -15,6 +15,7 @@ class TileMap(sf.Drawable):
         super().__init__()
         
         self.m_tileset  = sf.Texture.from_file("/home/supa/lin_storage/pettingzoo/assets/spritesheet.png")
+        self.m_tileset.smooth = True
         self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
 
         for i in range(game.width):
@@ -49,15 +50,15 @@ class Renderer():
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
+        self.window.framerate_limit = 60
 
         self.player  = None
         self.tilemap = None
+        self.textures = {}
         self.font = None
         self.debug_hud_text  = None
-
         self.keys = [0, 0, 0]
 
-        self.textures = {}
         self.load_assets()
 
         self.running = True
@@ -73,7 +74,6 @@ class Renderer():
         self.debug_hud_text.color = sf.Color.BLACK
 
         self.player = sf.Sprite(self.textures[pz.LAMP])
-        self.player.position = (0, 0)
 
     def handle_input(self):
         for event in self.window.events:
@@ -93,33 +93,26 @@ class Renderer():
                     self.keys[pz.JUMP] = pressed
 
     def draw_grid(self, game):
+        sprite = sf.Sprite(self.textures[pz.GRID])
         for row in range(game.tiles.shape[0]):
             for col in range(game.tiles.shape[1]):
-                x = col * 32
-                y = row * 32
-
-                sprite = sf.Sprite(self.textures[pz.GRID])
-                sprite.position = (x, y)
+                sprite.position = Vector2(col, row) * pz.TILE_SIZE
 
                 self.window.draw(sprite)
 
     def draw_overlay(self, game):
         self.debug_hud_text.string = f"Lamp pos: {game.player.pos}\nLamp vel: {game.player.vel} \nTile: {game.player.tile}"
+        self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
         self.window.draw(self.debug_hud_text)
 
-    # @profile
+    @profile
     def run(self, game):
         """ Begins rendering game and advances gameloop
         """
         self.tilemap = TileMap(game)
 
-        self.view = sf.View(sf.Rect((0, 0), (pz.TILE_SIZE * game.width, pz.TILE_SIZE * game.height)))
-        
-        last_draw = time.perf_counter()
         while self.running:
             self.handle_input()
-            while (time.perf_counter() - last_draw) < (1.0 / pz.UPDATES_PS):
-                self.handle_input()
 
             ret = game.update(self.keys)
 
@@ -128,14 +121,13 @@ class Renderer():
                 continue
 
             self.player.position = game.player.pos
+            self.window.view.center = self.player.position
 
-            self.window.view = self.view
             self.window.clear(sf.Color(135, 206, 235))
             
             self.window.draw(self.tilemap)
-            self.draw_grid(game)
+            # self.draw_grid(game)
             self.window.draw(self.player)
             self.draw_overlay(game)
 
             self.window.display()
-            last_draw = time.perf_counter()

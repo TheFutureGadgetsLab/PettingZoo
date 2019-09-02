@@ -18,6 +18,8 @@ GRID      = 11
 LAMP      = 12
 BG        = 13
 
+SOLID_TILES = [PIPE_BOT, PIPE_MID, PIPE_TOP, GRASS, DIRT, COBBLE, SPIKE_TOP, SPIKE_BOT]
+
 # Button Indices / ID's
 LEFT  = 0
 RIGHT = 1
