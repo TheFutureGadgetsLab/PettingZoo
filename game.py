@@ -3,6 +3,7 @@ import defs as pz
 import pysnooper
 from math import floor
 from sfml.sf import Vector2
+from levelgen import LevelGenerator
 
 # Player physics parameters
 V_X     = 6
@@ -52,18 +53,17 @@ class Game():
         self.map_seed = 0
 
         self.player = Player()
+        self.level_generator = LevelGenerator()
 
-    def setup_game(self, seed=None):
+    def setup_game(self, seed=0):
         """ Sets up / restarts game, if ``seed`` is none the current level seed is used,
             otherwise a new map is generated
         """
         self.player.reset()
-        self.tiles[:, :] = 0
-        self.tiles[:pz.GROUND_LEVEL, :] = pz.DIRT
-        self.tiles[:, 5:10] = pz.EMPTY
-        self.tiles = np.flipud(self.tiles)
 
-        self.player.tile = Vector2(1, self.height - pz.GROUND_LEVEL - 1)
+        self.tiles, spawn_point = self.level_generator.generate_level(self.width, self.height, seed)
+
+        self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE
 
     def update(self, keys):

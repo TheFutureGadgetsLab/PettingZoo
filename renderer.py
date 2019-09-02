@@ -11,41 +11,6 @@ asset_files = {
     pz.GRID     : "/home/supa/lin_storage/pettingzoo/assets/grid.png",
 }
 
-class TileMap(sf.Drawable):
-    def __init__(self, game):
-        super().__init__()
-        
-        self.m_tileset  = sf.Texture.from_file("/home/supa/lin_storage/pettingzoo/assets/spritesheet.png")
-        self.m_tileset.smooth = True
-        self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
-
-        for i in range(game.width):
-            for j in range(game.height):
-                # get the current tile number
-                id = game.tiles[j, i]
-
-                # find its position in the tileset texture
-                tu = int(id % (self.m_tileset.width / (pz.TILE_SIZE + 2)))
-                tv = int(id / (self.m_tileset.width / (pz.TILE_SIZE + 2)))
-
-                # get a pointer to the current tile's quad
-                index = (i + j * game.width) * 4
-                # define its 4 corners
-                self.m_vertices[index + 0].position = (i * pz.TILE_SIZE, j * pz.TILE_SIZE)
-                self.m_vertices[index + 1].position = ((i + 1) * pz.TILE_SIZE, j * pz.TILE_SIZE)
-                self.m_vertices[index + 2].position = ((i + 1) * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
-                self.m_vertices[index + 3].position = (i * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
-
-                # define its 4 texture coordinates
-                self.m_vertices[index + 0].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, tv * (pz.TILE_SIZE + 2) + 1);
-                self.m_vertices[index + 1].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, tv * (pz.TILE_SIZE + 2) + 1);
-                self.m_vertices[index + 2].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
-                self.m_vertices[index + 3].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
-
-    def draw(self, target, states):
-        states.texture = self.m_tileset
-        target.draw(self.m_vertices, states)
-
 class Renderer():
     def __init__(self, width=800, height=600, game_width=200, game_height=30):
         self.window_size = sf.Vector2(width, height)
@@ -83,7 +48,10 @@ class Renderer():
         for event in self.window.events:
             if event == sf.Event.CLOSED:
                 self.running = False
-                
+
+            # if event == sf.Event.RESIZED:
+                # self.window.view.size = (event['height'], event['width'])
+
             if event in [sf.Event.KEY_PRESSED, sf.Event.KEY_RELEASED]:
                 pressed = event == sf.Event.KEY_PRESSED
 
@@ -105,7 +73,11 @@ class Renderer():
                 self.window.draw(sprite)
 
     def draw_overlay(self):
-        self.debug_hud_text.string = f"Lamp pos: {self.game.player.pos}\nLamp vel: {self.game.player.vel} \nTile: {self.game.player.tile}"
+        self.debug_hud_text.string = (
+            f"Lamp pos: {self.game.player.pos}\n"
+            f"Lamp vel: {self.game.player.vel.x:.2f}, {self.game.player.vel.y:.2f}\n"
+            f"Tile: {self.game.player.tile}"
+        )
         self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
         self.window.draw(self.debug_hud_text)
 
@@ -151,3 +123,38 @@ class Renderer():
             self.draw_overlay()
 
             self.window.display()
+
+class TileMap(sf.Drawable):
+    def __init__(self, game):
+        super().__init__()
+        
+        self.m_tileset  = sf.Texture.from_file("/home/supa/lin_storage/pettingzoo/assets/spritesheet.png")
+        self.m_tileset.smooth = True
+        self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
+
+        for i in range(game.width):
+            for j in range(game.height):
+                # get the current tile number
+                id = game.tiles[j, i]
+
+                # find its position in the tileset texture
+                tu = int(id % (self.m_tileset.width / (pz.TILE_SIZE + 2)))
+                tv = int(id / (self.m_tileset.width / (pz.TILE_SIZE + 2)))
+
+                # get a pointer to the current tile's quad
+                index = (i + j * game.width) * 4
+                # define its 4 corners
+                self.m_vertices[index + 0].position = (i * pz.TILE_SIZE, j * pz.TILE_SIZE)
+                self.m_vertices[index + 1].position = ((i + 1) * pz.TILE_SIZE, j * pz.TILE_SIZE)
+                self.m_vertices[index + 2].position = ((i + 1) * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
+                self.m_vertices[index + 3].position = (i * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
+
+                # define its 4 texture coordinates
+                self.m_vertices[index + 0].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, tv * (pz.TILE_SIZE + 2) + 1);
+                self.m_vertices[index + 1].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, tv * (pz.TILE_SIZE + 2) + 1);
+                self.m_vertices[index + 2].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
+                self.m_vertices[index + 3].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
+
+    def draw(self, target, states):
+        states.texture = self.m_tileset
+        target.draw(self.m_vertices, states)
