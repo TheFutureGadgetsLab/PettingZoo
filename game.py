@@ -4,11 +4,6 @@ import pysnooper
 from math import floor
 from sfml.sf import Vector2
 
-# Misc return values for game update / physics
-PLAYER_COMPLETE = -3
-PLAYER_TIMEOUT  = -2
-PLAYER_DEAD     = -1
-
 # Player physics parameters
 V_X     = 6
 V_JUMP  = 8
@@ -24,17 +19,17 @@ PLAYER_LEFT   = (PLAYER_MARGIN / 2)
 class Body():
     def __init__(self):
         self.vel  = Vector2(0, 0)
-        self.tile = Vector2(0, pz.GROUND_LEVEL - 1)
-        self.pos  = self.tile * pz.TILE_SIZE
+        self.tile = Vector2(0, 0)
+        self.pos  = Vector2(0, 0)
 
         self.can_jump = True
         self.is_jump  = False
         self.standing = True
-    
+
     def reset(self):
         self.vel  = Vector2(0, 0)
-        self.tile = Vector2(0, pz.GROUND_LEVEL - 1)
-        self.pos  = self.tile * pz.TILE_SIZE
+        self.tile = Vector2(0, 0)
+        self.pos  = Vector2(0, 0)
 
         self.can_jump = True
         self.is_jump  = False
@@ -47,13 +42,13 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-    
+
 class Game():
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.tiles = np.zeros(shape=(height, width), dtype=int)
-        
+
         self.map_seed = 0
 
         self.player = Player()
@@ -67,16 +62,19 @@ class Game():
         self.tiles[:pz.GROUND_LEVEL, :] = pz.DIRT
         self.tiles[:, 5:10] = pz.EMPTY
         self.tiles = np.flipud(self.tiles)
-    
+
+        self.player.tile = Vector2(1, self.height - pz.GROUND_LEVEL - 1)
+        self.player.pos  = self.player.tile * pz.TILE_SIZE
+
     def update(self, keys):
         # Estimate of time
         self.player.time += 1.0 / pz.UPDATES_PS
-        
+
         # Time limit
         if self.player.time > pz.MAX_TIME:
-            self.player.death_type = PLAYER_TIMEOUT
-            return PLAYER_TIMEOUT
-        
+            self.player.death_type = pz.PLAYER_TIMEOUT
+            return pz.PLAYER_TIMEOUT
+
         # Left and right button press
         if keys[pz.RIGHT]:
             self.player.vel.x += V_X
@@ -88,20 +86,20 @@ class Game():
 
         # Physics sim for player
         ret = self.physicsSim(self.player, keys[pz.JUMP])
-        if ret == PLAYER_DEAD:
-            self.player.death_type = PLAYER_DEAD
-            return PLAYER_DEAD
+        if ret == pz.PLAYER_DEAD:
+            self.player.death_type = pz.PLAYER_DEAD
+            return pz.PLAYER_DEAD
 
         # Lower bound
-        if self.player.pos.y > self.height * pz.TILE_SIZE:
-            self.player.death_type = PLAYER_DEAD
-            return PLAYER_DEAD
-        
+        if self.player.pos.y >= self.height * pz.TILE_SIZE:
+            self.player.death_type = pz.PLAYER_DEAD
+            return pz.PLAYER_DEAD
+
         # Fitness
         fitness  = 100 + self.player.fitness + self.player.pos.x
         fitness -= self.player.time * pz.FIT_TIME_WEIGHT
         fitness -= self.player.presses * pz.FIT_BUTTONS_WEIGHT
-        
+
         # Only increase fitness, never decrease
         if self.player.fitness < fitness:
             self.player.fitness = fitness
@@ -110,8 +108,8 @@ class Game():
         if self.player.pos.x + PLAYER_RIGHT >= (self.width - 4) * pz.TILE_SIZE:
             # Reward for finishing
             self.player.fitness += 2000
-            self.player.death_type = PLAYER_COMPLETE
-            return PLAYER_COMPLETE
+            self.player.death_type = pz.PLAYER_COMPLETE
+            return pz.PLAYER_COMPLETE
 
     def physicsSim(self, body, jump):
         # Jumping
@@ -130,7 +128,6 @@ class Game():
                 body.is_jump = False
                 body.vel.y = -V_JUMP
 
-
         # Player physics
         tile_x     = int((body.pos.x + body.vel.x + 16) // pz.TILE_SIZE)
         tile_y     = int((body.pos.y + body.vel.y + 16) // pz.TILE_SIZE)
@@ -145,12 +142,12 @@ class Game():
         body.vel.x /= INTERTA
 
         # Right collision
-        if self.tileSolid(tile_y, right_tile) or right_tile >= self.width:
+        if self.tile_solid(tile_y, right_tile):
             body.vel.x = 0
             body.pos.x = (right_tile - 1) * pz.TILE_SIZE + PLAYER_MARGIN - 2
 
         # Left collision
-        if self.tileSolid(tile_y, left_tile) or left_tile < 0:
+        if self.tile_solid(tile_y, left_tile):
             body.vel.x = 0
             body.pos.x = (left_tile + 1) * pz.TILE_SIZE - PLAYER_MARGIN + 2
 
@@ -159,26 +156,25 @@ class Game():
 
         # Collision on bottom
         body.standing = False
-        if self.tileSolid(feet_tile, tile_xl) > 0 or self.tileSolid(feet_tile, tile_xr) > 0:
-            if body.vel.y >= 0:
-                body.vel.y = 0
-                body.can_jump = True
-                body.standing = True
-                
-                if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
-                    return PLAYER_DEAD
+        if self.tile_solid(feet_tile, tile_xl) or self.tile_solid(feet_tile, tile_xr):
+            body.vel.y = 0
+            body.can_jump = True
+            body.standing = True
+
+            if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
+                return pz.PLAYER_DEAD
 
             body.pos.y = (feet_tile - 1) * pz.TILE_SIZE
 
         # Collision on top
-        if self.tileSolid(head_tile, tile_xl) > 0 or self.tileSolid(head_tile, tile_xr) > 0:
+        if self.tile_solid(head_tile, tile_xl) or self.tile_solid(head_tile, tile_xr):
             if body.vel.y < 0:
                 body.vel.y = 0
                 body.is_jump = False
-                
+
                 if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
-                    return PLAYER_DEAD
-            
+                    return pz.PLAYER_DEAD
+
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE
 
         # Apply body.velocity
@@ -186,16 +182,16 @@ class Game():
 
         # Update tile position
         body.tile = floor_vec((body.pos + pz.HALF_TILE) / pz.TILE_SIZE)
-    
-    def tileSolid(self, row, col):
-        if (col > self.tiles.shape[1]) or (col < 0):
+
+    def tile_solid(self, row, col):
+        if col >= self.width or col < 0:
             return True
-        if row > self.tiles.shape[0]:
+        if row >= self.height:
             return False
 
         if self.tiles[int(row), int(col)] in pz.SOLID_TILES:
             return True
-        
+
         return False
 
 def floor_vec(vec):
