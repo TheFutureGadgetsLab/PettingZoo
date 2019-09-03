@@ -13,7 +13,7 @@ asset_files = {
 }
 
 class Renderer():
-    def __init__(self, width=800, height=600, game_width=200, game_height=30):
+    def __init__(self, width=800, height=600, game_width=53, game_height=20):
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
