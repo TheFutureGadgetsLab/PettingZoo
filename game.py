@@ -77,9 +77,9 @@ class Game():
 
         # Left and right button press
         if keys[pz.RIGHT]:
-            self.player.vel.x += V_X
+            self.player.vel.x = V_X
         if keys[pz.LEFT]:
-            self.player.vel.x -= V_X
+            self.player.vel.x = -V_X
 
         # Button presses
         self.player.presses += sum(keys)
@@ -178,7 +178,7 @@ class Game():
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE
 
         # Apply body.velocity
-        body.pos = floor_vec(body.pos + body.vel)
+        body.pos = round_vec(body.pos + body.vel)
 
         # Update tile position
         body.tile = floor_vec((body.pos + pz.HALF_TILE) / pz.TILE_SIZE)
@@ -196,3 +196,7 @@ class Game():
 
 def floor_vec(vec):
     return Vector2(floor(vec.x), floor(vec.y))
+
+def round_vec(vec):
+    return Vector2(round(vec.x), round(vec.y))
+    

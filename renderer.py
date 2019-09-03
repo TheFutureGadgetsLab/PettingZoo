@@ -43,6 +43,7 @@ class Renderer():
         self.font = sf.Font.from_file("assets/Vera.ttf")
         self.debug_hud_text = sf.Text(font=self.font)
         self.debug_hud_text.color = sf.Color.BLACK
+        self.debug_hud_text.scale(Vector2(0.5, 0.5))
 
         self.player = sf.Sprite(self.textures[pz.LAMP])
 
@@ -78,7 +79,7 @@ class Renderer():
     def draw_overlay(self):
         self.debug_hud_text.string = (
             f"Lamp pos: {self.game.player.pos}\n"
-            f"Lamp vel: {self.game.player.vel.x:.2f}, {self.game.player.vel.y:.2f}\n"
+            f"Lamp vel: {self.game.player.vel.x:.4f}, {self.game.player.vel.y:.4f}\n"
             f"Tile: {self.game.player.tile}"
         )
         self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
