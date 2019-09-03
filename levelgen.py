@@ -32,4 +32,5 @@ class LevelGenerator():
 
         return ground_height
     
-    def set_flat_chunk(self, start)
+    def set_flat_chunk(self, start):
+        pass

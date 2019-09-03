@@ -3,6 +3,7 @@ from sfml.sf import Vector2
 import defs as pz
 import pysnooper
 import numpy as np
+from math import ceil
 from game import Game
 
 asset_files = {
@@ -24,6 +25,7 @@ class Renderer():
         self.font = None
         self.debug_hud_text  = None
         self.keys = [0, 0, 0]
+        self.zoom = 1
 
         self.load_assets()
 
@@ -49,8 +51,9 @@ class Renderer():
             if event == sf.Event.CLOSED:
                 self.running = False
 
-            # if event == sf.Event.RESIZED:
-                # self.window.view.size = (event['height'], event['width'])
+            if event == sf.Event.RESIZED:
+                self.zoom = ceil((event['width'] + event['height']) / (1280 + 720))
+                self.window.view.size = (event['width'] / self.zoom, event['height'] / self.zoom)
 
             if event in [sf.Event.KEY_PRESSED, sf.Event.KEY_RELEASED]:
                 pressed = event == sf.Event.KEY_PRESSED
