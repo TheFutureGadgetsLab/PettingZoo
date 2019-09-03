@@ -6,9 +6,9 @@ import numpy as np
 from game import Game
 
 asset_files = {
-    pz.COIN     : "/home/supa/lin_storage/pettingzoo/assets/coin.png",
-    pz.LAMP     : "/home/supa/lin_storage/pettingzoo/assets/lamp.png",
-    pz.GRID     : "/home/supa/lin_storage/pettingzoo/assets/grid.png",
+    pz.COIN: "assets/coin.png",
+    pz.LAMP: "assets/lamp.png",
+    pz.GRID: "assets/grid.png",
 }
 
 class Renderer():
@@ -38,7 +38,7 @@ class Renderer():
             self.textures[id] = sf.Texture.from_file(asset_files[id])
 
         # Text/Font
-        self.font = sf.Font.from_file("/home/supa/lin_storage/pettingzoo/assets/Vera.ttf")
+        self.font = sf.Font.from_file("assets/Vera.ttf")
         self.debug_hud_text = sf.Text(font=self.font)
         self.debug_hud_text.color = sf.Color.BLACK
 
@@ -128,7 +128,7 @@ class TileMap(sf.Drawable):
     def __init__(self, game):
         super().__init__()
         
-        self.m_tileset  = sf.Texture.from_file("/home/supa/lin_storage/pettingzoo/assets/spritesheet.png")
+        self.m_tileset  = sf.Texture.from_file("assets/spritesheet.png")
         self.m_tileset.smooth = True
         self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
 

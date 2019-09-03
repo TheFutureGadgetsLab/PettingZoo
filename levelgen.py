@@ -19,14 +19,17 @@ class LevelGenerator():
 
         self.tiles = np.zeros(shape=(height, width), dtype=np.int32)
 
-        spawn_height = np.random.randint(3, 7)
-
-        # Place starting platform
-        self.tiles[0:spawn_height - 1, 0:START_PLAT_LEN] = pz.DIRT
+        ground_height = self.set_start_chunk()
+        spawn_height = ground_height + 1
 
         return np.flipud(self.tiles), height - spawn_height
 
-    def generate_chunk(self):
-        # First chunk has prev_ground_height of -1
-        if prev_ground_height == -1:
-            ground_height = np.random.randint(0, )
+    def set_start_chunk(self):
+        ground_height = np.random.randint(2, 7)
+        
+        # Place starting platform
+        self.tiles[0:ground_height, 0:START_PLAT_LEN] = pz.DIRT
+
+        return ground_height
+    
+    def set_flat_chunk(self, start)
