@@ -8,7 +8,7 @@ from game import Game
 
 asset_files = {
     pz.COIN: "assets/coin.png",
-    pz.LAMP: "assets/lamp.png",
+    pz.LAMP: "assets/cat.png",
     pz.GRID: "assets/grid.png",
 }
 
@@ -103,6 +103,7 @@ class Renderer():
 
         self.window.view.center = center
     
+    @pysnooper.snoop()
     def run(self):
         """ Begins rendering game and advances gameloop
         """

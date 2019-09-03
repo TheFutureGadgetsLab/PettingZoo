@@ -7,7 +7,7 @@ from levelgen import LevelGenerator
 
 # Player physics parameters
 V_X     = 6
-V_JUMP  = 8
+V_JUMP  = 8.5
 INTERTA = 1.4
 GRAVITY = 0.3
 
@@ -23,7 +23,7 @@ class Body():
         self.vel  = Vector2(0, 0)
         self.tile = Vector2(0, 0)
         self.pos  = Vector2(0, 0)
-        self.size = Vector2(24, 32)
+        self.size = Vector2(22, 23)
         self.half = self.size / 2
 
         self.can_jump = True
@@ -43,6 +43,12 @@ class Player(Body):
     def __init__(self):
         super().__init__()
 
+        self.time    = 0
+        self.fitness = 0
+        self.presses = 0
+    
+    def reset(self):
+        super().reset()
         self.time    = 0
         self.fitness = 0
         self.presses = 0
@@ -132,24 +138,27 @@ class Game():
                 body.vel.y = -V_JUMP
 
         # Player physics
+
+        body.vel.y += GRAVITY
+        body.vel.x /= INTERTA
         body.tile = floor_vec((body.pos + body.vel) / pz.TILE_SIZE)
         feet_tile  = int((body.pos.y + body.vel.y + body.half.y + 1) // pz.TILE_SIZE)
         head_tile  = int((body.pos.y + body.vel.y - body.half.y - 1) // pz.TILE_SIZE)
         right_tile = int((body.pos.x + body.vel.x + body.half.x + 1) // pz.TILE_SIZE)
-        left_tile  = int((body.pos.x + body.vel.x + body.half.x - 1) // pz.TILE_SIZE)
+        left_tile  = int((body.pos.x + body.vel.x - body.half.x - 1) // pz.TILE_SIZE)
 
-        body.vel.y += GRAVITY
-        body.vel.x /= INTERTA
+        tile_yu = int((body.pos.y - body.half.y) / pz.TILE_SIZE)
+        tile_yd = int((body.pos.y + body.half.y) / pz.TILE_SIZE)
 
         # Right collision
-        if self.tile_solid(body.tile.y, right_tile):
+        if self.tile_solid(tile_yd, right_tile) or self.tile_solid(tile_yu, right_tile):
             body.vel.x = 0
-            body.pos.x = right_tile * pz.TILE_SIZE - body.half.x - 2
+            body.pos.x = right_tile * pz.TILE_SIZE - body.half.x - 1
 
         # Left collision
-        if self.tile_solid(body.tile.y, left_tile):
+        if self.tile_solid(tile_yd, left_tile) or self.tile_solid(tile_yu, left_tile):
             body.vel.x = 0
-            body.pos.x = left_tile * pz.TILE_SIZE + body.half.x + 2
+            body.pos.x = (left_tile + 1) * pz.TILE_SIZE + body.half.x
 
         tile_xr = int((body.pos.x + body.half.x) / pz.TILE_SIZE)
         tile_xl = int((body.pos.x - body.half.x) / pz.TILE_SIZE)
