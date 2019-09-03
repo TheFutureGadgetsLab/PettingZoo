@@ -12,6 +12,7 @@ INTERTA = 1.4
 GRAVITY = 0.3
 
 PLAYER_WIDTH  = 24
+PLAYER_HEIGHT = 26
 PLAYER_HALFW  = (PLAYER_WIDTH / 2)
 PLAYER_MARGIN = ((pz.TILE_SIZE - PLAYER_WIDTH) / 2)
 PLAYER_RIGHT  = (pz.TILE_SIZE - PLAYER_MARGIN)
@@ -22,6 +23,8 @@ class Body():
         self.vel  = Vector2(0, 0)
         self.tile = Vector2(0, 0)
         self.pos  = Vector2(0, 0)
+        self.size = Vector2(24, 32)
+        self.half = self.size / 2
 
         self.can_jump = True
         self.is_jump  = False
@@ -129,30 +132,27 @@ class Game():
                 body.vel.y = -V_JUMP
 
         # Player physics
-        tile_x     = int((body.pos.x + body.vel.x + 16) // pz.TILE_SIZE)
-        tile_y     = int((body.pos.y + body.vel.y + 16) // pz.TILE_SIZE)
-        feet_tile  = int((body.pos.y + body.vel.y + 33) // pz.TILE_SIZE)
-        head_tile  = int((body.pos.y + body.vel.y - 1) // pz.TILE_SIZE)
-        right_tile = int((body.pos.x + body.vel.x + PLAYER_RIGHT + 1) // pz.TILE_SIZE)
-        left_tile  = int((body.pos.x + body.vel.x + PLAYER_LEFT - 1) // pz.TILE_SIZE)
-
-        body.tile = Vector2(tile_x, tile_y)
+        body.tile = floor_vec((body.pos + body.vel) / pz.TILE_SIZE)
+        feet_tile  = int((body.pos.y + body.vel.y + body.half.y + 1) // pz.TILE_SIZE)
+        head_tile  = int((body.pos.y + body.vel.y - body.half.y - 1) // pz.TILE_SIZE)
+        right_tile = int((body.pos.x + body.vel.x + body.half.x + 1) // pz.TILE_SIZE)
+        left_tile  = int((body.pos.x + body.vel.x + body.half.x - 1) // pz.TILE_SIZE)
 
         body.vel.y += GRAVITY
         body.vel.x /= INTERTA
 
         # Right collision
-        if self.tile_solid(tile_y, right_tile):
+        if self.tile_solid(body.tile.y, right_tile):
             body.vel.x = 0
-            body.pos.x = (right_tile - 1) * pz.TILE_SIZE + PLAYER_MARGIN - 2
+            body.pos.x = right_tile * pz.TILE_SIZE - body.half.x - 2
 
         # Left collision
-        if self.tile_solid(tile_y, left_tile):
+        if self.tile_solid(body.tile.y, left_tile):
             body.vel.x = 0
-            body.pos.x = (left_tile + 1) * pz.TILE_SIZE - PLAYER_MARGIN + 2
+            body.pos.x = left_tile * pz.TILE_SIZE + body.half.x + 2
 
-        tile_xr = int((body.pos.x + PLAYER_RIGHT) / pz.TILE_SIZE)
-        tile_xl = int((body.pos.x + PLAYER_LEFT) / pz.TILE_SIZE)
+        tile_xr = int((body.pos.x + body.half.x) / pz.TILE_SIZE)
+        tile_xl = int((body.pos.x - body.half.x) / pz.TILE_SIZE)
 
         # Collision on bottom
         body.standing = False
@@ -164,7 +164,7 @@ class Game():
             if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
                 return pz.PLAYER_DEAD
 
-            body.pos.y = (feet_tile - 1) * pz.TILE_SIZE
+            body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
 
         # Collision on top
         if self.tile_solid(head_tile, tile_xl) or self.tile_solid(head_tile, tile_xr):
@@ -175,13 +175,13 @@ class Game():
                 if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
                     return pz.PLAYER_DEAD
 
-            body.pos.y = (head_tile + 1) * pz.TILE_SIZE
+            body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y
 
         # Apply body.velocity
         body.pos = round_vec(body.pos + body.vel)
 
         # Update tile position
-        body.tile = floor_vec((body.pos + pz.HALF_TILE) / pz.TILE_SIZE)
+        body.tile = floor_vec(body.pos / pz.TILE_SIZE)
 
     def tile_solid(self, row, col):
         if col >= self.width or col < 0:

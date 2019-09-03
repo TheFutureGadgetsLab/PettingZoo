@@ -46,6 +46,7 @@ class Renderer():
         self.debug_hud_text.scale(Vector2(0.5, 0.5))
 
         self.player = sf.Sprite(self.textures[pz.LAMP])
+        self.player.origin = self.textures[pz.LAMP].size / 2.0
 
     def handle_input(self):
         for event in self.window.events:
