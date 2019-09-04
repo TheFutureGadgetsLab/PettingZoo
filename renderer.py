@@ -40,10 +40,15 @@ class Renderer():
             self.textures[id] = sf.Texture.from_file(asset_files[id])
 
         # Text/Font
-        self.font = sf.Font.from_file("assets/Vera.ttf")
+        self.font = sf.Font.from_file("assets/SourceCodePro-Regular.otf")
+
         self.debug_hud_text = sf.Text(font=self.font)
         self.debug_hud_text.color = sf.Color.BLACK
         self.debug_hud_text.scale(Vector2(0.5, 0.5))
+
+        self.hud_text = sf.Text(font=self.font)
+        self.hud_text.color = sf.Color.BLACK
+        self.hud_text.scale(Vector2(0.5, 0.5))
 
         self.player = sf.Sprite(self.textures[pz.LAMP])
         self.player.origin = self.textures[pz.LAMP].size / 2.0
@@ -59,14 +64,15 @@ class Renderer():
 
             if event in [sf.Event.KEY_PRESSED, sf.Event.KEY_RELEASED]:
                 pressed = event == sf.Event.KEY_PRESSED
+                key = event['code']
 
-                if event['code'] in [sf.Keyboard.ESCAPE]:
+                if key in [sf.Keyboard.ESCAPE]:
                     self.running = False
-                if event['code'] in [sf.Keyboard.RIGHT, sf.Keyboard.D]:
+                if key in [sf.Keyboard.RIGHT, sf.Keyboard.D]:
                     self.keys[pz.RIGHT] = pressed
-                if event['code'] in [sf.Keyboard.LEFT, sf.Keyboard.A]:
+                if key in [sf.Keyboard.LEFT, sf.Keyboard.A]:
                     self.keys[pz.LEFT] = pressed
-                if event['code'] in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
+                if key in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
                     self.keys[pz.JUMP] = pressed
 
     def draw_grid(self):
@@ -79,12 +85,25 @@ class Renderer():
 
     def draw_overlay(self):
         self.debug_hud_text.string = (
-            f"Lamp pos: {self.game.player.pos}\n"
-            f"Lamp vel: {self.game.player.vel.x:.4f}, {self.game.player.vel.y:.4f}\n"
+            f"Player pos: {self.game.player.pos}\n"
+            f"Player vel: ({self.game.player.vel.x:.1f}, {self.game.player.vel.y:.1f})\n"
             f"Tile: {self.game.player.tile}"
         )
+        self.hud_text.string = (
+            f"Time:    {self.game.player.time:06.2f}\n"
+            f"Fitness: {int(self.game.player.fitness)}\n"
+            f"{('←' if self.keys[pz.LEFT] else ''):<5}"
+            f"{('↑' if self.keys[pz.JUMP] else ''):<5}"
+            f"{('→' if self.keys[pz.RIGHT] else ''):<5}"
+        )
+        textRect = self.hud_text.local_bounds
+        self.hud_text.origin = (textRect.left + textRect.width / 2.0, 0)
+
         self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
+        self.hud_text.position = Vector2(self.window.view.center.x, self.debug_hud_text.position.y)
+
         self.window.draw(self.debug_hud_text)
+        self.window.draw(self.hud_text)
 
     def adjust_camera(self):
         center = self.player.position
@@ -103,7 +122,6 @@ class Renderer():
 
         self.window.view.center = center
     
-    @pysnooper.snoop()
     def run(self):
         """ Begins rendering game and advances gameloop
         """
@@ -135,7 +153,6 @@ class TileMap(sf.Drawable):
         super().__init__()
         
         self.m_tileset  = sf.Texture.from_file("assets/spritesheet.png")
-        self.m_tileset.smooth = True
         self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
 
         for i in range(game.width):

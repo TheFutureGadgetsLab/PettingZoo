@@ -26,9 +26,7 @@ RIGHT = 1
 JUMP  = 2
 
 # Fitness measurement parameters
-FIT_TIME_WEIGHT    =  2.0
-FIT_BUTTONS_WEIGHT = 0.2
-COIN_VALUE         = 1000
+FIT_TIME_WEIGHT = 100
 
 # Misc
 TILE_SIZE    = 32

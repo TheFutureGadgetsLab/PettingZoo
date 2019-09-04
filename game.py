@@ -11,13 +11,6 @@ V_JUMP  = 8.5
 INTERTA = 1.4
 GRAVITY = 0.3
 
-PLAYER_WIDTH  = 24
-PLAYER_HEIGHT = 26
-PLAYER_HALFW  = (PLAYER_WIDTH / 2)
-PLAYER_MARGIN = ((pz.TILE_SIZE - PLAYER_WIDTH) / 2)
-PLAYER_RIGHT  = (pz.TILE_SIZE - PLAYER_MARGIN)
-PLAYER_LEFT   = (PLAYER_MARGIN / 2)
-
 class Body():
     def __init__(self):
         self.vel  = Vector2(0, 0)
@@ -49,6 +42,7 @@ class Player(Body):
     
     def reset(self):
         super().reset()
+
         self.time    = 0
         self.fitness = 0
         self.presses = 0
@@ -105,16 +99,10 @@ class Game():
             return pz.PLAYER_DEAD
 
         # Fitness
-        fitness  = 100 + self.player.fitness + self.player.pos.x
-        fitness -= self.player.time * pz.FIT_TIME_WEIGHT
-        fitness -= self.player.presses * pz.FIT_BUTTONS_WEIGHT
-
-        # Only increase fitness, never decrease
-        if self.player.fitness < fitness:
-            self.player.fitness = fitness
+        self.player.fitness += 1
 
         # Player completed level
-        if self.player.pos.x + PLAYER_RIGHT >= (self.width - 4) * pz.TILE_SIZE:
+        if self.player.pos.x >= (self.width - 4) * pz.TILE_SIZE:
             # Reward for finishing
             self.player.fitness += 2000
             self.player.death_type = pz.PLAYER_COMPLETE
@@ -138,9 +126,9 @@ class Game():
                 body.vel.y = -V_JUMP
 
         # Player physics
-
         body.vel.y += GRAVITY
         body.vel.x /= INTERTA
+
         body.tile = floor_vec((body.pos + body.vel) / pz.TILE_SIZE)
         feet_tile  = int((body.pos.y + body.vel.y + body.half.y + 1) // pz.TILE_SIZE)
         head_tile  = int((body.pos.y + body.vel.y - body.half.y - 1) // pz.TILE_SIZE)
