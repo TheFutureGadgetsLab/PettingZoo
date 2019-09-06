@@ -3,7 +3,7 @@ import defs as pz
 import pysnooper
 from math import floor
 from sfml.sf import Vector2
-from levelgen import LevelGenerator
+from levelgen import LevelGenerator, NextGenLevelGenerator
 
 # Player physics parameters
 V_X     = 6
@@ -48,15 +48,17 @@ class Player(Body):
         self.presses = 0
 
 class Game():
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.tiles = np.zeros(shape=(height, width), dtype=int)
+    def __init__(self, num_chunks):
+        self.num_chunks = num_chunks
+        self.tiles = None
 
         self.map_seed = 0
 
         self.player = Player()
-        self.level_generator = LevelGenerator()
+        self.level_generator = NextGenLevelGenerator()
+
+        self.width = None
+        self.height = None
 
     def setup_game(self, seed=0):
         """ Sets up / restarts game, if ``seed`` is none the current level seed is used,
@@ -64,7 +66,8 @@ class Game():
         """
         self.player.reset()
 
-        self.tiles, spawn_point = self.level_generator.generate_level(self.width, self.height, seed)
+        self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, seed)
+        self.height, self.width = self.tiles.shape
 
         self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE

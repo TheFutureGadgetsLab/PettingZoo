@@ -55,3 +55,69 @@ class LevelGenerator():
 
 	def set_flat_chunk(self, start):
 		pass
+
+class NextGenLevelGenerator():
+	def __init__(self):
+		self.tiles  = None
+		self.chunks = None
+		self.seed   = None
+		self.width  = None
+		self.height = None
+
+	def generate_level(self, width, seed):
+		""" Width describes the number of chunks in a level, not the number of tiles.\
+			Each chunk is 32x32 so multiply width by that to get umber of tiles.\n
+			Returns (tiles, spawn_height)
+		"""
+		self.seed = seed
+		np.random.seed(self.seed)
+
+		self.chunks = [0] * width
+
+		# Place start and stop chunks
+		self.chunks[0]  = StartChunk()
+		self.chunks[-1] = StartChunk()
+
+		# Initializes all other chunks
+		for i in range(1, width - 1):
+			self.chunks[i] = Chunk()
+
+		# Generate floors
+		for chunk in self.chunks:
+			chunk.generate_floor()
+	
+		# Generate gaps
+		for chunk in self.chunks:
+			chunk.generate_gaps()
+
+		self.tiles = np.hstack([chunk.tiles for chunk in self.chunks])
+
+		return np.flipud(self.tiles), self.tiles.shape[0] - self.chunks[0].ground_height - 1
+
+class Chunk():
+	def __init__(self):
+		self.tiles = np.zeros(shape=(CHUNK_SIZE, CHUNK_SIZE), dtype=np.int32)
+		self.platforms = None
+		self.ground_height = None
+		self.gaps = None
+	
+	def generate_floor(self):
+		self.ground_height = np.random.randint(2, 7)
+
+		self.tiles[:self.ground_height - 1, :] = pz.DIRT
+		self.tiles[self.ground_height - 1, :] = pz.GRASS
+	
+	def generate_gaps(self, prob=0.15):
+		x = 0
+		while x < CHUNK_SIZE:
+			# Insert gap
+			if np.random.ranf() < prob:
+				gap_width = np.random.randint(2, 7)
+				self.tiles[:self.ground_height, x:x+gap_width] = pz.EMPTY
+				x += gap_width
+
+			x += 1				
+
+class StartChunk(Chunk):
+	def __init__(self):
+		super().__init__()

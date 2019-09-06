@@ -5,34 +5,38 @@ import pysnooper
 import numpy as np
 from math import ceil
 from game import Game
+import time
 
 asset_files = {
     pz.COIN: "assets/coin.png",
-    pz.LAMP: "assets/cat.png",
-    pz.GRID: "assets/grid.png",
+    pz.CAT: "assets/cat.png",
+    pz.LAMP: "assets/lamp.png",
 }
 
 class Renderer():
-    def __init__(self, width=800, height=600, game_width=53, game_height=20):
+    def __init__(self, width=800, height=600, num_chunks=5):
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
         self.window.framerate_limit = 60
 
         self.player  = None
-        self.tilemap = None
+        self.level_tilemap = None
+        self.grid_tilemap = None
         self.textures = {}
         self.font = None
         self.debug_hud_text  = None
         self.keys = [0, 0, 0]
         self.zoom = 1
 
+        self.show_debug = False
+        self.show_grid  = False
+
         self.load_assets()
 
         self.running = True
 
-        self.game = Game(game_width, game_height)
-        self.game.setup_game()
+        self.game = Game(num_chunks)
 
     def load_assets(self):
         # Textures not in spritesheet
@@ -50,8 +54,8 @@ class Renderer():
         self.hud_text.color = sf.Color.BLACK
         self.hud_text.scale(Vector2(0.5, 0.5))
 
-        self.player = sf.Sprite(self.textures[pz.LAMP])
-        self.player.origin = self.textures[pz.LAMP].size / 2.0
+        self.player = sf.Sprite(self.textures[pz.CAT])
+        self.player.origin = self.textures[pz.CAT].size / 2.0
 
     def handle_input(self):
         for event in self.window.events:
@@ -74,21 +78,22 @@ class Renderer():
                     self.keys[pz.LEFT] = pressed
                 if key in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
                     self.keys[pz.JUMP] = pressed
-
-    def draw_grid(self):
-        sprite = sf.Sprite(self.textures[pz.GRID])
-        for row in range(self.game.tiles.shape[0]):
-            for col in range(self.game.tiles.shape[1]):
-                sprite.position = Vector2(col, row) * pz.TILE_SIZE
-
-                self.window.draw(sprite)
+                if key in [sf.Keyboard.I]:
+                    self.show_debug ^= pressed
+                if key in [sf.Keyboard.G]:
+                    self.show_grid ^= pressed
 
     def draw_overlay(self):
-        self.debug_hud_text.string = (
-            f"Player pos: {self.game.player.pos}\n"
-            f"Player vel: ({self.game.player.vel.x:.1f}, {self.game.player.vel.y:.1f})\n"
-            f"Tile: {self.game.player.tile}"
-        )
+        if self.show_debug:
+            self.debug_hud_text.string = (
+                f"Player pos: {self.game.player.pos}\n"
+                f"Player vel: ({self.game.player.vel.x:.1f}, {self.game.player.vel.y:.1f})\n"
+                f"Tile: {self.game.player.tile}\n"
+                f"Seed: {self.game.level_generator.seed}"
+            )
+            self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
+            self.window.draw(self.debug_hud_text)
+        
         self.hud_text.string = (
             f"Time:    {self.game.player.time:06.2f}\n"
             f"Fitness: {int(self.game.player.fitness)}\n"
@@ -96,13 +101,9 @@ class Renderer():
             f"{('↑' if self.keys[pz.JUMP] else ''):<5}"
             f"{('→' if self.keys[pz.RIGHT] else ''):<5}"
         )
+        self.hud_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
         textRect = self.hud_text.local_bounds
         self.hud_text.origin = (textRect.left + textRect.width / 2.0, 0)
-
-        self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
-        self.hud_text.position = Vector2(self.window.view.center.x, self.debug_hud_text.position.y)
-
-        self.window.draw(self.debug_hud_text)
         self.window.draw(self.hud_text)
 
     def adjust_camera(self):
@@ -122,10 +123,18 @@ class Renderer():
 
         self.window.view.center = center
     
+    def construct_tilemaps(self):
+        self.level_tilemap = TileMap(self.game.tiles)
+        grid_ids = np.ndarray(shape=self.game.tiles.shape, dtype=np.int32)
+        grid_ids[:, :] = pz.GRID
+        self.grid_tilemap = TileMap(grid_ids)
+    
     def run(self):
         """ Begins rendering game and advances gameloop
         """
-        self.tilemap = TileMap(self.game)
+        seed = int(time.time())
+        self.game.setup_game(seed=seed)
+        self.construct_tilemaps()
 
         while self.running:
             self.handle_input()
@@ -134,6 +143,7 @@ class Renderer():
 
             if ret in [pz.PLAYER_DEAD, pz.PLAYER_TIMEOUT, pz.PLAYER_COMPLETE]:
                 self.game.setup_game()
+                self.construct_tilemaps()
                 continue
 
             self.player.position = self.game.player.pos
@@ -141,31 +151,33 @@ class Renderer():
 
             self.window.clear(sf.Color(135, 206, 235))
             
-            self.window.draw(self.tilemap)
-            # self.draw_grid(game)
+            self.window.draw(self.level_tilemap)
+            
+            if self.show_grid:
+                self.window.draw(self.grid_tilemap)
+            
             self.window.draw(self.player)
             self.draw_overlay()
-
             self.window.display()
 
 class TileMap(sf.Drawable):
-    def __init__(self, game):
+    def __init__(self, tiles):
         super().__init__()
         
         self.m_tileset  = sf.Texture.from_file("assets/spritesheet.png")
-        self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, game.width * game.height * 4)
+        self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, tiles.size * 4)
 
-        for i in range(game.width):
-            for j in range(game.height):
+        for i in range(tiles.shape[1]):
+            for j in range(tiles.shape[0]):
                 # get the current tile number
-                id = game.tiles[j, i]
+                id = tiles[j, i]
 
                 # find its position in the tileset texture
-                tu = int(id % (self.m_tileset.width / (pz.TILE_SIZE + 2)))
-                tv = int(id / (self.m_tileset.width / (pz.TILE_SIZE + 2)))
+                tu = int(id % (self.m_tileset.width / pz.TILE_SIZE))
+                tv = int(id / (self.m_tileset.width / pz.TILE_SIZE))
 
                 # get a pointer to the current tile's quad
-                index = (i + j * game.width) * 4
+                index = (i + j * tiles.shape[1]) * 4
                 # define its 4 corners
                 self.m_vertices[index + 0].position = (i * pz.TILE_SIZE, j * pz.TILE_SIZE)
                 self.m_vertices[index + 1].position = ((i + 1) * pz.TILE_SIZE, j * pz.TILE_SIZE)
@@ -173,10 +185,10 @@ class TileMap(sf.Drawable):
                 self.m_vertices[index + 3].position = (i * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
 
                 # define its 4 texture coordinates
-                self.m_vertices[index + 0].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, tv * (pz.TILE_SIZE + 2) + 1);
-                self.m_vertices[index + 1].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, tv * (pz.TILE_SIZE + 2) + 1);
-                self.m_vertices[index + 2].tex_coords = ((tu + 1) * (pz.TILE_SIZE + 2) - 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
-                self.m_vertices[index + 3].tex_coords = (tu * (pz.TILE_SIZE + 2) + 1, (tv + 1) * (pz.TILE_SIZE + 2) - 1);
+                self.m_vertices[index + 0].tex_coords = (tu * pz.TILE_SIZE, tv * pz.TILE_SIZE);
+                self.m_vertices[index + 1].tex_coords = ((tu + 1) * pz.TILE_SIZE, tv * pz.TILE_SIZE);
+                self.m_vertices[index + 2].tex_coords = ((tu + 1) * pz.TILE_SIZE, (tv + 1) * pz.TILE_SIZE);
+                self.m_vertices[index + 3].tex_coords = (tu * pz.TILE_SIZE, (tv + 1) * pz.TILE_SIZE);
 
     def draw(self, target, states):
         states.texture = self.m_tileset
