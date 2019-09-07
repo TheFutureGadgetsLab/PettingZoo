@@ -76,7 +76,7 @@ class NextGenLevelGenerator():
 
 		# Place start and stop chunks
 		self.chunks[0]  = StartChunk()
-		self.chunks[-1] = StartChunk()
+		self.chunks[-1] = StopChunk()
 
 		# Initializes all other chunks
 		for i in range(1, width - 1):
@@ -97,8 +97,9 @@ class NextGenLevelGenerator():
 class Chunk():
 	def __init__(self):
 		self.tiles = np.zeros(shape=(CHUNK_SIZE, CHUNK_SIZE), dtype=np.int32)
-		self.platforms = None
+
 		self.ground_height = None
+		self.platforms = None
 		self.gaps = None
 	
 	def generate_floor(self):
@@ -107,17 +108,38 @@ class Chunk():
 		self.tiles[:self.ground_height - 1, :] = pz.DIRT
 		self.tiles[self.ground_height - 1, :] = pz.GRASS
 	
-	def generate_gaps(self, prob=0.15):
-		x = 0
-		while x < CHUNK_SIZE:
+	def generate_gaps(self, prob=0.15, start=0, stop=CHUNK_SIZE):
+		x = start
+		while x < stop:
+			gap_width = np.random.randint(2, 7)
+			if x + gap_width >= stop:
+				break
+
 			# Insert gap
 			if np.random.ranf() < prob:
-				gap_width = np.random.randint(2, 7)
 				self.tiles[:self.ground_height, x:x+gap_width] = pz.EMPTY
 				x += gap_width
 
-			x += 1				
+			x += 1		
 
 class StartChunk(Chunk):
+	start_plat_len = 5
 	def __init__(self):
 		super().__init__()
+	
+	def generate_gaps(self, start=start_plat_len, **kwargs):
+		super().generate_gaps(**kwargs, start=self.start_plat_len)
+
+class StopChunk(Chunk):
+	stop_plat_len = 5
+
+	def __init__(self):
+		super().__init__()
+	
+	def generate_floor(self):
+		super().generate_floor()
+		self.tiles[:self.ground_height - 1, -self.stop_plat_len:] = pz.FINISH_BOT
+		self.tiles[self.ground_height - 1, -self.stop_plat_len:] = pz.FINISH_TOP
+	
+	def generate_gaps(self, stop=stop_plat_len, **kwargs):
+		super().generate_gaps(**kwargs, stop=CHUNK_SIZE - self.stop_plat_len)

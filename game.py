@@ -101,15 +101,16 @@ class Game():
             self.player.death_type = pz.PLAYER_DEAD
             return pz.PLAYER_DEAD
 
-        # Fitness
-        self.player.fitness += 1
-
         # Player completed level
-        if self.player.pos.x >= (self.width - 4) * pz.TILE_SIZE:
+        if ret == pz.PLAYER_COMPLETE:
             # Reward for finishing
             self.player.fitness += 2000
             self.player.death_type = pz.PLAYER_COMPLETE
+
             return pz.PLAYER_COMPLETE
+
+        # Fitness
+        self.player.fitness += 1
 
     def physicsSim(self, body, jump):
         # Jumping
@@ -163,6 +164,9 @@ class Game():
 
             if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
                 return pz.PLAYER_DEAD
+            
+            if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
+                return pz.PLAYER_COMPLETE
 
             body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
 
