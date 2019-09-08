@@ -39,7 +39,7 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-    
+
     def reset(self):
         super().reset()
 
@@ -60,7 +60,7 @@ class Game():
         self.width = None
         self.height = None
 
-    def setup_game(self, seed=0):
+    def setup_game(self, seed):
         """ Sets up / restarts game, if ``seed`` is none the current level seed is used,
             otherwise a new map is generated
         """
@@ -164,7 +164,7 @@ class Game():
 
             if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
                 return pz.PLAYER_DEAD
-            
+
             if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
                 return pz.PLAYER_COMPLETE
 
@@ -203,4 +203,3 @@ def floor_vec(vec):
 
 def round_vec(vec):
     return Vector2(round(vec.x), round(vec.y))
-    

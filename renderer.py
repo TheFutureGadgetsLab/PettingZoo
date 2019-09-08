@@ -142,7 +142,8 @@ class Renderer():
             ret = self.game.update(self.keys)
 
             if ret in [pz.PLAYER_DEAD, pz.PLAYER_TIMEOUT, pz.PLAYER_COMPLETE]:
-                self.game.setup_game()
+                seed = int(time.time())
+                self.game.setup_game(seed)
                 self.construct_tilemaps()
                 continue
 
