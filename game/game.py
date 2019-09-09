@@ -1,9 +1,8 @@
 import numpy as np
-import defs as pz
-import pysnooper
+import game.defs as pz
 from math import floor
 from sfml.sf import Vector2
-from levelgen import LevelGenerator, NextGenLevelGenerator
+from game.levelgen import LevelGenerator, NextGenLevelGenerator
 
 # Player physics parameters
 V_X     = 6

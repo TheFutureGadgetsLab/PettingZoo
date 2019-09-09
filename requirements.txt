@@ -1,3 +1,5 @@
+cython
 numpy
+tqdm
 torch
 sfml

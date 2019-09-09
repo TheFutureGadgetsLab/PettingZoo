@@ -1,7 +1,7 @@
 import numpy as np
 from math import ceil
 from sfml.sf import Vector2
-import defs as pz
+import game.defs as pz
 
 CHUNK_SIZE      = 32
 START_PLAT_LEN  = 5

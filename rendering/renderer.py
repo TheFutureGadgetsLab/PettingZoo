@@ -1,7 +1,6 @@
 from sfml import sf
 from sfml.sf import Vector2
-import defs as pz
-import pysnooper
+import game.defs as pz
 import numpy as np
 from math import ceil
 from game import Game

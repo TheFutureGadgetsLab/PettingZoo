@@ -1,5 +1,5 @@
 from game import Game
-from renderer import Renderer
+from rendering import Renderer
 
 renderer = Renderer()
 renderer.run()
