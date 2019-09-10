@@ -2,7 +2,7 @@ import numpy as np
 import game.defs as pz
 from math import floor
 from sfml.sf import Vector2
-from game.levelgen import LevelGenerator, NextGenLevelGenerator
+from game.levelgen import LevelGenerator
 
 # Player physics parameters
 V_X     = 6
@@ -47,38 +47,42 @@ class Player(Body):
         self.presses = 0
 
 class Game():
-    def __init__(self, num_chunks):
+    def __init__(self, num_chunks, seed):
         self.num_chunks = num_chunks
         self.tiles = None
 
-        self.map_seed = 0
+        self.map_seed = seed
 
         self.player = Player()
-        self.level_generator = NextGenLevelGenerator()
+        self.level_generator = LevelGenerator()
 
         self.width = None
         self.height = None
 
-    def setup_game(self, seed):
-        """ Sets up / restarts game, if ``seed`` is none the current level seed is used,
-            otherwise a new map is generated
-        """
-        self.player.reset()
+        self.game_over      = False
+        self.game_over_type = None
 
-        self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, seed)
+        self.setup_game()
+
+    def setup_game(self):
+        self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, self.map_seed)
         self.height, self.width = self.tiles.shape
 
         self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE
 
     def update(self, keys):
+        if self.game_over:
+            print("STOP CALLING UPDATE! THE GAME IS OVER DUMMY")
+            return
+
         # Estimate of time
         self.player.time += 1.0 / pz.UPDATES_PS
 
         # Time limit
         if self.player.time > pz.MAX_TIME:
-            self.player.death_type = pz.PLAYER_TIMEOUT
-            return pz.PLAYER_TIMEOUT
+            self.game_over_type = pz.PLAYER_TIMEOUT
+            return 
 
         # Left and right button press
         if keys[pz.RIGHT]:
@@ -92,21 +96,24 @@ class Game():
         # Physics sim for player
         ret = self.physicsSim(self.player, keys[pz.JUMP])
         if ret == pz.PLAYER_DEAD:
-            self.player.death_type = pz.PLAYER_DEAD
-            return pz.PLAYER_DEAD
+            self.game_over_type = pz.PLAYER_DEAD
+            self.game_over = True
+            return
 
         # Lower bound
         if self.player.pos.y >= self.height * pz.TILE_SIZE:
-            self.player.death_type = pz.PLAYER_DEAD
-            return pz.PLAYER_DEAD
+            self.game_over_type = pz.PLAYER_DEAD
+            self.game_over = True
+            return
 
         # Player completed level
         if ret == pz.PLAYER_COMPLETE:
             # Reward for finishing
             self.player.fitness += 2000
-            self.player.death_type = pz.PLAYER_COMPLETE
+            self.game_over_type = pz.PLAYER_COMPLETE
+            self.game_over = True
 
-            return pz.PLAYER_COMPLETE
+            return
 
         # Fitness
         self.player.fitness += 1

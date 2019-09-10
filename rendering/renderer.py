@@ -3,7 +3,6 @@ from sfml.sf import Vector2
 import game.defs as pz
 import numpy as np
 from math import ceil
-from game import Game
 import time
 
 asset_files = {
@@ -13,7 +12,7 @@ asset_files = {
 }
 
 class Renderer():
-    def __init__(self, width=800, height=600, num_chunks=5):
+    def __init__(self, width=800, height=600):
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
@@ -35,8 +34,6 @@ class Renderer():
 
         self.running = True
 
-        self.game = Game(num_chunks)
-
     def load_assets(self):
         # Textures not in spritesheet
         for id, path in asset_files.items():
@@ -56,7 +53,12 @@ class Renderer():
         self.player = sf.Sprite(self.textures[pz.CAT])
         self.player.origin = self.textures[pz.CAT].size / 2.0
 
-    def handle_input(self):
+    def get_input(self):
+        """ Returns a list of directional keys pressed\n
+            Handles renderer specific events as well\n
+            (restart game, new game, resize, grid, debug overlay, etc)
+        """
+
         for event in self.window.events:
             if event == sf.Event.CLOSED:
                 self.running = False
@@ -69,33 +71,38 @@ class Renderer():
                 pressed = event == sf.Event.KEY_PRESSED
                 key = event['code']
 
+                # Renderer specific
                 if key in [sf.Keyboard.ESCAPE]:
                     self.running = False
+                if key in [sf.Keyboard.I]:
+                    self.show_debug ^= pressed
+                if key in [sf.Keyboard.G]:
+                    self.show_grid ^= pressed
+                
+                # Movement
                 if key in [sf.Keyboard.RIGHT, sf.Keyboard.D]:
                     self.keys[pz.RIGHT] = pressed
                 if key in [sf.Keyboard.LEFT, sf.Keyboard.A]:
                     self.keys[pz.LEFT] = pressed
                 if key in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
                     self.keys[pz.JUMP] = pressed
-                if key in [sf.Keyboard.I]:
-                    self.show_debug ^= pressed
-                if key in [sf.Keyboard.G]:
-                    self.show_grid ^= pressed
+        
+        return self.keys
 
-    def draw_overlay(self):
+    def draw_overlay(self, game):
         if self.show_debug:
             self.debug_hud_text.string = (
-                f"Player pos: {self.game.player.pos}\n"
-                f"Player vel: ({self.game.player.vel.x:.1f}, {self.game.player.vel.y:.1f})\n"
-                f"Tile: {self.game.player.tile}\n"
-                f"Seed: {self.game.level_generator.seed}"
+                f"Player pos: {game.player.pos}\n"
+                f"Player vel: ({game.player.vel.x:.1f}, {game.player.vel.y:.1f})\n"
+                f"Tile: {game.player.tile}\n"
+                f"Seed: {game.map_seed}"
             )
             self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
             self.window.draw(self.debug_hud_text)
         
         self.hud_text.string = (
-            f"Time:    {self.game.player.time:06.2f}\n"
-            f"Fitness: {int(self.game.player.fitness)}\n"
+            f"Time:    {game.player.time:06.2f}\n"
+            f"Fitness: {int(game.player.fitness)}\n"
             f"{('←' if self.keys[pz.LEFT] else ''):<5}"
             f"{('↑' if self.keys[pz.JUMP] else ''):<5}"
             f"{('→' if self.keys[pz.RIGHT] else ''):<5}"
@@ -105,60 +112,45 @@ class Renderer():
         self.hud_text.origin = (textRect.left + textRect.width / 2.0, 0)
         self.window.draw(self.hud_text)
 
-    def adjust_camera(self):
+    def adjust_camera(self, game):
         center = self.player.position
         lbound = center.x - self.window.view.size.x / 2
         rbound = center.x + self.window.view.size.x / 2
         bbound = center.y + self.window.view.size.y / 2
 
-        if bbound > self.game.height * pz.TILE_SIZE:
-            center.y = self.game.height * pz.TILE_SIZE - self.window.view.size.y / 2
+        if bbound > game.height * pz.TILE_SIZE:
+            center.y = game.height * pz.TILE_SIZE - self.window.view.size.y / 2
         
         if lbound < 0:
             center.x = self.window.view.size.x / 2
 
-        if rbound > self.game.width * pz.TILE_SIZE:
-            center.x = self.game.width * pz.TILE_SIZE - self.window.view.size.x / 2
+        if rbound > game.width * pz.TILE_SIZE:
+            center.x = game.width * pz.TILE_SIZE - self.window.view.size.x / 2
 
         self.window.view.center = center
     
-    def construct_tilemaps(self):
-        self.level_tilemap = TileMap(self.game.tiles)
-        grid_ids = np.ndarray(shape=self.game.tiles.shape, dtype=np.int32)
+    def new_game_setup(self, game):
+        """ Must call this when running a new game!
+        """
+        self.level_tilemap = TileMap(game.tiles)
+        grid_ids = np.ndarray(shape=game.tiles.shape, dtype=np.int32)
         grid_ids[:, :] = pz.GRID
         self.grid_tilemap = TileMap(grid_ids)
     
-    def run(self):
-        """ Begins rendering game and advances gameloop
-        """
-        seed = int(time.time())
-        self.game.setup_game(seed=seed)
-        self.construct_tilemaps()
+    def draw_state(self, game):
+        self.player.position = game.player.pos
+        self.adjust_camera(game)
 
-        while self.running:
-            self.handle_input()
-
-            ret = self.game.update(self.keys)
-
-            if ret in [pz.PLAYER_DEAD, pz.PLAYER_TIMEOUT, pz.PLAYER_COMPLETE]:
-                seed = int(time.time())
-                self.game.setup_game(seed)
-                self.construct_tilemaps()
-                continue
-
-            self.player.position = self.game.player.pos
-            self.adjust_camera()
-
-            self.window.clear(sf.Color(135, 206, 235))
-            
-            self.window.draw(self.level_tilemap)
-            
-            if self.show_grid:
-                self.window.draw(self.grid_tilemap)
-            
-            self.window.draw(self.player)
-            self.draw_overlay()
-            self.window.display()
+        self.window.clear(sf.Color(135, 206, 235))
+        
+        self.window.draw(self.level_tilemap)
+        
+        if self.show_grid:
+            self.window.draw(self.grid_tilemap)
+        
+        self.window.draw(self.player)
+        self.draw_overlay(game)
+        self.window.display()
 
 class TileMap(sf.Drawable):
     def __init__(self, tiles):
