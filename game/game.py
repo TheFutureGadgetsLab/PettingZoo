@@ -1,6 +1,6 @@
 import numpy as np
 import game.defs as pz
-from math import floor
+from math import floor, ceil
 from sfml.sf import Vector2
 from game.levelgen import LevelGenerator
 
@@ -82,6 +82,7 @@ class Game():
         # Time limit
         if self.player.time > pz.MAX_TIME:
             self.game_over_type = pz.PLAYER_TIMEOUT
+            self.game_over = True
             return 
 
         # Left and right button press
@@ -203,6 +204,34 @@ class Game():
             return True
 
         return False
+    
+    def get_player_view(self, in_w, in_h):
+        """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
+            Player is considered to be in the 'center'
+        """
+        if (in_w * in_h) % 2 == 0:
+            print("BOTH DIMENSIONS OF THE INPUT AROUND THE PLAYER MUST BE ODD!")
+            exit(-1)
+
+        out = np.empty((in_h, in_w), dtype=np.int32)
+
+        lbound = self.player.tile.x - in_w // 2
+        rbound = self.player.tile.x + in_w // 2
+        ubound = self.player.tile.y - in_h // 2
+        bbound = self.player.tile.y + in_h // 2
+
+        for y in range(ubound, bbound + 1):
+            for x in range(lbound, rbound + 1):
+                if y < 0:
+                    out[y - ubound, x - lbound] = pz.SPIKE_BOT
+                elif y >= self.tiles.shape[0]:
+                    out[y - ubound, x - lbound] = pz.SPIKE_TOP
+                elif x < 0 or x >= self.tiles.shape[1]:
+                    out[y - ubound, x - lbound] = pz.COBBLE
+                else:
+                    out[y - ubound, x - lbound] = self.tiles[y, x]
+
+        return out
 
 def floor_vec(vec):
     return Vector2(floor(vec.x), floor(vec.y))

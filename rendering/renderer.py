@@ -89,7 +89,7 @@ class Renderer():
         
         return self.keys
 
-    def draw_overlay(self, game):
+    def draw_overlay(self, game, keys):
         if self.show_debug:
             self.debug_hud_text.string = (
                 f"Player pos: {game.player.pos}\n"
@@ -103,9 +103,9 @@ class Renderer():
         self.hud_text.string = (
             f"Time:    {game.player.time:06.2f}\n"
             f"Fitness: {int(game.player.fitness)}\n"
-            f"{('←' if self.keys[pz.LEFT] else ''):<5}"
-            f"{('↑' if self.keys[pz.JUMP] else ''):<5}"
-            f"{('→' if self.keys[pz.RIGHT] else ''):<5}"
+            f"{('←' if keys[pz.LEFT] else ''):<5}"
+            f"{('↑' if keys[pz.JUMP] else ''):<5}"
+            f"{('→' if keys[pz.RIGHT] else ''):<5}"
         )
         self.hud_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
         textRect = self.hud_text.local_bounds
@@ -137,7 +137,7 @@ class Renderer():
         grid_ids[:, :] = pz.GRID
         self.grid_tilemap = TileMap(grid_ids)
     
-    def draw_state(self, game):
+    def draw_state(self, game, keys):
         self.player.position = game.player.pos
         self.adjust_camera(game)
 
@@ -149,7 +149,7 @@ class Renderer():
             self.window.draw(self.grid_tilemap)
         
         self.window.draw(self.player)
-        self.draw_overlay(game)
+        self.draw_overlay(game, keys)
         self.window.display()
 
 class TileMap(sf.Drawable):
