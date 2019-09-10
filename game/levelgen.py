@@ -3,30 +3,27 @@ from math import ceil
 from sfml.sf import Vector2
 import game.defs as pz
 
-CHUNK_SIZE      = 32
+CHUNK_SIZE = 32
 
 class LevelGenerator():
 	def __init__(self):
 		self.tiles  = None
 		self.chunks = None
-		self.width  = None
-		self.height = None
 
-	def generate_level(self, width, seed):
-		""" Width describes the number of chunks in a level, not the number of tiles.\
-			Each chunk is 32x32 so multiply width by that to get umber of tiles.\n
+	def generate_level(self, num_chunks, seed):
+		""" Each chunk is 32x32 so multiply width by that to get umber of tiles.\n
 			Returns (tiles, spawn_height)
 		"""
 		np.random.seed(seed)
 
-		self.chunks = [0] * width
+		self.chunks = [0] * num_chunks
 
 		# Place start and stop chunks
 		self.chunks[0]  = StartChunk()
 		self.chunks[-1] = StopChunk()
 
 		# Initializes all other chunks
-		for i in range(1, width - 1):
+		for i in range(1, num_chunks - 1):
 			self.chunks[i] = Chunk()
 
 		# Generate floors
