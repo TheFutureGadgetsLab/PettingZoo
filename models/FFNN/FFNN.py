@@ -1,9 +1,16 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class FFNN(nn.Module):
-    def __init__(self, in_w, in_h, n_layers, npl):
+    r""" A simple feed-forward neural network.
+
+    Args:
+        in_w: Width of the input space around the player
+        in_h: Width of the input space around the player
+        hlc: Number of hidden layers
+        npl: Number of nodes in each hidden layer
+    """
+    def __init__(self, in_w, in_h, hlc, npl):
         super().__init__()
 
         layers = []
@@ -13,7 +20,7 @@ class FFNN(nn.Module):
         layers.append(nn.Sigmoid())
 
         # Hidden Layers
-        for _ in range(n_layers):
+        for _ in range(hlc):
             layers.append(nn.Linear(npl, npl, bias=False))
             layers.append(nn.Sigmoid())
         
@@ -38,4 +45,5 @@ class FFNN(nn.Module):
     
     @classmethod
     def breed(cls, parentA, parentB):
+        for p
         pass        
