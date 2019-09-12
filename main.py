@@ -5,7 +5,7 @@ from time import time
 def main():
     seed = int(time())
     renderer = Renderer()
-    game = Game(num_chunks=100, seed=seed)
+    game = Game(num_chunks=50, seed=seed)
 
     renderer.new_game_setup(game)
 
@@ -16,7 +16,7 @@ def main():
 
         if game.game_over:
             seed = int(time())
-            game = Game(num_chunks=100, seed=seed)
+            game = Game(num_chunks=50, seed=seed)
             renderer.new_game_setup(game)
             continue
     

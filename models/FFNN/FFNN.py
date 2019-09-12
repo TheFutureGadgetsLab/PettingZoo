@@ -35,3 +35,7 @@ class FFNN(nn.Module):
         x = (x > 0).int()
 
         return x.cpu().numpy()
+    
+    @classmethod
+    def breed(cls, parentA, parentB):
+        pass        
