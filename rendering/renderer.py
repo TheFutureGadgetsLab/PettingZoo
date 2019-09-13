@@ -137,7 +137,8 @@ class Renderer():
         """
         self.level_tilemap = TileMap(game.tiles)
         self.tilegrid = sf.Sprite(self.textures[pz.SQUARE])
-        self.tilegrid.texture_rectangle = sf.Rect((0, 0), (32000, 32000))
+        self.tilegrid.texture_rectangle = sf.Rect((0, 0), 
+            (game.width * pz.TILE_SIZE, game.height * pz.TILE_SIZE))
         self.tilegrid.color = sf.Color(255, 255, 255, 50)
     
     def draw_state(self, game, keys):
