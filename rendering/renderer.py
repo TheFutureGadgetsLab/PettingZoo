@@ -9,6 +9,7 @@ asset_files = {
     pz.COIN: "assets/coin.png",
     pz.CAT: "assets/cat.png",
     pz.LAMP: "assets/lamp.png",
+    pz.SQUARE: "assets/grid.png",
 }
 
 class Renderer():
@@ -20,7 +21,7 @@ class Renderer():
 
         self.player  = None
         self.level_tilemap = None
-        self.grid_tilemap = None
+        self.tilegrid = None
         self.textures = {}
         self.font = None
         self.debug_hud_text  = None
@@ -49,6 +50,8 @@ class Renderer():
         self.hud_text = sf.Text(font=self.font)
         self.hud_text.color = sf.Color.BLACK
         self.hud_text.scale(Vector2(0.5, 0.5))
+
+        self.textures[pz.SQUARE].repeated = True
 
         self.player = sf.Sprite(self.textures[pz.CAT])
         self.player.origin = self.textures[pz.CAT].size / 2.0
@@ -133,9 +136,9 @@ class Renderer():
         """ Must call this when running a new game!
         """
         self.level_tilemap = TileMap(game.tiles)
-        grid_ids = np.ndarray(shape=game.tiles.shape, dtype=np.int32)
-        grid_ids[:, :] = pz.GRID
-        self.grid_tilemap = TileMap(grid_ids)
+        self.tilegrid = sf.Sprite(self.textures[pz.SQUARE])
+        self.tilegrid.texture_rectangle = sf.Rect((0, 0), (32000, 32000))
+        self.tilegrid.color = sf.Color(255, 255, 255, 50)
     
     def draw_state(self, game, keys):
         self.player.position = game.player.pos
@@ -146,7 +149,7 @@ class Renderer():
         self.window.draw(self.level_tilemap)
         
         if self.show_grid:
-            self.window.draw(self.grid_tilemap)
+            self.window.draw(self.tilegrid)
         
         self.window.draw(self.player)
         self.draw_overlay(game, keys)
