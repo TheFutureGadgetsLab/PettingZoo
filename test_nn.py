@@ -1,5 +1,5 @@
-from game import Game
-from rendering import Renderer
+from game.core.logic import Game
+from game.rendering.renderer import Renderer
 from time import time
 from models.FFNN import FFNN
 

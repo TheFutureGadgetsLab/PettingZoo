@@ -1,8 +1,8 @@
 import numpy as np
-import game.defs as pz
+import game.core.defs as pz
 from math import floor, ceil
 from sfml.sf import Vector2
-from game.levelgen import LevelGenerator
+from game.core.levelgen import LevelGenerator
 
 # Player physics parameters
 V_X     = 6
