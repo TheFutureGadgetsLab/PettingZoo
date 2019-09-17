@@ -1,3 +1,5 @@
+cython
 numpy
-pytorch
-pysfml
+tqdm
+torch
+sfml

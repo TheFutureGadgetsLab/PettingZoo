@@ -1,9 +1,8 @@
 import numpy as np
-import defs as pz
-import pysnooper
-from math import floor
+import game.core.defs as pz
+from math import floor, ceil
 from sfml.sf import Vector2
-from levelgen import LevelGenerator
+from game.core.levelgen import LevelGenerator
 
 # Player physics parameters
 V_X     = 6
@@ -39,7 +38,7 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-    
+
     def reset(self):
         super().reset()
 
@@ -48,35 +47,43 @@ class Player(Body):
         self.presses = 0
 
 class Game():
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.tiles = np.zeros(shape=(height, width), dtype=int)
+    def __init__(self, num_chunks, seed):
+        self.num_chunks = num_chunks
+        self.tiles = None
 
-        self.map_seed = 0
+        self.map_seed = seed
 
         self.player = Player()
         self.level_generator = LevelGenerator()
 
-    def setup_game(self, seed=0):
-        """ Sets up / restarts game, if ``seed`` is none the current level seed is used,
-            otherwise a new map is generated
-        """
-        self.player.reset()
+        self.width = None
+        self.height = None
 
-        self.tiles, spawn_point = self.level_generator.generate_level(self.width, self.height, seed)
+        self.game_over      = False
+        self.game_over_type = None
+
+        self.setup_game()
+
+    def setup_game(self):
+        self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, self.map_seed)
+        self.height, self.width = self.tiles.shape
 
         self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE
 
     def update(self, keys):
+        if self.game_over:
+            print("STOP CALLING UPDATE! THE GAME IS OVER DUMMY")
+            return
+
         # Estimate of time
         self.player.time += 1.0 / pz.UPDATES_PS
 
         # Time limit
         if self.player.time > pz.MAX_TIME:
-            self.player.death_type = pz.PLAYER_TIMEOUT
-            return pz.PLAYER_TIMEOUT
+            self.game_over_type = pz.PLAYER_TIMEOUT
+            self.game_over = True
+            return 
 
         # Left and right button press
         if keys[pz.RIGHT]:
@@ -90,23 +97,27 @@ class Game():
         # Physics sim for player
         ret = self.physicsSim(self.player, keys[pz.JUMP])
         if ret == pz.PLAYER_DEAD:
-            self.player.death_type = pz.PLAYER_DEAD
-            return pz.PLAYER_DEAD
+            self.game_over_type = pz.PLAYER_DEAD
+            self.game_over = True
+            return
 
         # Lower bound
         if self.player.pos.y >= self.height * pz.TILE_SIZE:
-            self.player.death_type = pz.PLAYER_DEAD
-            return pz.PLAYER_DEAD
+            self.game_over_type = pz.PLAYER_DEAD
+            self.game_over = True
+            return
+
+        # Player completed level
+        if ret == pz.PLAYER_COMPLETE:
+            # Reward for finishing
+            self.player.fitness += 2000
+            self.game_over_type = pz.PLAYER_COMPLETE
+            self.game_over = True
+
+            return
 
         # Fitness
         self.player.fitness += 1
-
-        # Player completed level
-        if self.player.pos.x >= (self.width - 4) * pz.TILE_SIZE:
-            # Reward for finishing
-            self.player.fitness += 2000
-            self.player.death_type = pz.PLAYER_COMPLETE
-            return pz.PLAYER_COMPLETE
 
     def physicsSim(self, body, jump):
         # Jumping
@@ -161,6 +172,9 @@ class Game():
             if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
                 return pz.PLAYER_DEAD
 
+            if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
+                return pz.PLAYER_COMPLETE
+
             body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
 
         # Collision on top
@@ -190,10 +204,37 @@ class Game():
             return True
 
         return False
+    
+    def get_player_view(self, in_w, in_h):
+        """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
+            Player is considered to be in the 'center'
+        """
+        if (in_w * in_h) % 2 == 0:
+            print("BOTH DIMENSIONS OF THE INPUT AROUND THE PLAYER MUST BE ODD!")
+            exit(-1)
+
+        out = np.empty((in_h, in_w), dtype=np.int32)
+
+        lbound = self.player.tile.x - in_w // 2
+        rbound = self.player.tile.x + in_w // 2
+        ubound = self.player.tile.y - in_h // 2
+        bbound = self.player.tile.y + in_h // 2
+
+        for y in range(ubound, bbound + 1):
+            for x in range(lbound, rbound + 1):
+                if y < 0:
+                    out[y - ubound, x - lbound] = pz.SPIKE_BOT
+                elif y >= self.tiles.shape[0]:
+                    out[y - ubound, x - lbound] = pz.SPIKE_TOP
+                elif x < 0 or x >= self.tiles.shape[1]:
+                    out[y - ubound, x - lbound] = pz.COBBLE
+                else:
+                    out[y - ubound, x - lbound] = self.tiles[y, x]
+
+        return out
 
 def floor_vec(vec):
     return Vector2(floor(vec.x), floor(vec.y))
 
 def round_vec(vec):
     return Vector2(round(vec.x), round(vec.y))
-    

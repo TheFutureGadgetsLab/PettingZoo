@@ -1,22 +1,29 @@
 from game.core.logic import Game
 from game.rendering.renderer import Renderer
 from time import time
+from models.FFNN import FFNN
 
 def main():
     seed = int(time())
     renderer = Renderer()
-    game = Game(num_chunks=50, seed=seed)
+    game = Game(num_chunks=5, seed=seed)
 
     renderer.new_game_setup(game)
 
+    model = FFNN(11, 11, 3, 144)
+
     while renderer.running:
         keys = renderer.get_input()
+
+        player_view = game.get_player_view(11, 11)
+        keys = model(player_view)
+
 
         game.update(keys)
 
         if game.game_over:
             seed = int(time())
-            game = Game(num_chunks=50, seed=seed)
+            game = Game(num_chunks=5, seed=seed)
             renderer.new_game_setup(game)
             continue
     
