@@ -1,5 +1,5 @@
-from game.core.logic import Game
-from game.rendering.renderer import Renderer
+from game import Game
+from game import Renderer
 from time import time
 
 def main():

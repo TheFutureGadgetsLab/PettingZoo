@@ -1,5 +1,5 @@
-from game.core.logic import Game
-from game.rendering.renderer import Renderer
+from game import Game
+from game import Renderer
 from time import time
 from models.FFNN import FFNN
 
@@ -16,8 +16,7 @@ def main():
         keys = renderer.get_input()
 
         player_view = game.get_player_view(11, 11)
-        keys = model(player_view)
-
+        keys = model.evaluate(player_view)
 
         game.update(keys)
 
