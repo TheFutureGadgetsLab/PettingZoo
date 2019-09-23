@@ -117,7 +117,7 @@ class Game():
             return
 
         # Fitness
-        self.player.fitness += 1
+        self.player.fitness += self.player.vel.x
 
     def physicsSim(self, body, jump):
         # Jumping

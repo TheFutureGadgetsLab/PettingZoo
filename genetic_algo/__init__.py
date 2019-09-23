@@ -1,0 +1,2 @@
+from genetic_algo.genetic_algo import GeneticAlgorithm
+import genetic_algo.training

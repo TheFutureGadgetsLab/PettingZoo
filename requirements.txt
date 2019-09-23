@@ -1,5 +1,6 @@
 cython
-numpy
+numpy>=1.17.0
 tqdm
 torch
 sfml
+ray

@@ -13,6 +13,9 @@ asset_files = {
 }
 
 class Renderer():
+    RESTART  = 1 # Restart game
+    NEW_GAME = 2 # Generate new game (new seed)
+
     def __init__(self, width=800, height=600):
         self.window_size = sf.Vector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
@@ -30,10 +33,13 @@ class Renderer():
 
         self.show_debug = False
         self.show_grid  = False
+        self.show_help  = False
 
         self.load_assets()
 
         self.running = True
+
+        self.game_seed = None
 
     def load_assets(self):
         # Textures not in spritesheet
@@ -47,9 +53,13 @@ class Renderer():
         self.debug_hud_text.color = sf.Color.BLACK
         self.debug_hud_text.scale(Vector2(0.5, 0.5))
 
-        self.hud_text = sf.Text(font=self.font)
-        self.hud_text.color = sf.Color.BLACK
-        self.hud_text.scale(Vector2(0.5, 0.5))
+        self.hud_stat_text = sf.Text(font=self.font)
+        self.hud_stat_text.color = sf.Color.BLACK
+        self.hud_stat_text.scale(Vector2(0.5, 0.5))
+
+        self.hud_help_text = sf.Text(font=self.font)
+        self.hud_help_text.color = sf.Color.BLACK
+        self.hud_help_text.scale(Vector2(0.5, 0.5))
 
         self.textures[pz.SQUARE].repeated = True
 
@@ -61,6 +71,7 @@ class Renderer():
             Handles renderer specific events as well\n
             (restart game, new game, resize, grid, debug overlay, etc)
         """
+        game_req = None # Ask to generate / restart game
 
         for event in self.window.events:
             if event == sf.Event.CLOSED:
@@ -89,31 +100,55 @@ class Renderer():
                     self.keys[pz.LEFT] = pressed
                 if key in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
                     self.keys[pz.JUMP] = pressed
+
+                # Handle restarting / Generating a new game
+                if event['code'] in [sf.Keyboard.R, sf.Keyboard.N]:
+                    game_req = Renderer.RESTART if event['code'] == sf.Keyboard.R else Renderer.NEW_GAME
+
+                if event['code'] == sf.Keyboard.H:
+                    self.show_help ^= True
         
-        return self.keys
+        return self.keys, game_req
 
     def draw_overlay(self, game, keys):
+        textRect = self.hud_stat_text.local_bounds
+        self.hud_stat_text.origin = (textRect.left + textRect.width / 2.0, 0)
+        textRect = self.hud_help_text.local_bounds
+        self.hud_help_text.origin = (textRect.left + textRect.width, 0)
+
         if self.show_debug:
             self.debug_hud_text.string = (
                 f"Player pos: {game.player.pos}\n"
                 f"Player vel: ({game.player.vel.x:.1f}, {game.player.vel.y:.1f})\n"
                 f"Tile: {game.player.tile}\n"
-                f"Seed: {game.map_seed}"
+                f"Seed: {game.map_seed}\n"
+                f"Num chunks: {game.num_chunks}"
             )
             self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
             self.window.draw(self.debug_hud_text)
+
+        if self.show_help:
+            self.hud_help_text.string = (
+                f"Arrow keys, WASD, space\n"
+                f"all do what you expect.\n"
+                f"  R: Restart level\n"
+                f"  N: Generate new level\n"
+                f"  I: Debug info\n"
+                f"  G: Display grid\n"
+            )
+            self.hud_help_text.position = (self.window.view.center.x + self.window.view.size.x / 2 - 10, self.window.view.center.y - self.window.view.size.y / 2)
+            self.window.draw(self.hud_help_text)
         
-        self.hud_text.string = (
+        self.hud_stat_text.string = (
             f"Time:    {game.player.time:06.2f}\n"
             f"Fitness: {int(game.player.fitness)}\n"
             f"{('←' if keys[pz.LEFT] else ''):<5}"
             f"{('↑' if keys[pz.JUMP] else ''):<5}"
             f"{('→' if keys[pz.RIGHT] else ''):<5}"
         )
-        self.hud_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
-        textRect = self.hud_text.local_bounds
-        self.hud_text.origin = (textRect.left + textRect.width / 2.0, 0)
-        self.window.draw(self.hud_text)
+        self.hud_stat_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
+        self.window.draw(self.hud_stat_text)
+
 
     def adjust_camera(self, game):
         center = self.player.position
