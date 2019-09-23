@@ -33,3 +33,14 @@ def evaluate_generation(agents, game_seed):
         death_types.append(death_type)
 
     return fitnesses, death_types
+
+def breed_generation(agents, breeding_pairs):
+    agent_class = type(agents[0])
+    new_gen = []
+
+    for pair in breeding_pairs:
+        childA, childB = agent_class.breed(agents[pair[0]], agents[pair[1]], np.random.randint(1000))
+        new_gen.append(childA)
+        new_gen.append(childB)
+    
+    return new_gen

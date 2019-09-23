@@ -6,11 +6,12 @@ class GeneticAlgorithm():
         self.rng = np.random.Generator(np.random.SFC64(seed))
 
     def select_survivors(self, fitnesses):
-        """ Expects a list of tupless of (agent_id, fitness).\n
-            Returns a list id's corresp. to top 50% fitnesses
+        """ Expects a list of fitnesses.\n
+            Returns a list indices into the fitness list of the top 50% fitnesses
         """
-        high_to_low = sorted(fitnesses, key=lambda x: x[1], reverse=True)
-        top_50 = [high_to_low[i][0] for i in range(len(high_to_low) // 2)]
+        n_agents = len(fitnesses)
+        sorted_ids = np.argsort(fitnesses)[::-1] # Reverse sorted list to descend
+        top_50 = sorted_ids[:n_agents // 2]
 
         return top_50
 

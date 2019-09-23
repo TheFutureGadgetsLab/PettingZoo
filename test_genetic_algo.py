@@ -14,5 +14,10 @@ def main():
         fitnesses, death_types = training.evaluate_generation(agents, game_seed)
         training.get_gen_stats(fitnesses, death_types)
 
+        survivors = gen_algo.select_survivors(fitnesses)
+        breeding_pairs = gen_algo.select_breeding_pairs(survivors)
+
+        agents = training.breed_generation(agents, breeding_pairs)
+
 if __name__ == "__main__":
     main()
