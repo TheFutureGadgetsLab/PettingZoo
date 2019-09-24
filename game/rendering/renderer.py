@@ -6,10 +6,10 @@ from math import ceil
 import time
 
 asset_files = {
-    pz.COIN: "assets/coin.png",
-    pz.CAT: "assets/cat.png",
-    pz.LAMP: "assets/lamp.png",
-    pz.SQUARE: "assets/grid.png",
+    pz.COIN: "game/assets/coin.png",
+    pz.CAT: "game/assets/cat.png",
+    pz.LAMP: "game/assets/lamp.png",
+    pz.SQUARE: "game/assets/grid.png",
 }
 
 class Renderer():
@@ -47,7 +47,7 @@ class Renderer():
             self.textures[id] = sf.Texture.from_file(asset_files[id])
 
         # Text/Font
-        self.font = sf.Font.from_file("assets/SourceCodePro-Regular.otf")
+        self.font = sf.Font.from_file("game/assets/SourceCodePro-Regular.otf")
 
         self.debug_hud_text = sf.Text(font=self.font)
         self.debug_hud_text.color = sf.Color.BLACK
@@ -195,7 +195,7 @@ class TileMap(sf.Drawable):
     def __init__(self, tiles):
         super().__init__()
         
-        self.m_tileset  = sf.Texture.from_file("assets/spritesheet.png")
+        self.m_tileset  = sf.Texture.from_file("game/assets/spritesheet.png")
         self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, tiles.size * 4)
 
         for i in range(tiles.shape[1]):

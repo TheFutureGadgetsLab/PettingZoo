@@ -2,15 +2,14 @@ from game import Game
 from game import Renderer
 from time import time
 from models.FFNN import FFNN
+from joblib import load
 
 def main():
-    seed = int(time())
+    model, seed = load("/home/supa/lin_storage/pettingzoo/runs/test/9_4200.00.joblib")
+
     renderer = Renderer()
-    game = Game(num_chunks=5, seed=seed)
-
+    game = Game(num_chunks=10, seed=seed)
     renderer.new_game_setup(game)
-
-    model = FFNN(11, 11, 3, 144)
 
     while renderer.running:
         keys = renderer.get_input()
@@ -21,8 +20,8 @@ def main():
         game.update(keys)
 
         if game.game_over:
-            seed = int(time())
-            game = Game(num_chunks=5, seed=seed)
+            print(f"{game.player.fitness}")
+            game = Game(num_chunks=10, seed=seed)
             renderer.new_game_setup(game)
             continue
     

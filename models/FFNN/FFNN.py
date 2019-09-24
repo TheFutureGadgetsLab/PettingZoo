@@ -4,16 +4,17 @@ from copy import deepcopy
 import numpy as np
 
 class FFNN(nn.Module):
-    r""" A simple feed-forward neural network.
+    """ A simple feed-forward neural network.
 
-    Args:
-        in_w: Width of the input space around the player
-        in_h: Width of the input space around the player
-        hlc: Number of hidden layers
-        npl: Number of nodes in each hidden layer
-        bias: Whether or not the linear transformation should have a bias
+    Args:\n
+    ---
+    `in_w`: Width of the input space around the player\n
+    `in_h`: Width of the input space around the player\n
+    `hlc`: Number of hidden layers\n
+    `npl`: Number of nodes in each hidden layer\n
+    `bias`: Whether or not the linear transformations should have a bias
     """
-    def __init__(self, in_w, in_h, hlc, npl, bias=False):
+    def __init__(self, in_w, in_h, hlc, npl, generator=None, bias=False):
         super().__init__()
 
         self.num_layers = hlc + 2
@@ -38,10 +39,12 @@ class FFNN(nn.Module):
 
         self.layers = nn.Sequential(*layers)
 
-        # Disable backprop
-        for layer in self.layers:
-            for param in layer.parameters():
-                param.requires_grad = False
+        # Disable backprop and custom weight init
+        for param in self.parameters():
+            param.requires_grad = False
+
+            if generator != None:
+                init_tensor_unif(param, generator)
 
     def forward(self, x):
         x = torch.Tensor(x.ravel()) # Flatten x with ravel for slight perf boost
@@ -49,19 +52,17 @@ class FFNN(nn.Module):
 
         x = (x > 0).int()
 
-        return x.cpu().numpy()
-    
+        return x.numpy()
+
     def evaluate(self, x):
         keys = self.forward(x)
 
         return keys
 
     @classmethod
-    def breed(cls, parentA, parentB, seed):
+    def breed(cls, parentA, parentB, generator):
         childA = deepcopy(parentA)
         childB = deepcopy(parentB)
-
-        rng = np.random.Generator(np.random.SFC64(seed))
 
         pA_params = list(parentA.parameters())
         pB_params = list(parentB.parameters())
@@ -69,10 +70,14 @@ class FFNN(nn.Module):
         cB_params = list(childB.parameters())
 
         for i in range(len(pA_params)):
-            split_loc = rng.integers(low=1, high=pA_params[i].shape[0])
+            split_loc = generator.integers(low=1, high=pA_params[i].shape[0])
             combine_tensors(pA_params[i], pB_params[i], cA_params[i], cB_params[i], split_loc)
 
         return childA, childB
+
+def init_tensor_unif(tensor, generator, low=-1.0, high=1.0):
+    new = generator.uniform(low=low, high=high, size=tensor.shape)
+    tensor[:, :] = torch.from_numpy(new)
 
 def combine_tensors(parentA, parentB, childA, childB, split_loc):
     childA[:split_loc] = parentA[:split_loc]
@@ -81,5 +86,3 @@ def combine_tensors(parentA, parentB, childA, childB, split_loc):
     # Note that parentA and parentB are swapped on childB
     childB[:split_loc] = parentB[:split_loc]
     childB[split_loc:] = parentA[split_loc:]
-
-    pass
