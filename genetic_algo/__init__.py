@@ -1,3 +1,3 @@
 from genetic_algo.genetic_algo import GeneticAlgorithm
-from genetic_algo.training import Trainer
 from genetic_algo.run_logger import RunLogger
+import genetic_algo.training_utils

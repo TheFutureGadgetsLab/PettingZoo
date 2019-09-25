@@ -1,14 +1,12 @@
 from game import Game
 from game import Renderer
-from time import time
-from models.FFNN import FFNN
 from joblib import load
 
 def main():
-    model, seed = load("/home/supa/lin_storage/pettingzoo/runs/test/9_4200.00.joblib")
+    model, game_args = load("/home/supa/lin_storage/pettingzoo/runs/test/9_1041.43.joblib")
 
     renderer = Renderer()
-    game = Game(num_chunks=10, seed=seed)
+    game = Game(**game_args)
     renderer.new_game_setup(game)
 
     while renderer.running:
@@ -21,7 +19,7 @@ def main():
 
         if game.game_over:
             print(f"{game.player.fitness}")
-            game = Game(num_chunks=10, seed=seed)
+            game = Game(**game_args)
             renderer.new_game_setup(game)
             continue
     
