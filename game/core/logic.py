@@ -50,6 +50,7 @@ class Game():
     def __init__(self, num_chunks, seed):
         self.num_chunks = num_chunks
         self.tiles = None
+        self.solid_tiles = None
 
         self.map_seed = seed
 
@@ -67,6 +68,8 @@ class Game():
     def setup_game(self):
         self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, self.map_seed)
         self.height, self.width = self.tiles.shape
+
+        self.solid_tiles = np.isin(self.tiles, pz.SOLID_TILES)
 
         self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE
@@ -200,10 +203,7 @@ class Game():
         if row >= self.height:
             return False
 
-        if self.tiles[int(row), int(col)] in pz.SOLID_TILES:
-            return True
-
-        return False
+        return self.solid_tiles[int(row), int(col)]
     
     def get_player_view(self, in_w, in_h):
         """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
