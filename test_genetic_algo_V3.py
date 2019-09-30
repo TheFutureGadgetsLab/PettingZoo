@@ -5,11 +5,11 @@ from models.FFNN import FFNN
 from tqdm import trange
 
 def main():
-    initialize_ray()
+    initialize_ray(local=False)
 
     run_seed        = 1
-    num_agents      = 1000
-    num_generations = 5
+    num_agents      = 100
+    num_generations = 100
 
     agent_class   = FFNN
     agent_breeder = FFNN.breed

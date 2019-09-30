@@ -12,5 +12,5 @@ def get_agents(agent_class, agent_args, num_agents, rng):
     
     return agents
 
-def initialize_ray():
-    ray.init(logging_level=logging.ERROR, local_mode=False)
+def initialize_ray(local=False):
+    ray.init(logging_level=logging.ERROR, local_mode=local)

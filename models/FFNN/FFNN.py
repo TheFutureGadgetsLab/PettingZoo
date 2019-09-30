@@ -46,18 +46,13 @@ class FFNN(nn.Module):
             if generator != None:
                 init_tensor_unif(param, generator)
 
-    def forward(self, x):
+    def evaluate(self, x):
         x = torch.Tensor(x.ravel()) # Flatten x with ravel for slight perf boost
         x = self.layers.forward(x)
 
         x = (x > 0).int()
 
         return x.numpy()
-
-    def evaluate(self, x):
-        keys = self.forward(x)
-
-        return keys
 
     @classmethod
     def breed(cls, parentA, parentB, generator):

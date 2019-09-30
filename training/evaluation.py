@@ -16,7 +16,7 @@ def evaluate_generation(agents, game_args):
     return fitnesses, death_types
 
 @ray.remote
-def evaluate_agent(agent, game_args):
+def evaluate_agent(agent, game_args, use_cache=True):
     game = Game(**game_args)
 
     cache = NumpyLRUCache(144)
@@ -24,11 +24,14 @@ def evaluate_agent(agent, game_args):
     while game.game_over == False:
         player_view = game.get_player_view(11, 11)
 
-        keys = cache.get(player_view)
+        if use_cache:
+            keys = cache.get(player_view)
 
-        if keys is None:
+            if keys is None:
+                keys = agent.evaluate(player_view)
+                cache.insert(player_view, keys)
+        else:
             keys = agent.evaluate(player_view)
-            cache.insert(player_view, keys)
 
         game.update(keys)
 
