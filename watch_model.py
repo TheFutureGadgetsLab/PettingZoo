@@ -3,16 +3,16 @@ from game import Renderer
 from joblib import load
 
 def main():
-    model, game_args = load("/home/supa/lin_storage/pettingzoo/runs/test/9_1041.43.joblib")
+    model, game_args = load("runs/test/90_5031.43.joblib")
 
     renderer = Renderer()
-    game = Game(**game_args)
+    game = Game(**game_args, view_size=(model.view_r, model.view_c))
     renderer.new_game_setup(game)
 
     while renderer.running:
         keys = renderer.get_input()
 
-        player_view = game.get_player_view(11, 11)
+        player_view = game.get_player_view()
         keys = model.evaluate(player_view)
 
         game.update(keys)

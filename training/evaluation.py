@@ -18,12 +18,12 @@ def evaluate_generation(agents, game_args):
 
 @ray.remote
 def evaluate_agent(agent, game_args, cache_size=144):
-    game = Game(**game_args)
+    game = Game(**game_args, view_size=(agent.view_r, agent.view_c))
 
     cache = Cache(cache_size)
 
     while game.game_over == False:
-        player_view = game.get_player_view(11, 11)
+        player_view = game.get_player_view()
 
         view_hashable = player_view.tobytes()
 

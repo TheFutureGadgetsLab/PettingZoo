@@ -11,7 +11,7 @@ INTERTA = 1.4
 GRAVITY = 0.3
 
 class Game():
-    def __init__(self, num_chunks, seed):
+    def __init__(self, num_chunks, seed, view_size=None):
         # Level data
         self.tiles = None
         self.num_chunks = num_chunks
@@ -28,6 +28,8 @@ class Game():
         self.game_over      = False
         self.game_over_type = None
 
+        self.view_r, self.view_c = view_size if view_size != None else (None, None)
+
         self.setup_game()
 
     def setup_game(self):
@@ -35,6 +37,9 @@ class Game():
         self.height, self.width = self.tiles.shape
 
         self.solid_tiles = np.isin(self.tiles, pz.SOLID_TILES)
+
+        if self.view_r != None and self.view_c != None:
+            self.padded_tiles = pad_tiles(self.tiles, self.view_r, self.view_c)
 
         self.player.tile = Vector2(1, spawn_point)
         self.player.pos  = self.player.tile * pz.TILE_SIZE
@@ -172,33 +177,19 @@ class Game():
 
         return self.solid_tiles[int(row), int(col)]
     
-    def get_player_view(self, in_w, in_h):
+    def get_player_view(self):
         """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
             Player is considered to be in the 'center'
         """
-        if (in_w * in_h) % 2 == 0:
-            print("BOTH DIMENSIONS OF THE INPUT AROUND THE PLAYER MUST BE ODD!")
-            exit(-1)
 
-        out = np.empty((in_h, in_w), dtype=np.uint8)
+        lbound = self.player.tile.x
+        rbound = self.player.tile.x + 2 * (self.view_r // 2) + 1
+        ubound = self.player.tile.y
+        bbound = self.player.tile.y + 2 * (self.view_c // 2) + 1
 
-        lbound = self.player.tile.x - in_w // 2
-        rbound = self.player.tile.x + in_w // 2
-        ubound = self.player.tile.y - in_h // 2
-        bbound = self.player.tile.y + in_h // 2
+        view = self.padded_tiles[ubound:bbound, lbound:rbound]
 
-        for y in range(ubound, bbound + 1):
-            for x in range(lbound, rbound + 1):
-                if y < 0:
-                    out[y - ubound, x - lbound] = pz.SPIKE_BOT
-                elif y >= self.tiles.shape[0]:
-                    out[y - ubound, x - lbound] = pz.SPIKE_TOP
-                elif x < 0 or x >= self.tiles.shape[1]:
-                    out[y - ubound, x - lbound] = pz.COBBLE
-                else:
-                    out[y - ubound, x - lbound] = self.tiles[y, x]
-
-        return out
+        return view.copy()
 
 class Body():
     def __init__(self):
@@ -225,3 +216,21 @@ def floor_vec(vec):
 
 def round_vec(vec):
     return Vector2(round(vec.x), round(vec.y))
+
+def pad_tiles(arr, view_r, view_c):
+    tile_r, tile_c = arr.shape
+
+    p_c = view_c // 2
+    p_r = view_r // 2
+
+    pad_shape = (tile_r + 2 * p_r, tile_c + 2 * p_c)
+    pad = np.zeros(shape=pad_shape, dtype=np.uint8)
+
+    pad[:, :p_c]  = pz.COBBLE # Left
+    pad[:, -p_c:] = pz.COBBLE # Right
+    pad[:p_c, :]  = pz.SPIKE_BOT # Top
+    pad[-p_c:, :] = pz.SPIKE_TOP # Bottom
+
+    pad[p_r: p_r + tile_r, p_c: p_c + tile_c] = arr
+    
+    return pad

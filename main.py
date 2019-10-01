@@ -5,7 +5,7 @@ from time import time
 def main():
     num_chunks = 10
     seed = int(time())
-    seed = 1
+    seed = 10
 
     renderer = Renderer()
     game = Game(num_chunks=num_chunks, seed=seed)

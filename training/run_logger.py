@@ -61,7 +61,7 @@ class RunLogger():
         self.run_log_file.flush()
 
         best = np.argmax(fitnesses)
-        # dump([agents[best], game_args], os.path.join(self.output_dir, f"{self.n_gens}_{fitnesses[best]:0.2f}.joblib"))
+        dump([agents[best], game_args], os.path.join(self.output_dir, f"{self.n_gens}_{fitnesses[best]:0.2f}.joblib"))
 
         self.n_gens += 1
 
