@@ -54,21 +54,20 @@ class FFNN(nn.Module):
 
         return x.numpy()
 
-    @classmethod
-    def breed(cls, parentA, parentB, generator):
-        childA = deepcopy(parentA)
-        childB = deepcopy(parentB)
+def breed(parentA, parentB, generator):
+    childA = deepcopy(parentA)
+    childB = deepcopy(parentB)
 
-        pA_params = list(parentA.parameters())
-        pB_params = list(parentB.parameters())
-        cA_params = list(childA.parameters())
-        cB_params = list(childB.parameters())
+    pA_params = list(parentA.parameters())
+    pB_params = list(parentB.parameters())
+    cA_params = list(childA.parameters())
+    cB_params = list(childB.parameters())
 
-        for i in range(len(pA_params)):
-            split_loc = generator.integers(low=1, high=pA_params[i].shape[0])
-            combine_tensors(pA_params[i], pB_params[i], cA_params[i], cB_params[i], split_loc)
+    for pA_param, pB_param, cA_param, cB_param in zip(pA_params, pB_params, cA_params, cB_params):
+        split_loc = generator.integers(low=1, high=pA_param.shape[0])
+        combine_tensors(pA_param, pB_param, cA_param, cB_param, split_loc)
 
-        return childA, childB
+    return childA, childB
 
 def init_tensor_unif(tensor, generator, low=-1.0, high=1.0):
     new = generator.uniform(low=low, high=high, size=tensor.shape)

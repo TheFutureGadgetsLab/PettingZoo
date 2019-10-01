@@ -1,7 +1,7 @@
 from genetic_algo import GeneticAlgorithm
 from training import evaluate_generation, breed_generation, RunLogger
 from training import construct_generator, get_seeds, get_agents, initialize_ray
-from models.FFNN import FFNN
+from models.FFNN import FFNN, breed
 from tqdm import trange
 
 def main():
@@ -12,13 +12,13 @@ def main():
     num_generations = 100
 
     agent_class   = FFNN
-    agent_breeder = FFNN.breed
+    agent_breeder = breed
 
     agent_args = {
         'view_r': 11,
         'view_c': 11,
-        'hlc': 4,
-        'npl': 128,
+        'hlc': 2,
+        'npl': 144,
     }
 
     game_args = {

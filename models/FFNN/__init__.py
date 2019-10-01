@@ -1,1 +1,1 @@
-from .FFNN import FFNN
+from .FFNN import FFNN, breed
