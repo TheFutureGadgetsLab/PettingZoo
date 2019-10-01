@@ -15,8 +15,8 @@ def main():
     agent_breeder = FFNN.breed
 
     agent_args = {
-        'in_w': 11,
-        'in_h': 11,
+        'view_r': 11,
+        'view_c': 11,
         'hlc': 4,
         'npl': 128,
     }

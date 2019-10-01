@@ -1,6 +1,6 @@
 import numpy as np
 import game.core.defs as pz
-from math import floor, ceil
+from math import floor
 from sfml.sf import Vector2
 from game.core.levelgen import LevelGenerator
 
@@ -10,56 +10,21 @@ V_JUMP  = 8.5
 INTERTA = 1.4
 GRAVITY = 0.3
 
-class Body():
-    def __init__(self):
-        self.vel  = Vector2(0, 0)
-        self.tile = Vector2(0, 0)
-        self.pos  = Vector2(0, 0)
-        self.size = Vector2(22, 23)
-        self.half = self.size / 2
-
-        self.can_jump = True
-        self.is_jump  = False
-        self.standing = True
-
-    def reset(self):
-        self.vel  = Vector2(0, 0)
-        self.tile = Vector2(0, 0)
-        self.pos  = Vector2(0, 0)
-
-        self.can_jump = True
-        self.is_jump  = False
-        self.standing = True
-
-class Player(Body):
-    def __init__(self):
-        super().__init__()
-
-        self.time    = 0
-        self.fitness = 0
-        self.presses = 0
-
-    def reset(self):
-        super().reset()
-
-        self.time    = 0
-        self.fitness = 0
-        self.presses = 0
-
 class Game():
     def __init__(self, num_chunks, seed):
-        self.num_chunks = num_chunks
+        # Level data
         self.tiles = None
-        self.solid_tiles = None
-
+        self.num_chunks = num_chunks
         self.map_seed = seed
-
-        self.player = Player()
+        self.width  = None
+        self.height = None
         self.level_generator = LevelGenerator()
 
-        self.width = None
-        self.height = None
+        self.padded_tiles = None
+        self.solid_tiles = None
 
+        # Player data
+        self.player = Player()
         self.game_over      = False
         self.game_over_type = None
 
@@ -102,12 +67,14 @@ class Game():
         if ret == pz.PLAYER_DEAD:
             self.game_over_type = pz.PLAYER_DEAD
             self.game_over = True
+
             return
 
         # Lower bound
         if self.player.pos.y >= self.height * pz.TILE_SIZE:
             self.game_over_type = pz.PLAYER_DEAD
             self.game_over = True
+
             return
 
         # Player completed level
@@ -213,7 +180,7 @@ class Game():
             print("BOTH DIMENSIONS OF THE INPUT AROUND THE PLAYER MUST BE ODD!")
             exit(-1)
 
-        out = np.empty((in_h, in_w), dtype=np.int32)
+        out = np.empty((in_h, in_w), dtype=np.uint8)
 
         lbound = self.player.tile.x - in_w // 2
         rbound = self.player.tile.x + in_w // 2
@@ -232,6 +199,26 @@ class Game():
                     out[y - ubound, x - lbound] = self.tiles[y, x]
 
         return out
+
+class Body():
+    def __init__(self):
+        self.vel  = Vector2(0, 0)
+        self.tile = Vector2(0, 0)
+        self.pos  = Vector2(0, 0)
+        self.size = Vector2(22, 23)
+        self.half = self.size / 2
+
+        self.can_jump = True
+        self.is_jump  = False
+        self.standing = True
+
+class Player(Body):
+    def __init__(self):
+        super().__init__()
+
+        self.time    = 0
+        self.fitness = 0
+        self.presses = 0
 
 def floor_vec(vec):
     return Vector2(floor(vec.x), floor(vec.y))

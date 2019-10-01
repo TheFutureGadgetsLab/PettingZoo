@@ -1,7 +1,6 @@
 from game import Game
 from game import Renderer
 from time import time
-import torch
 
 def main():
     num_chunks = 10

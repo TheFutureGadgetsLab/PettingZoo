@@ -8,24 +8,24 @@ class FFNN(nn.Module):
 
     Args:\n
     ---
-    `in_w`: Width of the input space around the player\n
-    `in_h`: Width of the input space around the player\n
+    `view_r`: Width of the input space around the player\n
+    `view_c`: Width of the input space around the player\n
     `hlc`: Number of hidden layers\n
     `npl`: Number of nodes in each hidden layer\n
     `bias`: Whether or not the linear transformations should have a bias
     """
-    def __init__(self, in_w, in_h, hlc, npl, generator=None, bias=False):
+    def __init__(self, view_r, view_c, hlc, npl, generator=None, bias=False):
         super().__init__()
 
         self.num_layers = hlc + 2
         self.npl = npl
-        self.in_w = in_w
-        self.in_h = in_h
+        self.view_r = view_r
+        self.view_c = view_c
 
         layers = []
 
         # Input Layer
-        layers.append(nn.Linear(self.in_w * self.in_h, self.npl, bias=bias))
+        layers.append(nn.Linear(self.view_c * self.view_r, self.npl, bias=bias))
         layers.append(nn.Sigmoid())
 
         # Hidden Layers
@@ -75,9 +75,8 @@ def init_tensor_unif(tensor, generator, low=-1.0, high=1.0):
     tensor[:, :] = torch.from_numpy(new)
 
 def combine_tensors(parentA, parentB, childA, childB, split_loc):
-    childA[:split_loc] = parentA[:split_loc]
-    childA[split_loc:] = parentB[split_loc:]
+    # Only copying parentB into childA because childA is a deepcopy of parentA
+    # Same with childB (but reversed)
 
-    # Note that parentA and parentB are swapped on childB
-    childB[:split_loc] = parentB[:split_loc]
+    childA[split_loc:] = parentB[split_loc:]
     childB[split_loc:] = parentA[split_loc:]

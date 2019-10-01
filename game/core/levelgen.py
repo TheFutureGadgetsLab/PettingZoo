@@ -9,7 +9,6 @@ class LevelGenerator():
 	def __init__(self):
 		self.tiles  = None
 		self.chunks = None
-		# TODO: NEED TO SPECIFY IN REQUIREMENTS.txt THAT NUMPY MUST BE NEW ENOUGH TO HAVE A GENERATOR
 		self.rng    = None
 
 	def generate_level(self, num_chunks, seed):
@@ -46,7 +45,7 @@ class LevelGenerator():
 
 class Chunk():
 	def __init__(self, rng):
-		self.tiles = np.zeros(shape=(CHUNK_SIZE, CHUNK_SIZE), dtype=np.int32)
+		self.tiles = np.zeros(shape=(CHUNK_SIZE, CHUNK_SIZE), dtype=np.uint8)
 		self.rng   = rng
 
 		self.ground_height = None
