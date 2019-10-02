@@ -1,5 +1,6 @@
 import numpy as np
 from game import Game
+from game.core.defs import PLAYER_TIMEOUT
 import ray
 from cachetools import Cache
 
@@ -22,6 +23,10 @@ def evaluate_agent(agent, game_args, cache_size=144):
 
     cache = Cache(cache_size)
 
+    time_not_moved = 0
+    last_tile_pos = game.player.tile
+    timeout_time = 60 * 6
+
     while game.game_over == False:
         player_view = game.get_player_view()
 
@@ -36,5 +41,14 @@ def evaluate_agent(agent, game_args, cache_size=144):
                 cache[view_hashable] = keys
 
         game.update(keys)
+
+        if game.player.tile != last_tile_pos:
+            last_tile_pos = game.player.tile
+            time_not_moved = 0
+        else:
+            time_not_moved +=1
+            if time_not_moved > timeout_time:
+                game.game_over = True
+                game.game_over_type = PLAYER_TIMEOUT
 
     return (game.player.fitness, game.game_over_type)
