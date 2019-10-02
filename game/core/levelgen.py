@@ -54,7 +54,7 @@ class Chunk():
 		self.obstacles = []
 
 	def generate_floor(self):
-		self.ground_height = self.rng.integers(low=2, high=7)
+		self.ground_height = self.rng.integers(low=2, high=7, dtype=np.int32)
 
 		self.tiles[:self.ground_height - 1, :] = pz.DIRT
 		self.tiles[self.ground_height - 1, :] = pz.GRASS
@@ -62,11 +62,11 @@ class Chunk():
 	def generate_gaps(self, prob=0.15, start=0, stop=CHUNK_SIZE):
 		x = start
 		while x < stop:
-			if self.rng.random() >= prob:
+			if self.rng.random(dtype=np.float32) >= prob:
 				x += 1
 				continue
 
-			gap_width = self.rng.integers(low=2, high=7)
+			gap_width = self.rng.integers(low=2, high=7, dtype=np.int32)
 			if x + gap_width >= stop:
 				break
 
@@ -78,12 +78,12 @@ class Chunk():
 	def generate_platforms(self, prob=0.15, start=0):
 		x = start
 		while x < CHUNK_SIZE:
-			if self.rng.random() >= prob:
+			if self.rng.random(dtype=np.float32) >= prob:
 				x += 1
 				continue
 
-			plat_width  = self.rng.integers(low=5, high=10)
-			plat_height = self.rng.integers(low=1, high=6) # Height from ground height
+			plat_width  = self.rng.integers(low=5, high=10, dtype=np.int32)
+			plat_height = self.rng.integers(low=1, high=6, dtype=np.int32) # Height from ground height
 			plat_type   = self.rng.choice([pz.SPIKE_BOT, pz.SPIKE_TOP, pz.COBBLE])
 
 			if x + plat_width >= CHUNK_SIZE:
