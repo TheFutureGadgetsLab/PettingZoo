@@ -3,10 +3,11 @@ from game import Game
 from game.core.defs import PLAYER_TIMEOUT
 from cachetools import Cache
 from joblib import Parallel, delayed
+from sfml.sf import Vector2
 
 def evaluate_generation(agents, game_args):
     results = []
-    
+
     results = Parallel(n_jobs=-1)(
         delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
     )
@@ -20,10 +21,7 @@ def evaluate_agent(agent, game_args, cache_size=144):
     game = Game(**game_args, view_size=(agent.view_r, agent.view_c))
 
     cache = Cache(cache_size)
-
-    time_not_moved = 0
-    last_tile_pos = game.player.tile
-    timeout_time = 60 * 6
+    idle_detector = IdleDetector(False)
 
     while game.game_over == False:
         player_view = game.get_player_view()
@@ -40,13 +38,33 @@ def evaluate_agent(agent, game_args, cache_size=144):
 
         game.update(keys)
 
-        if game.player.tile != last_tile_pos:
-            last_tile_pos = game.player.tile
-            time_not_moved = 0
-        else:
-            time_not_moved +=1
-            if time_not_moved > timeout_time:
-                game.game_over = True
-                game.game_over_type = PLAYER_TIMEOUT
+        if idle_detector.update(game.player.tile) is True:
+            game.game_over = True
+            game.game_over_type = PLAYER_TIMEOUT
 
     return (game.player.fitness, game.game_over_type)
+
+
+class IdleDetector():
+    def __init__(self, let_idle):
+        self.let_idle = let_idle
+
+        self.time_not_moved = 0
+        self.last_tile_pos = Vector2(-1, -1)
+
+        self.timeout_time = 60 * 6
+
+    def update(self, tile_pos):
+        if self.let_idle == True:
+            return False
+
+        if tile_pos != self.last_tile_pos:
+            self.last_tile_pos = tile_pos
+            self.time_not_moved = 0
+
+            return False
+
+        self.time_not_moved += 1
+
+        if self.time_not_moved > self.timeout_time:
+            return True
