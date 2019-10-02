@@ -6,7 +6,7 @@ from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 10
+    num_agents      = 400
     num_generations = 10
 
     log_dir = "./runs/test/"

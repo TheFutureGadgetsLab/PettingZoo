@@ -1,23 +1,21 @@
 import numpy as np
 from game import Game
 from game.core.defs import PLAYER_TIMEOUT
-import ray
 from cachetools import Cache
+from joblib import Parallel, delayed
 
 def evaluate_generation(agents, game_args):
-    result_futures = []
-    for agent in agents:
-        future = evaluate_agent.remote(agent, game_args)
-        result_futures.append(future)
-
-    results = ray.get(result_futures)
+    results = []
+    
+    results = Parallel(n_jobs=-1)(
+        delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
+    )
 
     fitnesses   = [result[0] for result in results]
     death_types = [result[1] for result in results]
 
     return fitnesses, death_types
 
-@ray.remote
 def evaluate_agent(agent, game_args, cache_size=144):
     game = Game(**game_args, view_size=(agent.view_r, agent.view_c))
 
