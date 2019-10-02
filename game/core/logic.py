@@ -1,7 +1,6 @@
 import numpy as np
 import game.core.defs as pz
 from math import floor
-from sfml.sf import Vector2
 from game.core.levelgen import LevelGenerator
 
 # Player physics parameters
@@ -41,7 +40,7 @@ class Game():
         if self.view_r != None and self.view_c != None:
             self.padded_tiles = pad_tiles(self.tiles, self.view_r, self.view_c)
 
-        self.player.tile = Vector2(1, spawn_point)
+        self.player.tile = np.array([1, spawn_point])
         self.player.pos  = self.player.tile * pz.TILE_SIZE
 
     def update(self, keys):
@@ -60,12 +59,12 @@ class Game():
 
         # Left and right button press
         if keys[pz.RIGHT]:
-            self.player.vel.x = V_X
+            self.player.vel[0] = V_X
         if keys[pz.LEFT]:
-            self.player.vel.x = -V_X
+            self.player.vel[0] = -V_X
 
         # Button presses
-        self.player.presses += sum(keys)
+        #self.player.presses += sum(keys)
 
         # Physics sim for player
         ret = self.physicsSim(self.player, keys[pz.JUMP])
@@ -76,7 +75,7 @@ class Game():
             return
 
         # Lower bound
-        if self.player.pos.y >= self.height * pz.TILE_SIZE:
+        if self.player.pos[1] >= self.height * pz.TILE_SIZE:
             self.game_over_type = pz.PLAYER_DEAD
             self.game_over = True
 
@@ -92,7 +91,7 @@ class Game():
             return
 
         # Fitness
-        self.player.fitness += self.player.vel.x
+        self.player.fitness += self.player.vel[0]
 
     def physicsSim(self, body, jump):
         # Jumping
@@ -100,47 +99,47 @@ class Game():
             body.can_jump = False
             body.is_jump  = True
             if not body.standing:
-                body.vel.y = -V_JUMP
+                body.vel[1] = -V_JUMP
 
         if not jump and body.is_jump:
             body.is_jump = False
 
         if body.is_jump:
-            body.vel.y -= 1.5
-            if body.vel.y <= -V_JUMP:
+            body.vel[1] -= 1.5
+            if body.vel[1] <= -V_JUMP:
                 body.is_jump = False
-                body.vel.y = -V_JUMP
+                body.vel[1] = -V_JUMP
 
         # Player physics
-        body.vel.y += GRAVITY
-        body.vel.x /= INTERTA
+        body.vel[1] = body.vel[1] + GRAVITY
+        body.vel[0] = body.vel[0] / INTERTA
 
-        body.tile = floor_vec((body.pos + body.vel) / pz.TILE_SIZE)
-        feet_tile  = int((body.pos.y + body.vel.y + body.half.y + 1) // pz.TILE_SIZE)
-        head_tile  = int((body.pos.y + body.vel.y - body.half.y - 1) // pz.TILE_SIZE)
-        right_tile = int((body.pos.x + body.vel.x + body.half.x + 1) // pz.TILE_SIZE)
-        left_tile  = int((body.pos.x + body.vel.x - body.half.x - 1) // pz.TILE_SIZE)
+        body.tile = np.floor((body.pos + body.vel) / pz.TILE_SIZE)
+        feet_tile  = int((body.pos[1] + body.vel[1] + body.half[1] + 1) // pz.TILE_SIZE)
+        head_tile  = int((body.pos[1] + body.vel[1] - body.half[1] - 1) // pz.TILE_SIZE)
+        right_tile = int((body.pos[0] + body.vel[0] + body.half[0] + 1) // pz.TILE_SIZE)
+        left_tile  = int((body.pos[0] + body.vel[0] - body.half[0] - 1) // pz.TILE_SIZE)
 
-        tile_yu = int((body.pos.y - body.half.y) / pz.TILE_SIZE)
-        tile_yd = int((body.pos.y + body.half.y) / pz.TILE_SIZE)
+        tile_yu = int((body.pos[1] - body.half[1]) / pz.TILE_SIZE)
+        tile_yd = int((body.pos[1] + body.half[1]) / pz.TILE_SIZE)
 
         # Right collision
         if self.tile_solid(tile_yd, right_tile) or self.tile_solid(tile_yu, right_tile):
-            body.vel.x = 0
-            body.pos.x = right_tile * pz.TILE_SIZE - body.half.x - 1
+            body.vel[0] = 0
+            body.pos[0] = right_tile * pz.TILE_SIZE - body.half[0] - 1
 
         # Left collision
         if self.tile_solid(tile_yd, left_tile) or self.tile_solid(tile_yu, left_tile):
-            body.vel.x = 0
-            body.pos.x = (left_tile + 1) * pz.TILE_SIZE + body.half.x
+            body.vel[0] = 0
+            body.pos[0] = (left_tile + 1) * pz.TILE_SIZE + body.half[0]
 
-        tile_xr = int((body.pos.x + body.half.x) / pz.TILE_SIZE)
-        tile_xl = int((body.pos.x - body.half.x) / pz.TILE_SIZE)
+        tile_xr = int((body.pos[0] + body.half[0]) / pz.TILE_SIZE)
+        tile_xl = int((body.pos[0] - body.half[0]) / pz.TILE_SIZE)
 
         # Collision on bottom
         body.standing = False
         if self.tile_solid(feet_tile, tile_xl) or self.tile_solid(feet_tile, tile_xr):
-            body.vel.y = 0
+            body.vel[1] = 0
             body.can_jump = True
             body.standing = True
 
@@ -150,24 +149,24 @@ class Game():
             if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
                 return pz.PLAYER_COMPLETE
 
-            body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
+            body.pos[1] = feet_tile * pz.TILE_SIZE - body.half[1]
 
         # Collision on top
         if self.tile_solid(head_tile, tile_xl) or self.tile_solid(head_tile, tile_xr):
-            if body.vel.y < 0:
-                body.vel.y = 0
+            if body.vel[1] < 0:
+                body.vel[1] = 0
                 body.is_jump = False
 
                 if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
                     return pz.PLAYER_DEAD
 
-            body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y
+            body.pos[1] = (head_tile + 1) * pz.TILE_SIZE + body.half[1]
 
         # Apply body.velocity
-        body.pos = round_vec(body.pos + body.vel)
+        body.pos = np.round(body.pos + body.vel)
 
         # Update tile position
-        body.tile = floor_vec(body.pos / pz.TILE_SIZE)
+        body.tile = np.floor(body.pos / pz.TILE_SIZE)
 
     def tile_solid(self, row, col):
         if col >= self.width or col < 0:
@@ -182,10 +181,10 @@ class Game():
             Player is considered to be in the 'center'
         """
 
-        lbound = self.player.tile.x
-        rbound = self.player.tile.x + 2 * (self.view_r // 2) + 1
-        ubound = self.player.tile.y
-        bbound = self.player.tile.y + 2 * (self.view_c // 2) + 1
+        lbound = self.player.tile[0]
+        rbound = self.player.tile[0] + 2 * (self.view_r // 2) + 1
+        ubound = self.player.tile[1]
+        bbound = self.player.tile[1] + 2 * (self.view_c // 2) + 1
 
         view = self.padded_tiles[ubound:bbound, lbound:rbound]
 
@@ -193,10 +192,10 @@ class Game():
 
 class Body():
     def __init__(self):
-        self.vel  = Vector2(0, 0)
-        self.tile = Vector2(0, 0)
-        self.pos  = Vector2(0, 0)
-        self.size = Vector2(22, 23)
+        self.vel  = np.array([0.0, 0.0], dtype=np.float)
+        self.tile = np.array([0, 0])
+        self.pos  = np.array([0, 0])
+        self.size = np.array([22, 23])
         self.half = self.size / 2
 
         self.can_jump = True
@@ -210,12 +209,6 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-
-def floor_vec(vec):
-    return Vector2(floor(vec.x), floor(vec.y))
-
-def round_vec(vec):
-    return Vector2(round(vec.x), round(vec.y))
 
 def pad_tiles(arr, view_r, view_c):
     tile_r, tile_c = arr.shape

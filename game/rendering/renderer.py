@@ -119,7 +119,8 @@ class Renderer():
         if self.show_debug:
             self.debug_hud_text.string = (
                 f"Player pos: {game.player.pos}\n"
-                f"Player vel: ({game.player.vel.x:.1f}, {game.player.vel.y:.1f})\n"
+                f"Player vel: ({game.player.vel[0]:.1f}, {game.player.vel[1]:.1f})\n"
+                f"Player info: ({game.player.can_jump}, {game.player.is_jump}, {game.player.standing})\n"
                 f"Tile: {game.player.tile}\n"
                 f"Seed: {game.map_seed}\n"
                 f"Num chunks: {game.num_chunks}"

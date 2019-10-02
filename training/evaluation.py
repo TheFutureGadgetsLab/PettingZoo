@@ -3,7 +3,6 @@ from game import Game
 from game.core.defs import PLAYER_TIMEOUT
 from cachetools import Cache
 from joblib import Parallel, delayed
-from sfml.sf import Vector2
 
 def evaluate_generation(agents, game_args):
     results = []
@@ -50,7 +49,7 @@ class IdleDetector():
         self.let_idle = let_idle
 
         self.time_not_moved = 0
-        self.last_tile_pos = Vector2(-1, -1)
+        self.last_tile_pos = np.array([0, 0])
 
         self.timeout_time = 60 * 6
 
@@ -58,7 +57,7 @@ class IdleDetector():
         if self.let_idle == True:
             return False
 
-        if tile_pos != self.last_tile_pos:
+        if False in (tile_pos == self.last_tile_pos):
             self.last_tile_pos = tile_pos
             self.time_not_moved = 0
 
