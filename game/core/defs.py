@@ -1,4 +1,4 @@
-from sfml.sf import Vector2
+from game.core.Vector2 import Vector2
 
 HALF_TILE = Vector2(16, 16)
 
@@ -38,8 +38,3 @@ SPRITE_SIZE  = 32
 UPDATES_PS   = 60
 MAX_TIME     = 60
 GROUND_LEVEL = 4
-
-# Misc return values for game update / physics
-PLAYER_COMPLETE = -3
-PLAYER_TIMEOUT  = -2
-PLAYER_DEAD     = -1

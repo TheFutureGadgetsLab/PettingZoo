@@ -1,9 +1,8 @@
 import numpy as np
 from game import Game
-from game.core.defs import PLAYER_TIMEOUT
 from cachetools import Cache
 from joblib import Parallel, delayed
-from sfml.sf import Vector2
+from game.core.Vector2 import Vector2
 
 def evaluate_generation(agents, game_args):
     results = []
@@ -40,7 +39,7 @@ def evaluate_agent(agent, game_args, cache_size=144):
 
         if idle_detector.update(game.player.tile) is True:
             game.game_over = True
-            game.game_over_type = PLAYER_TIMEOUT
+            game.game_over_type = Game.PLAYER_TIMEOUT
 
     return (game.player.fitness, game.game_over_type)
 

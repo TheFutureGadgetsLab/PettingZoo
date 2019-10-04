@@ -2,7 +2,6 @@ import os
 import shutil
 from game import Game
 import numpy as np
-import game.core.defs as pz
 from joblib import dump
 from tqdm import tqdm
 
@@ -50,13 +49,13 @@ class RunLogger():
         max_fit = np.max(fitnesses)
 
         # Get counts for each kind of death type
-        deaths = {pz.PLAYER_COMPLETE: 0, pz.PLAYER_DEAD: 0, pz.PLAYER_TIMEOUT: 0}
+        deaths = {Game.PLAYER_COMPLETE: 0, Game.PLAYER_DEAD: 0, Game.PLAYER_TIMEOUT: 0}
         death_types, counts = np.unique(death_types, return_counts=True)
         for death_type, count in zip(death_types, counts):
             deaths[death_type] = count
 
         self.run_log_file.write(
-            f"{min_fit:0.2f}, {max_fit:0.2f}, {avg_fit:0.2f}, {deaths[pz.PLAYER_DEAD]}, {deaths[pz.PLAYER_COMPLETE]}, {deaths[pz.PLAYER_TIMEOUT]}\n"
+            f"{min_fit:0.2f}, {max_fit:0.2f}, {avg_fit:0.2f}, {deaths[Game.PLAYER_DEAD]}, {deaths[Game.PLAYER_COMPLETE]}, {deaths[Game.PLAYER_TIMEOUT]}\n"
         )
         self.run_log_file.flush()
 
@@ -73,6 +72,6 @@ def print_stats(min_fit, max_fit, avg_fit, deaths):
     tqdm.write(f"Min: {min_fit:0.2f}")
     tqdm.write(f"Max: {max_fit:0.2f}")
     tqdm.write("")
-    tqdm.write(f"Died:      {deaths[pz.PLAYER_DEAD]}")
-    tqdm.write(f"Completed: {deaths[pz.PLAYER_COMPLETE]}")
-    tqdm.write(f"Timed out: {deaths[pz.PLAYER_TIMEOUT]}")
+    tqdm.write(f"Died:      {deaths[Game.PLAYER_DEAD]}")
+    tqdm.write(f"Completed: {deaths[Game.PLAYER_COMPLETE]}")
+    tqdm.write(f"Timed out: {deaths[Game.PLAYER_TIMEOUT]}")

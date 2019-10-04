@@ -1,8 +1,8 @@
 import numpy as np
 import game.core.defs as pz
 from math import floor
-from sfml.sf import Vector2
 from game.core.levelgen import LevelGenerator
+from game.core.Vector2 import Vector2
 
 # Player physics parameters
 V_X     = 6
@@ -11,6 +11,11 @@ INTERTA = 1.4
 GRAVITY = 0.3
 
 class Game():
+    # Misc return values for game update / physics
+    PLAYER_COMPLETE = -3
+    PLAYER_TIMEOUT  = -2
+    PLAYER_DEAD     = -1
+
     def __init__(self, num_chunks, seed, view_size=None):
         # Level data
         self.tiles = None
@@ -54,7 +59,7 @@ class Game():
 
         # Time limit
         if self.player.time > pz.MAX_TIME:
-            self.game_over_type = pz.PLAYER_TIMEOUT
+            self.game_over_type = Game.PLAYER_TIMEOUT
             self.game_over = True
             return 
 
@@ -65,28 +70,28 @@ class Game():
             self.player.vel.x = -V_X
 
         # Button presses
-        self.player.presses += sum(keys)
+        self.player.presses += keys[0] + keys[1] + keys[2]
 
         # Physics sim for player
         ret = self.physicsSim(self.player, keys[pz.JUMP])
-        if ret == pz.PLAYER_DEAD:
-            self.game_over_type = pz.PLAYER_DEAD
+        if ret == Game.PLAYER_DEAD:
+            self.game_over_type = Game.PLAYER_DEAD
             self.game_over = True
 
             return
 
         # Lower bound
         if self.player.pos.y >= self.height * pz.TILE_SIZE:
-            self.game_over_type = pz.PLAYER_DEAD
+            self.game_over_type = Game.PLAYER_DEAD
             self.game_over = True
 
             return
 
         # Player completed level
-        if ret == pz.PLAYER_COMPLETE:
+        if ret == Game.PLAYER_COMPLETE:
             # Reward for finishing
             self.player.fitness += 2000
-            self.game_over_type = pz.PLAYER_COMPLETE
+            self.game_over_type = Game.PLAYER_COMPLETE
             self.game_over = True
 
             return
@@ -115,7 +120,7 @@ class Game():
         body.vel.y += GRAVITY
         body.vel.x /= INTERTA
 
-        body.tile = floor_vec((body.pos + body.vel) / pz.TILE_SIZE)
+        body.tile = (body.pos + body.vel) // pz.TILE_SIZE
         feet_tile  = int((body.pos.y + body.vel.y + body.half.y + 1) // pz.TILE_SIZE)
         head_tile  = int((body.pos.y + body.vel.y - body.half.y - 1) // pz.TILE_SIZE)
         right_tile = int((body.pos.x + body.vel.x + body.half.x + 1) // pz.TILE_SIZE)
@@ -145,10 +150,10 @@ class Game():
             body.standing = True
 
             if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
-                return pz.PLAYER_DEAD
+                return Game.PLAYER_DEAD
 
             if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
-                return pz.PLAYER_COMPLETE
+                return Game.PLAYER_COMPLETE
 
             body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
 
@@ -159,15 +164,15 @@ class Game():
                 body.is_jump = False
 
                 if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
-                    return pz.PLAYER_DEAD
+                    return Game.PLAYER_DEAD
 
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y
 
         # Apply body.velocity
-        body.pos = round_vec(body.pos + body.vel)
+        body.pos = round(body.pos + body.vel)
 
         # Update tile position
-        body.tile = floor_vec(body.pos / pz.TILE_SIZE)
+        body.tile = body.pos // pz.TILE_SIZE
 
     def tile_solid(self, row, col):
         if col >= self.width or col < 0:
@@ -182,10 +187,10 @@ class Game():
             Player is considered to be in the 'center'
         """
 
-        lbound = self.player.tile.x
-        rbound = self.player.tile.x + 2 * (self.view_r // 2) + 1
-        ubound = self.player.tile.y
-        bbound = self.player.tile.y + 2 * (self.view_c // 2) + 1
+        lbound = int(self.player.tile.x)
+        rbound = int(self.player.tile.x + 2 * (self.view_r // 2) + 1)
+        ubound = int(self.player.tile.y)
+        bbound = int(self.player.tile.y + 2 * (self.view_c // 2) + 1)
 
         view = self.padded_tiles[ubound:bbound, lbound:rbound]
 
@@ -210,12 +215,6 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-
-def floor_vec(vec):
-    return Vector2(floor(vec.x), floor(vec.y))
-
-def round_vec(vec):
-    return Vector2(round(vec.x), round(vec.y))
 
 def pad_tiles(arr, view_r, view_c):
     tile_r, tile_c = arr.shape

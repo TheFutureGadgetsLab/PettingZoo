@@ -3,7 +3,7 @@ from game import Renderer
 from joblib import load
 
 def main():
-    model, game_args = load("/home/supa/Documents/pettingzoo/runs/test/92_5575.71.joblib")
+    model, game_args = load("/home/supa/lin_storage/PettingZooDebug/runs/test/100_6745.71.joblib")
 
     renderer = Renderer()
     game = Game(**game_args, view_size=(model.view_r, model.view_c))
@@ -19,8 +19,9 @@ def main():
 
         if game.game_over:
             print(f"{game.player.fitness}")
-            game = Game(**game_args)
+            game = Game(**game_args, view_size=(model.view_r, model.view_c))
             renderer.new_game_setup(game)
+
             continue
     
         renderer.draw_state(game, keys)

@@ -1,9 +1,8 @@
 from sfml import sf
-from sfml.sf import Vector2
+from sfml.sf import Vector2 as SFVector2
 import game.core.defs as pz
 import numpy as np
 from math import ceil
-import time
 
 asset_files = {
     pz.COIN: "game/assets/coin.png",
@@ -17,7 +16,7 @@ class Renderer():
     NEW_GAME = 2 # Generate new game (new seed)
 
     def __init__(self, width=800, height=600):
-        self.window_size = sf.Vector2(width, height)
+        self.window_size = SFVector2(width, height)
         self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
         self.window.key_repeat_enabled = False
         self.window.framerate_limit = 60
@@ -51,15 +50,15 @@ class Renderer():
 
         self.debug_hud_text = sf.Text(font=self.font)
         self.debug_hud_text.color = sf.Color.BLACK
-        self.debug_hud_text.scale(Vector2(0.5, 0.5))
+        self.debug_hud_text.scale(SFVector2(0.5, 0.5))
 
         self.hud_stat_text = sf.Text(font=self.font)
         self.hud_stat_text.color = sf.Color.BLACK
-        self.hud_stat_text.scale(Vector2(0.5, 0.5))
+        self.hud_stat_text.scale(SFVector2(0.5, 0.5))
 
         self.hud_help_text = sf.Text(font=self.font)
         self.hud_help_text.color = sf.Color.BLACK
-        self.hud_help_text.scale(Vector2(0.5, 0.5))
+        self.hud_help_text.scale(SFVector2(0.5, 0.5))
 
         self.textures[pz.SQUARE].repeated = True
 
@@ -146,12 +145,12 @@ class Renderer():
             f"{('↑' if keys[pz.JUMP] else ''):<5}"
             f"{('→' if keys[pz.RIGHT] else ''):<5}"
         )
-        self.hud_stat_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
+        self.hud_stat_text.position = SFVector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
         self.window.draw(self.hud_stat_text)
 
 
     def adjust_camera(self, game):
-        center = self.player.position
+        center = Vector2_to_SFML(self.player.position)
         lbound = center.x - self.window.view.size.x / 2
         rbound = center.x + self.window.view.size.x / 2
         bbound = center.y + self.window.view.size.y / 2
@@ -177,7 +176,7 @@ class Renderer():
         self.tilegrid.color = sf.Color(255, 255, 255, 50)
     
     def draw_state(self, game, keys):
-        self.player.position = game.player.pos
+        self.player.position = Vector2_to_SFML(game.player.pos)
         self.adjust_camera(game)
 
         self.window.clear(sf.Color(135, 206, 235))
@@ -224,3 +223,6 @@ class TileMap(sf.Drawable):
     def draw(self, target, states):
         states.texture = self.m_tileset
         target.draw(self.m_vertices, states)
+
+def Vector2_to_SFML(vec):
+    return SFVector2(vec.x, vec.y)
