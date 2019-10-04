@@ -1,7 +1,5 @@
-import numpy as np
 import game.core.defs as pz
-from math import floor
-from game.core.levelgen import LevelGenerator
+from game.core.levelgen import Level
 from game.core.Vector2 import Vector2
 
 # Player physics parameters
@@ -17,36 +15,17 @@ class Game():
     PLAYER_DEAD     = -1
 
     def __init__(self, num_chunks, seed, view_size=None):
-        # Level data
-        self.tiles = None
-        self.num_chunks = num_chunks
-        self.map_seed = seed
-        self.width  = None
-        self.height = None
-        self.level_generator = LevelGenerator()
+        self.level = Level(num_chunks, seed, view_size)
 
-        self.padded_tiles = None
-        self.solid_tiles = None
-
-        # Player data
         self.player = Player()
+
         self.game_over      = False
         self.game_over_type = None
-
-        self.view_r, self.view_c = view_size if view_size != None else (None, None)
 
         self.setup_game()
 
     def setup_game(self):
-        self.tiles, spawn_point = self.level_generator.generate_level(self.num_chunks, self.map_seed)
-        self.height, self.width = self.tiles.shape
-
-        self.solid_tiles = np.isin(self.tiles, pz.SOLID_TILES)
-
-        if self.view_r != None and self.view_c != None:
-            self.padded_tiles = pad_tiles(self.tiles, self.view_r, self.view_c)
-
-        self.player.tile = Vector2(1, spawn_point)
+        self.player.tile = self.level.spawn_point
         self.player.pos  = self.player.tile * pz.TILE_SIZE
 
     def update(self, keys):
@@ -81,7 +60,7 @@ class Game():
             return
 
         # Lower bound
-        if self.player.pos.y >= self.height * pz.TILE_SIZE:
+        if self.player.pos.y >= self.level.size.y * pz.TILE_SIZE:
             self.game_over_type = Game.PLAYER_DEAD
             self.game_over = True
 
@@ -130,12 +109,12 @@ class Game():
         tile_yd = int((body.pos.y + body.half.y) / pz.TILE_SIZE)
 
         # Right collision
-        if self.tile_solid(tile_yd, right_tile) or self.tile_solid(tile_yu, right_tile):
+        if self.level.tile_solid(tile_yd, right_tile) or self.level.tile_solid(tile_yu, right_tile):
             body.vel.x = 0
             body.pos.x = right_tile * pz.TILE_SIZE - body.half.x - 1
 
         # Left collision
-        if self.tile_solid(tile_yd, left_tile) or self.tile_solid(tile_yu, left_tile):
+        if self.level.tile_solid(tile_yd, left_tile) or self.level.tile_solid(tile_yu, left_tile):
             body.vel.x = 0
             body.pos.x = (left_tile + 1) * pz.TILE_SIZE + body.half.x
 
@@ -144,26 +123,26 @@ class Game():
 
         # Collision on bottom
         body.standing = False
-        if self.tile_solid(feet_tile, tile_xl) or self.tile_solid(feet_tile, tile_xr):
+        if self.level.tile_solid(feet_tile, tile_xl) or self.level.tile_solid(feet_tile, tile_xr):
             body.vel.y = 0
             body.can_jump = True
             body.standing = True
 
-            if pz.SPIKE_TOP in [self.tiles[feet_tile, tile_xl], self.tiles[feet_tile, tile_xr]]:
+            if pz.SPIKE_TOP in [self.level.tiles[feet_tile, tile_xl], self.level.tiles[feet_tile, tile_xr]]:
                 return Game.PLAYER_DEAD
 
-            if pz.FINISH_TOP in [self.tiles[feet_tile, tile_xl]]:
+            if pz.FINISH_TOP in [self.level.tiles[feet_tile, tile_xl]]:
                 return Game.PLAYER_COMPLETE
 
             body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
 
         # Collision on top
-        if self.tile_solid(head_tile, tile_xl) or self.tile_solid(head_tile, tile_xr):
+        if self.level.tile_solid(head_tile, tile_xl) or self.level.tile_solid(head_tile, tile_xr):
             if body.vel.y < 0:
                 body.vel.y = 0
                 body.is_jump = False
 
-                if pz.SPIKE_BOT in [self.tiles[head_tile, tile_xl], self.tiles[head_tile, tile_xr]]:
+                if pz.SPIKE_BOT in [self.level.tiles[head_tile, tile_xl], self.level.tiles[head_tile, tile_xr]]:
                     return Game.PLAYER_DEAD
 
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y
@@ -173,28 +152,13 @@ class Game():
 
         # Update tile position
         body.tile = body.pos // pz.TILE_SIZE
-
-    def tile_solid(self, row, col):
-        if col >= self.width or col < 0:
-            return True
-        if row >= self.height:
-            return False
-
-        return self.solid_tiles[int(row), int(col)]
     
     def get_player_view(self):
         """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
             Player is considered to be in the 'center'
         """
 
-        lbound = int(self.player.tile.x)
-        rbound = int(self.player.tile.x + 2 * (self.view_r // 2) + 1)
-        ubound = int(self.player.tile.y)
-        bbound = int(self.player.tile.y + 2 * (self.view_c // 2) + 1)
-
-        view = self.padded_tiles[ubound:bbound, lbound:rbound]
-
-        return view.copy()
+        return self.level.get_player_view(self.player.tile)
 
 class Body():
     def __init__(self):
@@ -215,21 +179,3 @@ class Player(Body):
         self.time    = 0
         self.fitness = 0
         self.presses = 0
-
-def pad_tiles(arr, view_r, view_c):
-    tile_r, tile_c = arr.shape
-
-    p_c = view_c // 2
-    p_r = view_r // 2
-
-    pad_shape = (tile_r + 2 * p_r, tile_c + 2 * p_c)
-    pad = np.zeros(shape=pad_shape, dtype=np.uint8)
-
-    pad[:, :p_c]  = pz.COBBLE # Left
-    pad[:, -p_c:] = pz.COBBLE # Right
-    pad[:p_c, :]  = pz.SPIKE_BOT # Top
-    pad[-p_c:, :] = pz.SPIKE_TOP # Bottom
-
-    pad[p_r: p_r + tile_r, p_c: p_c + tile_c] = arr
-    
-    return pad

@@ -1,7 +1,6 @@
 from training.run_logger import RunLogger
 from training.rng import construct_generator, get_seeds, get_generators
 from genetic_algo.genetic_algo import GeneticAlgorithm
-import logging
 
 def get_agents(agent_class, agent_args, num_agents, rng):
     agents = []

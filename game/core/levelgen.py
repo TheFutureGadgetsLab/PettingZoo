@@ -1,29 +1,42 @@
 import numpy as np
-from math import ceil
 import game.core.defs as pz
+from game.core.Vector2 import Vector2
 
 CHUNK_SIZE = 32
 
-class LevelGenerator():
-	def __init__(self):
-		self.tiles  = None
-		self.chunks = None
-		self.rng    = None
+class Level():
+	def __init__(self, num_chunks, seed, view_size=None):
+		self.tiles      = None
+		self.num_chunks = num_chunks
 
-	def generate_level(self, num_chunks, seed):
-		""" Each chunk is 32x32 so multiply width by that to get umber of tiles.\n
-			Returns (tiles, spawn_height)
-		"""
+		self.solid_tiles  = None
+		self.padded_tiles = None
+
+		self.size = Vector2(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
+		self.spawn_point = None
+
+		self.seed = seed
 		self.rng = np.random.Generator(np.random.SFC64(seed))
 
-		self.chunks = [0] * num_chunks
+		self.view_size = view_size 
+		self.setup()
+
+	def setup(self):
+		self.generate()
+		self.solid_tiles = np.isin(self.tiles, pz.SOLID_TILES)
+
+		if self.view_size != None:
+			self.padded_tiles = pad_tiles(self.tiles, self.view_size)
+		
+	def generate(self):
+		self.chunks = [0] * self.num_chunks
 
 		# Place start and stop chunks
 		self.chunks[0]  = StartChunk(self.rng)
 		self.chunks[-1] = StopChunk(self.rng)
 
 		# Initializes all other chunks
-		for i in range(1, num_chunks - 1):
+		for i in range(1, self.num_chunks - 1):
 			self.chunks[i] = Chunk(self.rng)
 
 		# Generate floors
@@ -39,8 +52,31 @@ class LevelGenerator():
 			chunk.generate_platforms()
 
 		self.tiles = np.hstack([chunk.tiles for chunk in self.chunks])
+		self.tiles = np.flipud(self.tiles)
 
-		return np.flipud(self.tiles), self.tiles.shape[0] - self.chunks[0].ground_height - 1
+		self.spawn_point = Vector2(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
+
+	def tile_solid(self, row, col):
+		if col >= self.size.x or col < 0:
+			return True
+		if row >= self.size.y:
+			return False
+
+		return self.solid_tiles[int(row), int(col)]
+	
+	def get_player_view(self, loc):
+		""" Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
+			Player is considered to be in the 'center'
+		"""
+
+		lbound = int(loc.x)
+		rbound = int(loc.x + 2 * (self.view_size.y // 2) + 1)
+		ubound = int(loc.y)
+		bbound = int(loc.y + 2 * (self.view_size.x // 2) + 1)
+
+		view = self.padded_tiles[ubound:bbound, lbound:rbound]
+
+		return view.copy()
 
 class Chunk():
 	def __init__(self, rng):
@@ -117,3 +153,21 @@ class StopChunk(Chunk):
 
 	def generate_gaps(self, stop=stop_plat_len, **kwargs):
 		super().generate_gaps(**kwargs, stop=CHUNK_SIZE - self.stop_plat_len)
+
+def pad_tiles(arr, view_size):
+    tile_r, tile_c = arr.shape
+
+    p_c = view_size.x // 2
+    p_r = view_size.y // 2
+
+    pad_shape = (tile_r + 2 * p_r, tile_c + 2 * p_c)
+    pad = np.zeros(shape=pad_shape, dtype=np.uint8)
+
+    pad[:, :p_c]  = pz.COBBLE # Left
+    pad[:, -p_c:] = pz.COBBLE # Right
+    pad[:p_c, :]  = pz.SPIKE_BOT # Top
+    pad[-p_c:, :] = pz.SPIKE_TOP # Bottom
+
+    pad[p_r: p_r + tile_r, p_c: p_c + tile_c] = arr
+    
+    return pad

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from copy import deepcopy
-import numpy as np
+from game.core.Vector2 import Vector2
 
 class FFNN(nn.Module):
     """ A simple feed-forward neural network.
@@ -14,18 +14,17 @@ class FFNN(nn.Module):
     `npl`: Number of nodes in each hidden layer\n
     `bias`: Whether or not the linear transformations should have a bias
     """
-    def __init__(self, view_r, view_c, hlc, npl, generator=None, bias=False):
+    def __init__(self, view_size, hlc, npl, generator=None, bias=False):
         super().__init__()
 
         self.num_layers = hlc + 2
         self.npl = npl
-        self.view_r = view_r
-        self.view_c = view_c
+        self.view = view_size
 
         layers = []
 
         # Input Layer
-        layers.append(nn.Linear(self.view_c * self.view_r, self.npl, bias=bias))
+        layers.append(nn.Linear(self.view.y * self.view.x, self.npl, bias=bias))
         layers.append(nn.Sigmoid())
 
         # Hidden Layers
@@ -47,10 +46,10 @@ class FFNN(nn.Module):
                 init_tensor_unif(param, generator)
 
     def evaluate(self, x):
-        x = torch.Tensor(x.ravel()) # Flatten x with ravel for slight perf boost
-        x = self.layers.forward(x)
+        x = torch.Tensor(x)
+        x = self.layers.forward(x.view(-1))
 
-        x = (x > 0).int()
+        x = x > 0
 
         return x.numpy()
 

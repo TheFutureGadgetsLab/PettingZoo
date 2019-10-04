@@ -1,12 +1,9 @@
-import numpy as np
 from game import Game
 from cachetools import Cache
 from joblib import Parallel, delayed
 from game.core.Vector2 import Vector2
 
 def evaluate_generation(agents, game_args):
-    results = []
-
     results = Parallel(n_jobs=-1)(
         delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
     )
@@ -17,7 +14,7 @@ def evaluate_generation(agents, game_args):
     return fitnesses, death_types
 
 def evaluate_agent(agent, game_args, cache_size=144):
-    game = Game(**game_args, view_size=(agent.view_r, agent.view_c))
+    game = Game(**game_args, view_size=agent.view)
 
     cache = Cache(cache_size)
     idle_detector = IdleDetector(False)

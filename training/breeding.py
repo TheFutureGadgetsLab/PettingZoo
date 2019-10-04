@@ -1,4 +1,3 @@
-import numpy as np
 from training.rng import get_seeds, construct_generator
 from joblib import Parallel, delayed
 

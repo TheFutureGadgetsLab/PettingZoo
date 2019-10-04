@@ -1,6 +1,6 @@
 from genetic_algo import GeneticAlgorithm
-from training import evaluate_generation, breed_generation
-from training import setup_run
+from training import evaluate_generation, breed_generation, setup_run
+from game.core.Vector2 import Vector2
 from models.FFNN import FFNN, breed
 from tqdm import trange
 
@@ -15,8 +15,7 @@ def main():
     agent_breeder = breed
 
     agent_args = {
-        'view_r': 11,
-        'view_c': 11,
+        'view_size': Vector2(11, 11),
         'hlc': 2,
         'npl': 144,
     }

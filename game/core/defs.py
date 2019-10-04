@@ -1,7 +1,3 @@
-from game.core.Vector2 import Vector2
-
-HALF_TILE = Vector2(16, 16)
-
 # Tile ID's, 0 is empty
 EMPTY      = 0
 PIPE_BOT   = 1

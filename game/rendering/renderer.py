@@ -1,7 +1,6 @@
 from sfml import sf
 from sfml.sf import Vector2 as SFVector2
 import game.core.defs as pz
-import numpy as np
 from math import ceil
 
 asset_files = {
@@ -120,8 +119,8 @@ class Renderer():
                 f"Player pos: {game.player.pos}\n"
                 f"Player vel: ({game.player.vel.x:.1f}, {game.player.vel.y:.1f})\n"
                 f"Tile: {game.player.tile}\n"
-                f"Seed: {game.map_seed}\n"
-                f"Num chunks: {game.num_chunks}"
+                f"Seed: {game.level.seed}\n"
+                f"Num chunks: {game.level.num_chunks}"
             )
             self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
             self.window.draw(self.debug_hud_text)
@@ -155,24 +154,24 @@ class Renderer():
         rbound = center.x + self.window.view.size.x / 2
         bbound = center.y + self.window.view.size.y / 2
 
-        if bbound > game.height * pz.TILE_SIZE:
-            center.y = game.height * pz.TILE_SIZE - self.window.view.size.y / 2
+        if bbound > game.level.size.y * pz.TILE_SIZE:
+            center.y = game.level.size.y * pz.TILE_SIZE - self.window.view.size.y / 2
         
         if lbound < 0:
             center.x = self.window.view.size.x / 2
 
-        if rbound > game.width * pz.TILE_SIZE:
-            center.x = game.width * pz.TILE_SIZE - self.window.view.size.x / 2
+        if rbound > game.level.size.x * pz.TILE_SIZE:
+            center.x = game.level.size.x * pz.TILE_SIZE - self.window.view.size.x / 2
 
         self.window.view.center = center
     
     def new_game_setup(self, game):
         """ Must call this when running a new game!
         """
-        self.level_tilemap = TileMap(game.tiles)
+        self.level_tilemap = TileMap(game.level.tiles)
         self.tilegrid = sf.Sprite(self.textures[pz.SQUARE])
         self.tilegrid.texture_rectangle = sf.Rect((0, 0), 
-            (game.width * pz.TILE_SIZE, game.height * pz.TILE_SIZE))
+            (game.level.size.x * pz.TILE_SIZE, game.level.size.y * pz.TILE_SIZE))
         self.tilegrid.color = sf.Color(255, 255, 255, 50)
     
     def draw_state(self, game, keys):
