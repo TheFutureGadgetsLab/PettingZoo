@@ -57,7 +57,7 @@ class Level():
 		self.spawn_point = Vector2(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
 
 	def tile_solid(self, row, col):
-		if col >= self.size.x or col < 0:
+		if col < 0 or col >= self.size.x:
 			return True
 		if row >= self.size.y:
 			return False
