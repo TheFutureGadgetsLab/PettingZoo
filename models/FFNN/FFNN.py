@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from copy import deepcopy
-from game.core.Vector2 import Vector2
 import numpy as np
+from models.utils import config_to_sequential
 
 class FFNN(nn.Module):
     """ A simple feed-forward neural network.
@@ -11,33 +11,14 @@ class FFNN(nn.Module):
     ---
     `view_r`: Width of the input space around the player\n
     `view_c`: Width of the input space around the player\n
-    `hlc`: Number of hidden layers\n
-    `npl`: Number of nodes in each hidden layer\n
-    `bias`: Whether or not the linear transformations should have a bias
+    `layer_config`: Layer config to feed ot models.utils.config_to_sequential\n
     """
-    def __init__(self, view_size, hlc, npl, generator=None, bias=False):
+    def __init__(self, view_size, layer_config, generator=None):
         super().__init__()
 
-        self.num_layers = hlc + 2
-        self.npl = npl
+        self.layers = config_to_sequential(layer_config, view_size)
+        self.num_layers = len(self.layers)
         self.view = view_size
-
-        layers = []
-
-        # Input Layer
-        layers.append(nn.Linear(self.view.y * self.view.x, self.npl, bias=bias))
-        layers.append(nn.Sigmoid())
-
-        # Hidden Layers
-        for _ in range(hlc):
-            layers.append(nn.Linear(self.npl, self.npl, bias=bias))
-            layers.append(nn.Sigmoid())
-
-        # Output Layer
-        layers.append(nn.Linear(self.npl, 3, bias=bias))
-        layers.append(nn.Tanh())
-
-        self.layers = nn.Sequential(*layers)
 
         # Disable backprop and custom weight init
         for param in self.parameters():

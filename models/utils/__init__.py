@@ -1,0 +1,1 @@
+from .pytorch_layer_config import config_to_sequential
