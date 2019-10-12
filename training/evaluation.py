@@ -1,10 +1,11 @@
 from game import Game
 from cachetools import Cache
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, parallel_backend
 from game.core.Vector2 import Vector2
+import torch
 
 def evaluate_generation(agents, game_args):
-    results = Parallel(n_jobs=-1)(
+    results = Parallel(backend="multiprocessing", n_jobs=-1)(
         delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
     )
 
@@ -14,6 +15,9 @@ def evaluate_generation(agents, game_args):
     return fitnesses, death_types
 
 def evaluate_agent(agent, game_args, cache_size=144):
+    # Try and prevent agents from using more than 1 thread
+    torch.set_num_threads(1)
+
     game = Game(**game_args, view_size=agent.view)
 
     cache = Cache(cache_size)

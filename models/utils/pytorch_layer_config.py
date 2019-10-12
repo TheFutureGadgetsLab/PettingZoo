@@ -1,4 +1,5 @@
 import torch.nn as nn
+from models.utils import custom_torch_layers as cust_layer
 
 def config_to_sequential(config, view_size):
     """
@@ -22,39 +23,21 @@ def config_to_sequential(config, view_size):
     prev_dim = view_size.x * view_size.y
 
     for layer_config in config:
-        layer_type, layer_args = layer_config[0], layer_config[1:]
+        layer_type = layer_config[0]
+        layer_args = layer_config[1:]
 
-        if layer_type == "linear": # Linear layer
-            prev_dim, layer = get_linear(layer_args, prev_dim)
-        elif layer_type == "act":  # Activation layer
-            layer = get_act(layer_args)
+        if layer_type == "linear":
+            layer = cust_layer.Linear(prev_dim, layer_args[0], bias=False)
+            prev_dim = layer.out_dim
+        elif layer_type == "act":
+            layer = cust_layer.Activation(layer_args[0])
         else:
-            raise ValueError
+            raise ValueError("Unknown layer type!")
 
         torch_layers.append(layer)
 
     # Add output layer
-    torch_layers.extend([
-        nn.Linear(prev_dim, 3, bias=False),
-        nn.Tanh(),
-    ])
+    torch_layers.append(cust_layer.Linear(prev_dim, 3, bias=False))
+    torch_layers.append(cust_layer.Activation("tanh"))
 
     return nn.Sequential(*torch_layers)
-
-def get_linear(layer_args, prev_dim):
-    layer = nn.Linear(in_features=prev_dim, out_features=layer_args[0], bias=False)
-    new_dim = layer_args[0]
-
-    return new_dim, layer
-
-def get_act(layer_args):
-    activations = {
-        "relu"    : nn.ReLU,
-        "sigmoid" : nn.Sigmoid,
-        "tanh"    : nn.Tanh,
-    }
-
-    if layer_args[0] not in activations:
-        raise ValueError("Unknown activation function")
-
-    return activations[layer_args[0]]()
