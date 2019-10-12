@@ -1,5 +1,6 @@
 import torch.nn as nn
 from models.utils import custom_torch_layers as cust_layer
+import game.core.defs as pz
 
 def config_to_sequential(config, view_size):
     """
@@ -37,7 +38,7 @@ def config_to_sequential(config, view_size):
         torch_layers.append(layer)
 
     # Add output layer
-    torch_layers.append(cust_layer.Linear(prev_dim, 3, bias=False))
+    torch_layers.append(cust_layer.Linear(prev_dim, pz.NUM_BUTTONS, bias=False))
     torch_layers.append(cust_layer.Activation("tanh"))
 
     return nn.Sequential(*torch_layers)

@@ -4,7 +4,6 @@ import game.core.defs as pz
 from math import ceil
 
 asset_files = {
-    pz.COIN: "game/assets/coin.png",
     pz.CAT: "game/assets/cat.png",
     pz.LAMP: "game/assets/lamp.png",
     pz.SQUARE: "game/assets/grid.png",

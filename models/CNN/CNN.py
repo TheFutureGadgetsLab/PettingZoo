@@ -4,8 +4,8 @@ from copy import deepcopy
 import numpy as np
 from models.utils import config_to_sequential
 
-class FFNN(nn.Module):
-    """ A simple feed-forward neural network.
+class CNN(nn.Module):
+    """ A simple convolutional neural network.
 
     Args:\n
     ---

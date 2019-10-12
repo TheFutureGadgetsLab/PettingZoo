@@ -1,4 +1,6 @@
-# Tile ID's, 0 is empty
+##################################
+#  Tiles
+##################################
 EMPTY      = 0
 PIPE_BOT   = 1
 PIPE_MID   = 2
@@ -10,25 +12,33 @@ SPIKE_TOP  = 7
 SPIKE_BOT  = 8
 COIN       = 9
 FLAG       = 10
-FINISH_BOT = 11 
+FINISH_BOT = 11
 FINISH_TOP = 12
-GRID       = 13
-LAMP       = 14
-CAT        = 15
-BACKGROUND = 16
-SQUARE     = 17
+LAMP       = 13
+CAT        = 14
+BACKGROUND = 15
+SQUARE     = 16
 
+TILES       = [EMPTY, PIPE_BOT, PIPE_MID, PIPE_TOP, GRASS, DIRT, COBBLE, SPIKE_TOP, SPIKE_BOT, COIN, FLAG, FINISH_BOT, FINISH_TOP]
 SOLID_TILES = [PIPE_BOT, PIPE_MID, PIPE_TOP, GRASS, DIRT, COBBLE, SPIKE_TOP, SPIKE_BOT, FINISH_BOT, FINISH_TOP]
 
-# Button Indices / ID's
+##################################
+#  Buttons
+##################################
 LEFT  = 0
 RIGHT = 1
 JUMP  = 2
 
-# Fitness measurement parameters
+NUM_BUTTONS = 3
+
+##################################
+#  Fitness measurement parameters
+##################################
 FIT_TIME_WEIGHT = 100
 
-# Misc
+##################################
+#  Misc
+##################################
 TILE_SIZE    = 32
 SPRITE_SIZE  = 32
 UPDATES_PS   = 60
