@@ -4,18 +4,18 @@ def breed(parentA, parentB, generator):
     childA = deepcopy(parentA)
     childB = deepcopy(parentB)
 
-    pA_params = list(parentA.parameters())
-    pB_params = list(parentB.parameters())
-    cA_params = list(childA.parameters())
-    cB_params = list(childB.parameters())
+    pA_params = parentA.parameters()
+    pB_params = parentB.parameters()
+    cA_params = childA.parameters()
+    cB_params = childB.parameters()
 
-    for pA_param, pB_param, cA_param, cB_param in zip(pA_params, pB_params, cA_params, cB_params):
-        combine_tensors(pA_param, pB_param, cA_param, cB_param, generator)
+    for param_group in zip(pA_params, pB_params, cA_params, cB_params):
+        combine_tensors(*param_group, generator)
 
     return childA, childB
 
 def combine_tensors(parentA, parentB, childA, childB, generator):
-    split_loc = generator.integers(low=1, high=parentA.shape[0])
+    split_loc = generator.integers(low=0, high=parentA.shape[0], endpoint=True)
 
     # Only copying parentB into childA because childA is a deepcopy of parentA
     # Same with childB (but reversed)
@@ -28,5 +28,5 @@ def combine_tensors_avg(parentA, parentB, childA, childB, generator):
 
     # Only copying parentB into childA because childA is a deepcopy of parentA
     # Same with childB (but reversed)
-    childA = first_weight  * parentA + second_weight * parentB
-    childB = second_weight * parentA + first_weight  * parentB
+    childA.copy_(first_weight  * parentA + second_weight * parentB)
+    childB.copy_(second_weight * parentA + first_weight  * parentB)

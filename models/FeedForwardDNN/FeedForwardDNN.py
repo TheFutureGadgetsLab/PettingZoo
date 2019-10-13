@@ -32,4 +32,4 @@ class FeedForwardDNN(nn.Module):
 
 def init_tensor_unif(tensor, generator, low=-1.0, high=1.0):
     new = generator.uniform(low=low, high=high, size=tensor.shape)
-    tensor[:, :] = torch.from_numpy(new)
+    tensor.copy_(torch.from_numpy(new))

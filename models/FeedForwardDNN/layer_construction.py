@@ -29,7 +29,7 @@ def config_to_sequential(config, view_size):
         layer_args = layer_config[1:]
 
         if layer_type == "linear":
-            layer = Linear(prev_dim, layer_args[0], bias=False)
+            layer = Linear(prev_dim, layer_args[0])
             prev_dim = layer.out_dim
         elif layer_type == "act":
             layer = Activation(layer_args[0])
@@ -39,13 +39,13 @@ def config_to_sequential(config, view_size):
         torch_layers.append(layer)
 
     # Add output layer
-    torch_layers.append(Linear(prev_dim, pz.NUM_BUTTONS, bias=False))
+    torch_layers.append(Linear(prev_dim, pz.NUM_BUTTONS))
     torch_layers.append(Activation("tanh"))
 
     return nn.Sequential(*torch_layers)
 
 class Linear(nn.Module):
-    def __init__(self, in_features, out_features, bias=False):
+    def __init__(self, in_features, out_features, bias=True):
         super().__init__()
         self.in_features  = in_features
         self.out_features = out_features

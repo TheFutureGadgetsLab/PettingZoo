@@ -1,13 +1,13 @@
 from genetic_algo import GeneticAlgorithm
 from training import evaluate_generation, breed_generation, setup_run, get_seeds
-from game.core.Vector2 import Vector2
+from game import Vector2
 from models.FeedForwardDNN import FeedForwardDNN, breed
 from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 10_000
-    num_generations = 10
+    num_agents      = 1_000
+    num_generations = 100
 
     log_dir = "./runs/test/"
 
@@ -16,10 +16,10 @@ def main():
     agent_args = {
         'view_size': Vector2(11, 11),
         'layer_config': [
+            ('linear', 128), ('act', 'sigmoid'),
+            ('linear', 64),  ('act', 'sigmoid'),
             ('linear', 32),  ('act', 'sigmoid'),
-            ('linear', 32),  ('act', 'sigmoid'),
-            ('linear', 32),  ('act', 'sigmoid'),
-            ('linear', 32),  ('act', 'sigmoid'),
+            ('linear', 16),  ('act', 'sigmoid'),
         ],
     }
 

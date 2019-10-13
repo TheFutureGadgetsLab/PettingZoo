@@ -1,7 +1,7 @@
 from game import Game
 from cachetools import Cache
 from joblib import Parallel, delayed, parallel_backend
-from game.core.Vector2 import Vector2
+from game import Vector2
 import torch
 
 def evaluate_generation(agents, game_args):
