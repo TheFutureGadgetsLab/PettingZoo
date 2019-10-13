@@ -1,17 +1,17 @@
 from genetic_algo import GeneticAlgorithm
 from training import evaluate_generation, breed_generation, setup_run, get_seeds
 from game.core.Vector2 import Vector2
-from models.FFNN import FFNN, breed
+from models.FeedForwardDNN import FeedForwardDNN, breed
 from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 200
+    num_agents      = 10_000
     num_generations = 10
 
     log_dir = "./runs/test/"
 
-    agent_class   = FFNN
+    agent_class   = FeedForwardDNN
     agent_breeder = breed
     agent_args = {
         'view_size': Vector2(11, 11),

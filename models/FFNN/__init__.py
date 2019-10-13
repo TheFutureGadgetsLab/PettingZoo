@@ -1,1 +1,0 @@
-from .FFNN import FFNN, breed
