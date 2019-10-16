@@ -5,7 +5,7 @@ from game import Vector2
 import torch
 
 def evaluate_generation(agents, game_args):
-    results = Parallel(backend="multiprocessing", n_jobs=-1)(
+    results = Parallel(backend="multiprocessing", n_jobs=12, max_nbytes=None)(
         delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
     )
 

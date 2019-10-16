@@ -1,16 +1,24 @@
 from game import Game
 from game import Renderer
 from joblib import load
+from time import time
 
 def main():
-    model, game_args = load("/home/supa/lin_storage/PettingZooDebug/runs/test/3_5237.14.joblib")
+    model, game_args = load("/home/supa/lin_storage/PettingZooDebug/runs/test2/303_12890.00.joblib")
 
     renderer = Renderer()
     game = Game(**game_args, view_size=model.view)
     renderer.new_game_setup(game)
 
     while renderer.running:
-        keys = renderer.get_input()
+        keys, req = renderer.get_input()
+
+        # Check if user is trying to restart / generate new game
+        if req in [renderer.RESTART, renderer.NEW_GAME]:
+            game_args['seed'] = game_args['seed'] if req == renderer.RESTART else int(time())
+            game = Game(**game_args, view_size=model.view)
+            renderer.new_game_setup(game)
+            continue
 
         player_view = game.get_player_view()
         keys = model.evaluate(player_view)

@@ -4,6 +4,7 @@ from game import Game
 import numpy as np
 from joblib import dump
 from tqdm import tqdm
+from copy import deepcopy
 
 class RunLogger():
     r"""A class to monitor and log the progress of a run.
@@ -65,6 +66,16 @@ class RunLogger():
         self.n_gens += 1
 
         print_stats(min_fit, max_fit, avg_fit, deaths)
+    
+    def copy_topn(self, agents, fitnesses, topn):
+        topn_ind = list(np.argpartition(fitnesses, -topn)[-topn:])
+
+        topn_agents = []
+        for ind in topn_ind:
+            agent = agents[ind]
+            topn_agents.append(deepcopy(agent))
+
+        return topn_agents
 
 def print_stats(min_fit, max_fit, avg_fit, deaths):
     tqdm.write("#" * 30)

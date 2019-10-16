@@ -21,7 +21,7 @@ def setup_run(run_seed, agent_type, agent_args, num_agents, output_dir, local=Fa
     gen_algo = GeneticAlgorithm(gen_algo_seed)
 
     # Set up run logger
-    logger = RunLogger("./runs/test/")
+    logger = RunLogger(output_dir)
 
     # Get agents
     agents = get_agents(agent_type, agent_args, num_agents, master_rng)

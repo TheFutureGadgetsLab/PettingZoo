@@ -1,6 +1,23 @@
 import torch
 import torch.nn as nn
 from models.FeedForwardDNN.layer_construction import config_to_sequential
+import game.core.defs as pz
+
+tile_mapper = {
+    pz.EMPTY:      0,
+    pz.PIPE_BOT:   1,
+    pz.PIPE_MID:   1,
+    pz.PIPE_TOP:   1,
+    pz.GRASS:      1,
+    pz.DIRT:       1,
+    pz.COBBLE:     1,
+    pz.SPIKE_TOP:  2,
+    pz.SPIKE_BOT:  3,
+    pz.COIN:       1,
+    pz.FLAG:       1,
+    pz.FINISH_BOT: 1,
+    pz.FINISH_TOP: 1,
+}
 
 class FeedForwardDNN(nn.Module):
     """ A simple feed-forward neural network (CNN or simply linear + non linear layers).
@@ -23,10 +40,15 @@ class FeedForwardDNN(nn.Module):
                 init_tensor_unif(param, generator)
 
     def evaluate(self, x):
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                x[i, j] = tile_mapper[x[i, j]]
+        
         x = torch.Tensor(x)
+
         x = self.layers.forward(x)
 
-        x = x > 0
+        x = x >= 0.5
 
         return x.numpy()
 

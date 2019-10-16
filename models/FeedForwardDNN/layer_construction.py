@@ -11,7 +11,7 @@ def config_to_sequential(config, view_size):
         (layer_name, layer_arg_1, layer_arg_2, ...),
     ]
 
-    THIS WILL ADD THE FINAL BUTTON LAYER FOR YOU (WITH TANH ACTIVATION)
+    THIS WILL ADD THE FINAL BUTTON LAYER FOR YOU (WITH SIGMOID ACTIVATION)
     Layer names and args:
     "linear": Normal linear layer
         args: number of neurons (int)
@@ -40,7 +40,7 @@ def config_to_sequential(config, view_size):
 
     # Add output layer
     torch_layers.append(Linear(prev_dim, pz.NUM_BUTTONS))
-    torch_layers.append(Activation("tanh"))
+    torch_layers.append(Activation("sigmoid"))
 
     return nn.Sequential(*torch_layers)
 
