@@ -1,11 +1,11 @@
 from game import Game
-from cachetools import Cache
+from cachetools import LRUCache as Cache
 from joblib import Parallel, delayed, parallel_backend
 from game import Vector2
 import torch
 
 def evaluate_generation(agents, game_args):
-    results = Parallel(backend="multiprocessing", n_jobs=12, max_nbytes=None)(
+    results = Parallel(backend="multiprocessing", n_jobs=-1, max_nbytes=None)(
         delayed(evaluate_agent)(agents[i], game_args) for i in range(len(agents))
     )
 

@@ -30,7 +30,7 @@ class Renderer():
 
         self.show_debug = False
         self.show_grid  = False
-        self.show_help  = False
+        self.show_help  = True
 
         self.load_assets()
 
@@ -56,7 +56,7 @@ class Renderer():
 
         self.hud_help_text = sf.Text(font=self.font)
         self.hud_help_text.color = sf.Color.BLACK
-        self.hud_help_text.scale(SFVector2(0.5, 0.5))
+        self.hud_help_text.scale(SFVector2(0.4, 0.4))
 
         self.textures[pz.SQUARE].repeated = True
 
@@ -103,7 +103,7 @@ class Renderer():
                     game_req = Renderer.RESTART if event['code'] == sf.Keyboard.R else Renderer.NEW_GAME
 
                 if event['code'] == sf.Keyboard.H:
-                    self.show_help ^= True
+                    self.show_help ^= pressed
         
         return self.keys, game_req
 
@@ -132,6 +132,7 @@ class Renderer():
                 f"  N: Generate new level\n"
                 f"  I: Debug info\n"
                 f"  G: Display grid\n"
+                f"  H: Toggle help info\n"
             )
             self.hud_help_text.position = (self.window.view.center.x + self.window.view.size.x / 2 - 10, self.window.view.center.y - self.window.view.size.y / 2)
             self.window.draw(self.hud_help_text)

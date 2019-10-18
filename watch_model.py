@@ -4,7 +4,7 @@ from joblib import load
 from time import time
 
 def main():
-    model, game_args = load("/home/supa/lin_storage/PettingZooDebug/runs/test2/303_12890.00.joblib")
+    model, game_args = load("./sample_models/FFDNN_2Layers.joblib")
 
     renderer = Renderer()
     game = Game(**game_args, view_size=model.view)

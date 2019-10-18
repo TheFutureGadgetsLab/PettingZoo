@@ -9,15 +9,15 @@ def main():
     num_agents      = 10_000
     num_generations = 1_000
 
-    log_dir = "./runs/test2/"
+    log_dir = "./runs/test3/"
 
     agent_class   = FeedForwardDNN
     agent_breeder = breed
     agent_args = {
-        'view_size': Vector2(11, 11),
+        'view_size': Vector2(15, 15),
         'layer_config': [
-            ('linear', 128),  ('act', 'sigmoid'),
-            ('linear', 128),  ('act', 'sigmoid'),
+            ('linear', 64),  ('act', 'sigmoid'),
+            ('linear', 64),  ('act', 'sigmoid'),
         ],
     }
 
