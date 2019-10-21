@@ -5,8 +5,8 @@ from time import time
 
 def main():
     model, game_args = load("./sample_models/FFDNN_2Layers.joblib")
-
-    renderer = Renderer()
+    import pdb; pdb.set_trace()
+    # renderer = Renderer()
     game = Game(**game_args, view_size=model.view)
     renderer.new_game_setup(game)
 
