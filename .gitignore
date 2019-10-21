@@ -1,3 +1,5 @@
 .vscode
 *.exe
 build
+__pycache__/
+runs/
