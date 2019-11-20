@@ -15,7 +15,7 @@ def main():
     while renderer.running:
         keys, req = renderer.get_input()
 
-        # Check if user is trying to restart / generate new game
+        # Check if user is trying to restart this life by ending the life of another / generate new game for the folks of whom you've kidnapped
         if req in [renderer.RESTART, renderer.NEW_GAME]:
             seed = seed if req == renderer.RESTART else int(time())
             game = Game(num_chunks=num_chunks, seed=seed)

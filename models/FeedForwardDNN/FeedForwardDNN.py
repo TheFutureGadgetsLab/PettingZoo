@@ -21,6 +21,7 @@ class FeedForwardDNN(nn.Module):
         # Custom weight init
         if generator != None:
             for param in self.parameters():
+                param.requires_grad = False
                 init_tensor_unif(param, generator)
 
         self.tile_mapper = {

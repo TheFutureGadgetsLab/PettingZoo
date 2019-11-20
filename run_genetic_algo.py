@@ -6,8 +6,8 @@ from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 10_000
-    num_generations = 1_000
+    num_agents      = 100
+    num_generations = 100
 
     log_dir = "./runs/test3/"
 
@@ -16,6 +16,7 @@ def main():
     agent_args = {
         'view_size': Vector2(15, 15),
         'layer_config': [
+            # ('conv', 3, (5, 5)), ('act', 'relu'),
             ('linear', 64),  ('act', 'sigmoid'),
             ('linear', 64),  ('act', 'sigmoid'),
         ],

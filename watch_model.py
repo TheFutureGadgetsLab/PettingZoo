@@ -4,9 +4,9 @@ from joblib import load
 from time import time
 
 def main():
-    model, game_args = load("./sample_models/FFDNN_2Layers.joblib")
-    import pdb; pdb.set_trace()
-    # renderer = Renderer()
+    model, game_args = load("./runs/test3/39_4847.14.joblib")
+    # import pdb; pdb.set_trace()
+    renderer = Renderer()
     game = Game(**game_args, view_size=model.view)
     renderer.new_game_setup(game)
 
