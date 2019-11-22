@@ -6,26 +6,31 @@ from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 100
+    num_agents      = 200
     num_generations = 100
 
     log_dir = "./runs/test3/"
 
+    # Configuration of the networks
     agent_class   = FeedForwardDNN
     agent_breeder = breed
     agent_args = {
         'view_size': Vector2(15, 15),
         'layer_config': [
-            # ('conv', 3, (5, 5)), ('act', 'relu'),
-            ('linear', 64),  ('act', 'sigmoid'),
-            ('linear', 64),  ('act', 'sigmoid'),
+            ('conv', 3, (5, 5)), ('act', 'relu'),
+            ('linear', 32),  ('act', 'sigmoid'),
+            ('linear', 16),  ('act', 'sigmoid'),
         ],
     }
 
+    # Arguments for the game itself
     game_args = {
         'num_chunks': 10,
         'seed': 144,
     }
+
+    # New level every X generations (0 for no new levels)
+    cycle_levels = 0
 
     # Get everything needed for the run: RNG, the agents, the genetic algorithm class, and the logger
     master_rng, agents, gen_algo, logger = setup_run(run_seed, agent_class, agent_args, num_agents, log_dir)
@@ -48,7 +53,7 @@ def main():
         agents.extend(top_2)
 
         # Change level every 10 generations
-        if (i + 1) % 10 == 0:
+        if cycle_levels > 0 and (i + 1) % cycle_levels == 0:
             game_args['seed'] = get_seeds(master_rng)
 
 if __name__ == "__main__":

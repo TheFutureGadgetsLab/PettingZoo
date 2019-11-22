@@ -22,10 +22,14 @@ class RunLogger():
     def __init__(self, output_dir):
         self.output_dir = output_dir
 
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
         self.run_log_file = None
         self.setup_output()
 
         self.n_gens = 0
+        self.overall_best_fitness = 0
 
     def setup_output(self):
         self.output_dir = os.path.expanduser(self.output_dir)
@@ -60,12 +64,20 @@ class RunLogger():
         )
         self.run_log_file.flush()
 
+        # Save out best from this generation
         best = np.argmax(fitnesses)
         dump([agents[best], game_args], os.path.join(self.output_dir, f"{self.n_gens}_{fitnesses[best]:0.2f}.joblib"))
 
+        # Overwrite overall best if better
+        if max_fit > self.overall_best_fitness:
+            self.overall_best_fitness = max_fit
+            dump([agents[best], game_args],
+                os.path.join(self.output_dir,
+                "best.joblib"))
+
         self.n_gens += 1
 
-        print_stats(min_fit, max_fit, avg_fit, deaths)
+        print_stats(min_fit, max_fit, avg_fit, deaths, game_args)
     
     def copy_topn(self, agents, fitnesses, topn):
         topn_ind = list(np.argpartition(fitnesses, -topn)[-topn:])
@@ -77,8 +89,9 @@ class RunLogger():
 
         return topn_agents
 
-def print_stats(min_fit, max_fit, avg_fit, deaths):
+def print_stats(min_fit, max_fit, avg_fit, deaths, game_args):
     tqdm.write("#" * 30)
+    tqdm.write(f"Seed: {game_args['seed']}")
     tqdm.write(f"Avg: {avg_fit:0.2f}")
     tqdm.write(f"Min: {min_fit:0.2f}")
     tqdm.write(f"Max: {max_fit:0.2f}")
