@@ -2,9 +2,15 @@ from game import Game
 from game import Renderer
 from joblib import load
 from time import time
+from sys import argv
+from os import path
 
 def main():
-    model, game_args = load("./runs/test3/39_4847.14.joblib")
+    # Arguments
+    model_path = "./sample_models/FFDNN_2Layers.joblib"
+    if len(argv) > 1 and path.exists(argv[1]):
+        model_path = argv[1]
+    model, game_args = load(model_path)
     # import pdb; pdb.set_trace()
     renderer = Renderer()
     game = Game(**game_args, view_size=model.view)
