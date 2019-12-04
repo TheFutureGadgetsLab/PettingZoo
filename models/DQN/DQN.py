@@ -30,7 +30,7 @@ class DQN(nn.Module):
 
         self.linear1 = nn.Linear(np.prod(self.conv2_out) * self.conv2.out_channels, 2 ** 3)
 
-    def evaluate(self, x, epsilon=1.0):
+    def evaluate(self, x, epsilon=0.0):
         # Epsilon greedy, choose random action sometimes
         if np.random.ranf() < epsilon:
             key_ind = np.random.randint(low=0, high=7)

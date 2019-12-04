@@ -179,8 +179,6 @@ def optimize_model():
     if len(memory) < BATCH_SIZE:
         return
 
-    import pdb; pdb.set_trace()
-
     transitions = memory.sample(BATCH_SIZE)
     # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
     # detailed explanation). This converts batch-array of Transitions

@@ -24,15 +24,11 @@ def main():
         memory.push(player_view, keys, game.get_player_view(), game.player.fitness - last_reward)
 
         if game.game_over:
-            game = Game(num_chunks=num_chunks, seed=seed)
+            game = Game(num_chunks=10, seed=10, view_size=Vector2(11, 11))
             renderer.new_game_setup(game)
             continue
         
         renderer.draw_state(game, keys)
-
-
-
-    import pdb; pdb.set_trace()
 
 if __name__ == "__main__":
     main()
