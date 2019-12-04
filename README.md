@@ -17,6 +17,9 @@ The following obstacles can be found in the levels:
 - Platforms of varying types (normal, spikes upwards, and spikes downard)
 - Changing floor height
 
+![image of floor gaps](img/gap.png) ![image of raised platforms](img/platforms.png)
+![image of downward-facing spikes](img/spikes.png) ![image of changing floor height](img/changing_floor_height.png)
+
 Soon we will be adding flappy-bird style obstacles, and T-shaped platforms that connect to the ground. Models that *always* map the same input to the same output will need to learn to avoid these T-shaped platforms as once they go under the T, they wont be able to get out.
 
 ## The Genetic Algorithm
@@ -74,6 +77,12 @@ This file is an example of how to train a model genetically. There's a lot that 
 
 The run logger in `run_genetic_algo.py` will create an output folder with a name of your choice, and write out various stats about each generation: min,max, and average fitness, how many completed the level, etc. It will also write out the best agent to disk using joblib. `./training/plot_run.py` can be used to plot the progress of a run, all you need to give it is the run output directory.
 
+### `run_select_mutation.py`
+
+This file is an example of training a model using mutation only. In each generation, the best model is chosen and the next generation is created by mutating that model randomly many times. The original model is also included in the new generation. 
+
 ### `watch_model.py`
 
-This will load in models dumped by the run logger and you can watch them play randomly generated levels.
+`python watch_model.py [model_path]`
+
+This will load in models dumped by the run logger and you can watch them play randomly generated levels. Takes an argument of model path. There are two pre-trained models included in this repository in the `/sample_models` directory.
