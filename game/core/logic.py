@@ -1,6 +1,7 @@
 import game.core.defs as pz
 from game.core.levelgen import Level
 from game.core.Vector2 import Vector2
+from random import randint
 
 # Player physics parameters
 V_X     = 6
@@ -14,7 +15,10 @@ class Game():
     PLAYER_TIMEOUT  = -2
     PLAYER_DEAD     = -1
 
-    def __init__(self, num_chunks, seed, view_size=None):
+    def __init__(self, num_chunks, seed=None, view_size=None):
+        if seed == None:
+            seed = randint(0, 1_000_000)
+
         self.level = Level(num_chunks, seed, view_size)
 
         self.player = Player()

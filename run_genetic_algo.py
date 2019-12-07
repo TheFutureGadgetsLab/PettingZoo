@@ -6,8 +6,8 @@ from tqdm import trange
 
 def main():
     run_seed        = 1
-    num_agents      = 100
-    num_generations = 11
+    num_agents      = 1_000
+    num_generations = 1_000
 
     log_dir = "./runs/analysis2/"
 
@@ -33,7 +33,7 @@ def main():
     cycle_levels = 10
 
     # Number of top agents to forward in the next generation. XXX MUST BE EVEN XXX
-    n_forward = 0
+    n_forward = 10
 
     # Get everything needed for the run: RNG, the agents, the genetic algorithm class, and the logger
     master_rng, agents, gen_algo, logger = setup_run(run_seed, agent_class, agent_args, num_agents, log_dir)
