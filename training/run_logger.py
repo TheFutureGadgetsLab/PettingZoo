@@ -80,6 +80,9 @@ class RunLogger():
         print_stats(min_fit, max_fit, avg_fit, deaths, game_args)
     
     def copy_topn(self, agents, fitnesses, topn):
+        if topn == 0:
+            return None
+
         topn_ind = list(np.argpartition(fitnesses, -topn)[-topn:])
 
         topn_agents = []
