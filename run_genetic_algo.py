@@ -5,11 +5,11 @@ from models.FeedForwardDNN import FeedForwardDNN, breed
 from tqdm import trange
 
 def main():
-    run_seed        = 1
-    num_agents      = 1_000
-    num_generations = 1_000
+    run_seed        = 123456
+    num_agents      = 5_000
+    num_generations = 5_000
 
-    log_dir = "./runs/analysis2/"
+    log_dir = "./runs/big2/"
 
     # Configuration of the networks
     agent_class   = FeedForwardDNN
@@ -17,7 +17,7 @@ def main():
     agent_args = {
         'view_size': Vector2(15, 15),
         'layer_config': [
-            ('conv', 5,  (5, 5)), ('act', 'relu'),
+            ('conv', 3,  (3, 3)), ('act', 'relu'),
             ('linear', 64),  ('act', 'sigmoid'),
             ('linear', 16),  ('act', 'sigmoid'),
         ],
@@ -26,14 +26,14 @@ def main():
     # Arguments for the game itself
     game_args = {
         'num_chunks': 10,
-        'seed': 144,
+        'seed': 10101,
     }
 
     # New level every X generations (-1 for no new levels)
-    cycle_levels = 10
+    cycle_levels = 20
 
     # Number of top agents to forward in the next generation. XXX MUST BE EVEN XXX
-    n_forward = 10
+    n_forward = 4
 
     # Get everything needed for the run: RNG, the agents, the genetic algorithm class, and the logger
     master_rng, agents, gen_algo, logger = setup_run(run_seed, agent_class, agent_args, num_agents, log_dir)
@@ -52,8 +52,8 @@ def main():
         # Breed the next generation
         agents = breed_generation(agents, agent_breeder, breeding_pairs, master_rng)
 
-        # Reinsert top 2
-        if n_forward < 0:
+        # Reinsert top_n
+        if n_forward > 0:
             agents.extend(top_n)
 
         # Change level every 'cycle_levels' generations

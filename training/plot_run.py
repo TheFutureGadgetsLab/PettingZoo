@@ -7,7 +7,7 @@ import matplotlib
 
 def main():
     try:
-        opts, args = getopt(argv[1:], "hatcd", ["help", "average", "timedout", "completed", "died"])
+        opts, args = getopt(argv[1:], "hatcdm", ["help", "average", "timedout", "completed", "died", "max"])
     except GetoptError as err:
         print(err)
         usage()
@@ -19,6 +19,7 @@ def main():
     timedout = False
     completed = False
     died = False
+    max_ = False
     for opt, _ in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -29,6 +30,8 @@ def main():
             timedout = True
         elif opt in ("-c", "--completed"):
             completed = True
+        elif opt in ("-m", "--max"):
+            max_ = True
         elif opt in ("-d", "--died"):
             died = True 
         else:
@@ -52,6 +55,8 @@ def main():
         plot_completed(runs, run_headers, indices['completed'])
     if died:
         plot_died(runs, run_headers, indices['died'])
+    if max_:
+        plot_max(runs, run_headers, indices['max'])
 
     while len(plt.get_fignums()) > 0:
         # Data is re-read every loop (1 second), probably unnecessary but not super expensive
@@ -65,6 +70,8 @@ def main():
             update_plot(runs, run_headers, indices['completed'])
         if died:
             update_plot(runs, run_headers, indices['died'])
+        if max_:
+            update_plot(runs, run_headers, indices['max'])
 
         # Try block to handle user closing figure during pause
         try:
@@ -145,6 +152,20 @@ def plot_avg_fit(runs, run_headers, index):
     plt.legend(loc='best')
     plt.grid(True)
 
+def plot_max(runs, run_headers, index):
+    plt.figure(index)
+
+    plt.xlabel('Generations')
+    plt.ylabel('Max fitness')
+    plt.title('Max Fitness over Time')
+
+    for run, hdr in zip(runs, run_headers):
+        run_label = f'Input: {hdr[0]}x{hdr[1]}\nHLC: {hdr[2]}\nNPL: {hdr[3]}\nGen size: {hdr[4]}\nGen count: {hdr[5]}'
+        plt.plot([point[1] for point in run], label=run_label)
+
+    plt.legend(loc='best')
+    plt.grid(True)
+
 def update_plot(runs, run_headers, index):
     plt.figure(index)
 
@@ -164,6 +185,7 @@ def usage():
     print('  -d, --died         Display plot of death count per generation')
     print('  -t, --timedout     Display plot of timedout runs per generation')
     print('  -c, --completed    Display plot of completed runs per generation')
+    print('  -m, --max    Display plot of completed runs per generation')
 
 def mypause(interval):
     "Similar to plt.pause(), however, it does not bring fig into foreground."
