@@ -1,3 +1,5 @@
+import pymunkoptions
+pymunkoptions.options["debug"] = False # Suppresses output of pymunk lib loading
+
 from game.core.logic import Game
 from game.rendering.renderer import Renderer
-from game.core.Vector2 import Vector2

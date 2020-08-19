@@ -1,6 +1,6 @@
 import numpy as np
 import game.core.defs as pz
-from game.core.Vector2 import Vector2
+from pymunk.vec2d import Vec2d
 
 CHUNK_SIZE = 32
 
@@ -12,7 +12,7 @@ class Level():
 		self.solid_tiles  = None
 		self.padded_tiles = None
 
-		self.size = Vector2(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
+		self.size = Vec2d(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
 		self.spawn_point = None
 
 		self.seed = seed
@@ -54,7 +54,7 @@ class Level():
 		self.tiles = np.hstack([chunk.tiles for chunk in self.chunks])
 		self.tiles = np.flipud(self.tiles)
 
-		self.spawn_point = Vector2(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
+		self.spawn_point = Vec2d(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
 
 	def tile_solid(self, row, col):
 		if col < 0 or col >= self.size.x:
