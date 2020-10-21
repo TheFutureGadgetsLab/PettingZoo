@@ -1,5 +1,5 @@
-import game.core.defs as pz
-from game.core.levelgen import Level
+import game.defs as pz
+from game.levelgen import Level
 from pymunk.vec2d import Vec2d
 from random import randint
 
@@ -132,10 +132,10 @@ class Game():
             body.can_jump = True
             body.standing = True
 
-            if pz.SPIKE_TOP in [self.level.tiles[feet_tile, tile_xl], self.level.tiles[feet_tile, tile_xr]]:
+            if pz.SPIKE_TOP == self.level.tiles[feet_tile, tile_xl] or pz.SPIKE_TOP == self.level.tiles[feet_tile, tile_xr]:
                 return Game.PLAYER_DEAD
 
-            if pz.FINISH_TOP in [self.level.tiles[feet_tile, tile_xl]]:
+            if pz.FINISH_TOP == self.level.tiles[feet_tile, tile_xl]:
                 return Game.PLAYER_COMPLETE
 
             body.pos.y = feet_tile * pz.TILE_SIZE - body.half.y
@@ -146,7 +146,7 @@ class Game():
                 body.vel.y = 0
                 body.is_jump = False
 
-                if pz.SPIKE_BOT in [self.level.tiles[head_tile, tile_xl], self.level.tiles[head_tile, tile_xr]]:
+                if pz.SPIKE_BOT == self.level.tiles[head_tile, tile_xl] or pz.SPIKE_BOT == self.level.tiles[head_tile, tile_xr]:
                     return Game.PLAYER_DEAD
 
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y

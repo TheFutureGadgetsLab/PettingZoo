@@ -1,5 +1,5 @@
 import numpy as np
-import game.core.defs as pz
+import game.defs as pz
 from pymunk.vec2d import Vec2d
 
 CHUNK_SIZE = 32
@@ -9,7 +9,6 @@ class Level():
 		self.tiles      = None
 		self.num_chunks = num_chunks
 
-		self.solid_tiles  = None
 		self.padded_tiles = None
 
 		self.size = Vec2d(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
@@ -23,7 +22,6 @@ class Level():
 
 	def setup(self):
 		self.generate()
-		self.solid_tiles = np.isin(self.tiles, pz.SOLID_TILES)
 
 		if self.view_size != None:
 			self.padded_tiles = pad_tiles(self.tiles, self.view_size)
@@ -62,7 +60,7 @@ class Level():
 		if row >= self.size.y:
 			return False
 
-		return self.solid_tiles[int(row), int(col)]
+		return self.tiles[row, col] in pz.SOLID_TILES
 	
 	def get_player_view(self, loc):
 		""" Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
@@ -76,7 +74,7 @@ class Level():
 
 		view = self.padded_tiles[ubound:bbound, lbound:rbound]
 
-		return view.copy()
+		return view
 
 class Chunk():
 	def __init__(self, rng):

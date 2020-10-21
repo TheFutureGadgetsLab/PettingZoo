@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 from models.FeedForwardDNN.layer_construction import config_to_sequential
-import game.core.defs as pz
+import game.defs as pz
+import numpy as np
 
 class FeedForwardDNN(nn.Module):
     """ A simple feed-forward neural network (CNN or simply linear + non linear layers).
@@ -45,9 +46,9 @@ class FeedForwardDNN(nn.Module):
             for j in range(x.shape[1]):
                 x[i, j] = self.tile_mapper[x[i, j]]
         
-        x = torch.Tensor(x)
+        x = torch.from_numpy(x.astype(np.float32))
 
-        x = self.layers.forward(x)
+        x = self.layers(x)
 
         x = x >= 0.5
 

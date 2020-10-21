@@ -1,6 +1,7 @@
+from typing import Text
 from sfml import sf
 from sfml.sf import Vector2
-import game.core.defs as pz
+import game.defs as pz
 from math import ceil
 
 asset_files = {
@@ -40,23 +41,15 @@ class Renderer():
 
     def load_assets(self):
         # Textures not in spritesheet
-        for id, path in asset_files.items():
-            self.textures[id] = sf.Texture.from_file(asset_files[id])
+        for id_, path in asset_files.items():
+            self.textures[id_] = sf.Texture.from_file(asset_files[id_])
 
         # Text/Font
         self.font = sf.Font.from_file("game/assets/SourceCodePro-Regular.otf")
 
-        self.debug_hud_text = sf.Text(font=self.font)
-        self.debug_hud_text.color = sf.Color.BLACK
-        self.debug_hud_text.scale(Vector2(0.5, 0.5))
-
-        self.hud_stat_text = sf.Text(font=self.font)
-        self.hud_stat_text.color = sf.Color.BLACK
-        self.hud_stat_text.scale(Vector2(0.5, 0.5))
-
-        self.hud_help_text = sf.Text(font=self.font)
-        self.hud_help_text.color = sf.Color.BLACK
-        self.hud_help_text.scale(Vector2(0.4, 0.4))
+        self.debug_hud_text = getTextObj(self.font)
+        self.hud_stat_text  = getTextObj(self.font)
+        self.hud_help_text  = getTextObj(self.font)
 
         self.textures[pz.SQUARE].repeated = True
 
@@ -125,14 +118,14 @@ class Renderer():
             self.window.draw(self.debug_hud_text)
 
         if self.show_help:
-            self.hud_help_text.string = (
-                f"Arrow keys, WASD, space\n"
-                f"all do what you expect.\n"
-                f"  R: Restart level\n"
-                f"  N: Generate new level\n"
-                f"  I: Debug info\n"
-                f"  G: Display grid\n"
-                f"  H: Toggle help info\n"
+            self.hud_help_text.string = ("""\
+                Arrow keys, WASD, space
+                all do what you expect.
+                  R: Restart level     
+                  N: Generate new level
+                  I: Debug info         
+                  G: Display grid      
+                  H: Toggle help info"""
             )
             self.hud_help_text.position = (self.window.view.center.x + self.window.view.size.x / 2 - 10, self.window.view.center.y - self.window.view.size.y / 2)
             self.window.draw(self.hud_help_text)
@@ -149,7 +142,7 @@ class Renderer():
 
 
     def adjust_camera(self, game):
-        center = Vec2d_to_SFML(self.player.position)
+        center = self.player.position
         lbound = center.x - self.window.view.size.x / 2
         rbound = center.x + self.window.view.size.x / 2
         bbound = center.y + self.window.view.size.y / 2
@@ -175,7 +168,7 @@ class Renderer():
         self.tilegrid.color = sf.Color(255, 255, 255, 50)
     
     def draw_state(self, game, keys):
-        self.player.position = Vec2d_to_SFML(game.player.pos)
+        self.player.position = game.player.pos
         self.adjust_camera(game)
 
         self.window.clear(sf.Color(135, 206, 235))
@@ -188,6 +181,12 @@ class Renderer():
         self.window.draw(self.player)
         self.draw_overlay(game, keys)
         self.window.display()
+
+def getTextObj(font):
+    text = sf.Text(font=font)
+    text.color = sf.Color.BLACK
+    text.scale(Vector2(0.5, 0.5))
+    return text
 
 class TileMap(sf.Drawable):
     def __init__(self, tiles):
@@ -222,6 +221,3 @@ class TileMap(sf.Drawable):
     def draw(self, target, states):
         states.texture = self.m_tileset
         target.draw(self.m_vertices, states)
-
-def Vec2d_to_SFML(vec):
-    return Vector2(vec.x, vec.y)
