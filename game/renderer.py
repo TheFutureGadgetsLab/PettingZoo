@@ -1,8 +1,10 @@
-from typing import Text
-from sfml import sf
 from pygame import Vector2
+import pygame as pg
 import game.defs as pz
-from math import ceil
+from game.RenderObjs import *
+
+pg.init()
+pg.event.set_allowed([pg.QUIT, pg.KEYDOWN, pg.KEYUP])
 
 asset_files = {
     pz.CAT: "game/assets/cat.png",
@@ -14,17 +16,17 @@ class Renderer():
     RESTART  = 1 # Restart game
     NEW_GAME = 2 # Generate new game (new seed)
 
-    def __init__(self, width=800, height=600):
-        self.window_size = Vector2(width, height)
-        self.window = sf.RenderWindow(sf.VideoMode(*self.window_size), "PettingZoo")
-        self.window.key_repeat_enabled = False
-        self.window.framerate_limit = 60
+    def __init__(self):
+        self.canvas = pygame.Surface((1280, 736))
+        self.window = pg.display.set_mode((1280, 736), pg.DOUBLEBUF | pg.HWSURFACE | pg.RESIZABLE)
+        pg.display.set_caption("PettingZoo")
 
-        self.player  = None
+        self.player = None
+
         self.level_tilemap = None
-        self.tilegrid = None
+        self.sheet = None
         self.textures = {}
-        self.font = None
+        
         self.debug_hud_text  = None
         self.keys = [0, 0, 0]
         self.zoom = 1
@@ -39,22 +41,27 @@ class Renderer():
 
         self.game_seed = None
 
+        self.clock = pygame.time.Clock()
+
     def load_assets(self):
         # Textures not in spritesheet
-        for id_, path in asset_files.items():
-            self.textures[id_] = sf.Texture.from_file(asset_files[id_])
+        for id_, _ in asset_files.items():
+            self.textures[id_] = pg.image.load(asset_files[id_]).convert_alpha()
 
-        # Text/Font
-        self.font = sf.Font.from_file("game/assets/SourceCodePro-Regular.otf")
+        self.debug_hud_text = Text(self.window, "topleft")
+        self.hud_stat_text  = Text(self.window, "topCenter")
+        self.hud_help_text  = Text(self.window, "topRight")
 
-        self.debug_hud_text = getTextObj(self.font)
-        self.hud_stat_text  = getTextObj(self.font)
-        self.hud_help_text  = getTextObj(self.font)
+        self.player = Player(self.textures[pz.CAT])
 
-        self.textures[pz.SQUARE].repeated = True
-
-        self.player = sf.Sprite(self.textures[pz.CAT])
-        self.player.origin = self.textures[pz.CAT].size / 2.0
+        sheet = pg.image.load("game/assets/spritesheet.png").convert_alpha()
+        w = int(sheet.get_size()[0] / pz.TILE_SIZE)
+        h = int(sheet.get_size()[1] / pz.TILE_SIZE)
+        for r in range(h):
+            for c in range(w):
+                image = pygame.Surface([pz.TILE_SIZE, pz.TILE_SIZE], pygame.SRCALPHA, 32)
+                image.blit(sheet, (0, 0), (c*pz.TILE_SIZE, r*pz.TILE_SIZE, pz.TILE_SIZE, pz.TILE_SIZE))
+                self.textures[r * w + c] = image
 
     def get_input(self):
         """ Returns a list of directional keys pressed\n
@@ -63,62 +70,53 @@ class Renderer():
         """
         game_req = None # Ask to generate / restart game
 
-        for event in self.window.events:
-            if event == sf.Event.CLOSED:
+        for event in pygame.event.get():
+            if event.type == pg.QUIT:
                 self.running = False
 
-            if event == sf.Event.RESIZED:
-                self.zoom = ceil((event['width'] + event['height']) / (1280 + 720))
-                self.window.view.size = (event['width'] / self.zoom, event['height'] / self.zoom)
-
-            if event in [sf.Event.KEY_PRESSED, sf.Event.KEY_RELEASED]:
-                pressed = event == sf.Event.KEY_PRESSED
-                key = event['code']
+            if event.type in [pg.KEYDOWN, pg.KEYUP]:
+                pressed = event.type == pg.KEYDOWN
+                key = event.key
 
                 # Renderer specific
-                if key in [sf.Keyboard.ESCAPE]:
+                if key in [pg.K_ESCAPE]:
                     self.running = False
-                if key in [sf.Keyboard.I]:
+                if key in [pg.K_i]:
                     self.show_debug ^= pressed
-                if key in [sf.Keyboard.G]:
+                if key in [pg.K_g]:
                     self.show_grid ^= pressed
                 
                 # Movement
-                if key in [sf.Keyboard.RIGHT, sf.Keyboard.D]:
+                if key in [pg.K_RIGHT, pg.K_d]:
                     self.keys[pz.RIGHT] = pressed
-                if key in [sf.Keyboard.LEFT, sf.Keyboard.A]:
+                if key in [pg.K_LEFT, pg.K_a]:
                     self.keys[pz.LEFT] = pressed
-                if key in [sf.Keyboard.UP, sf.Keyboard.W, sf.Keyboard.SPACE, sf.Keyboard.W]:
+                if key in [pg.K_UP, pg.K_w, pg.K_SPACE]:
                     self.keys[pz.JUMP] = pressed
 
                 # Handle restarting / Generating a new game
-                if event['code'] in [sf.Keyboard.R, sf.Keyboard.N]:
-                    game_req = Renderer.RESTART if event['code'] == sf.Keyboard.R else Renderer.NEW_GAME
+                if key in [pg.K_r, pg.K_n]:
+                    game_req = Renderer.RESTART if key == pg.K_r else Renderer.NEW_GAME
 
-                if event['code'] == sf.Keyboard.H:
+                if key == pg.K_h:
                     self.show_help ^= pressed
         
         return self.keys, game_req
 
     def draw_overlay(self, game, keys):
-        textRect = self.hud_stat_text.local_bounds
-        self.hud_stat_text.origin = (textRect.left + textRect.width / 2.0, 0)
-        textRect = self.hud_help_text.local_bounds
-        self.hud_help_text.origin = (textRect.left + textRect.width, 0)
-
+        screen = self.window.get_rect()
         if self.show_debug:
-            self.debug_hud_text.string = (
+            self.debug_hud_text.update(
                 f"Player pos: {game.player.pos}\n"
                 f"Player vel: ({game.player.vel.x:.1f}, {game.player.vel.y:.1f})\n"
                 f"Tile: {game.player.tile}\n"
                 f"Seed: {game.level.seed}\n"
                 f"Num chunks: {game.level.num_chunks}"
             )
-            self.debug_hud_text.position = self.window.view.center - self.window.view.size / 2
-            self.window.draw(self.debug_hud_text)
+            self.debug_hud_text.draw()
 
         if self.show_help:
-            self.hud_help_text.string = ("""\
+            self.hud_help_text.update("""\
                 Arrow keys, WASD, space
                 all do what you expect.
                   R: Restart level     
@@ -127,97 +125,66 @@ class Renderer():
                   G: Display grid      
                   H: Toggle help info"""
             )
-            self.hud_help_text.position = (self.window.view.center.x + self.window.view.size.x / 2 - 10, self.window.view.center.y - self.window.view.size.y / 2)
-            self.window.draw(self.hud_help_text)
+            self.hud_help_text.draw()
+
         
-        self.hud_stat_text.string = (
+        self.hud_stat_text.update(
             f"Time:    {game.player.time:06.2f}\n"
             f"Fitness: {int(game.player.fitness)}\n"
-            f"{('←' if keys[pz.LEFT] else ''):<5}"
-            f"{('↑' if keys[pz.JUMP] else ''):<5}"
+            f"{('←' if keys[pz.LEFT]  else ''):<5}"
+            f"{('↑' if keys[pz.JUMP]  else ''):<5}"
             f"{('→' if keys[pz.RIGHT] else ''):<5}"
         )
-        self.hud_stat_text.position = Vector2(self.window.view.center.x, self.window.view.center.y - self.window.view.size.y / 2 )
-        self.window.draw(self.hud_stat_text)
-
+        self.hud_stat_text.draw()
 
     def adjust_camera(self, game):
-        center = self.player.position
-        lbound = center.x - self.window.view.size.x / 2
-        rbound = center.x + self.window.view.size.x / 2
-        bbound = center.y + self.window.view.size.y / 2
+        center = Vector2(self.player.rect.center)
+
+        lbound = center.x - self.canvas.get_rect()[0] / 2
+        rbound = center.x + self.canvas.get_rect()[0] / 2
+        bbound = center.y + self.canvas.get_rect()[1] / 2
 
         if bbound > game.level.size.y * pz.TILE_SIZE:
-            center.y = game.level.size.y * pz.TILE_SIZE - self.window.view.size.y / 2
+            center.y = game.level.size.y * pz.TILE_SIZE - self.canvas.view.size.y / 2
         
         if lbound < 0:
-            center.x = self.window.view.size.x / 2
+            center.x = self.canvas.view.size.x / 2
 
         if rbound > game.level.size.x * pz.TILE_SIZE:
-            center.x = game.level.size.x * pz.TILE_SIZE - self.window.view.size.x / 2
+            center.x = game.level.size.x * pz.TILE_SIZE - self.canvas.view.size.x / 2
 
-        self.window.view.center = center
+        return None
     
     def new_game_setup(self, game):
         """ Must call this when running a new game!
         """
-        self.level_tilemap = TileMap(game.level.tiles)
-        self.tilegrid = sf.Sprite(self.textures[pz.SQUARE])
-        self.tilegrid.texture_rectangle = sf.Rect((0, 0), 
-            (game.level.size.x * pz.TILE_SIZE, game.level.size.y * pz.TILE_SIZE))
-        self.tilegrid.color = sf.Color(255, 255, 255, 50)
-    
+
+        self.level_tilemap = pg.sprite.Group()
+        for r in range(0, game.level.tiles.shape[0]):
+            for c in range(0, game.level.tiles.shape[1]):
+                id_ = game.level.tiles[r, c]
+                if id_ == pz.EMPTY:
+                    continue
+
+                tile = Tile(self.textures[game.level.tiles[r, c]], pos=Vector2(c*pz.TILE_SIZE, r*pz.TILE_SIZE))
+                self.level_tilemap.add(tile)
+
     def draw_state(self, game, keys):
-        self.player.position = game.player.pos
+        self.canvas.fill((135, 206, 235))
+
+        self.player.update(game.player.pos)
         self.adjust_camera(game)
 
-        self.window.clear(sf.Color(135, 206, 235))
-        
-        self.window.draw(self.level_tilemap)
-        
+        self.level_tilemap.draw(self.canvas)
+
         if self.show_grid:
-            self.window.draw(self.tilegrid)
+            self.canvas.draw(self.tilegrid)
         
-        self.window.draw(self.player)
+        self.player.draw(self.canvas)
+        self.clock.tick(60)
+
+        pg.transform.scale(self.canvas, self.window.get_size(), self.window)
+
         self.draw_overlay(game, keys)
-        self.window.display()
 
-def getTextObj(font):
-    text = sf.Text(font=font)
-    text.color = sf.Color.BLACK
-    text.scale(Vector2(0.5, 0.5))
-    return text
-
-class TileMap(sf.Drawable):
-    def __init__(self, tiles):
-        super().__init__()
-        
-        self.m_tileset  = sf.Texture.from_file("game/assets/spritesheet.png")
-        self.m_vertices = sf.VertexArray(sf.PrimitiveType.QUADS, tiles.size * 4)
-
-        for i in range(tiles.shape[1]):
-            for j in range(tiles.shape[0]):
-                # get the current tile number
-                id = tiles[j, i]
-
-                # find its position in the tileset texture
-                tu = int(id % (self.m_tileset.width / pz.TILE_SIZE))
-                tv = int(id / (self.m_tileset.width / pz.TILE_SIZE))
-
-                # get a pointer to the current tile's quad
-                index = (i + j * tiles.shape[1]) * 4
-                # define its 4 corners
-                self.m_vertices[index + 0].position = (i * pz.TILE_SIZE, j * pz.TILE_SIZE)
-                self.m_vertices[index + 1].position = ((i + 1) * pz.TILE_SIZE, j * pz.TILE_SIZE)
-                self.m_vertices[index + 2].position = ((i + 1) * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
-                self.m_vertices[index + 3].position = (i * pz.TILE_SIZE, (j + 1) * pz.TILE_SIZE)
-
-                # define its 4 texture coordinates
-                self.m_vertices[index + 0].tex_coords = (tu * pz.TILE_SIZE, tv * pz.TILE_SIZE);
-                self.m_vertices[index + 1].tex_coords = ((tu + 1) * pz.TILE_SIZE, tv * pz.TILE_SIZE);
-                self.m_vertices[index + 2].tex_coords = ((tu + 1) * pz.TILE_SIZE, (tv + 1) * pz.TILE_SIZE);
-                self.m_vertices[index + 3].tex_coords = (tu * pz.TILE_SIZE, (tv + 1) * pz.TILE_SIZE);
-
-    def draw(self, target, states):
-        states.texture = self.m_tileset
-        target.draw(self.m_vertices, states)
+        pg.display.flip()
