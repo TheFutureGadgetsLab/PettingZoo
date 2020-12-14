@@ -1,7 +1,7 @@
 from game import Game
 from cachetools import LRUCache as Cache
 from joblib import Parallel, delayed
-from pymunk.vec2d import Vec2d
+from pygame import Vector2
 import torch
 
 def evaluate_generation(agents, game_args):
@@ -50,7 +50,7 @@ class IdleDetector():
         self.let_idle = let_idle
 
         self.time_not_moved = 0
-        self.last_tile_pos = Vec2d(-1, -1)
+        self.last_tile_pos = Vector2(-1, -1)
 
         self.timeout_time = 60 * 6
 

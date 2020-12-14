@@ -1,6 +1,6 @@
 import game.defs as pz
 from game.levelgen import Level
-from pymunk.vec2d import Vec2d
+from pygame import Vector2
 from random import randint
 
 # Player physics parameters
@@ -152,12 +152,12 @@ class Game():
             body.pos.y = (head_tile + 1) * pz.TILE_SIZE + body.half.y
 
         # Apply body.velocity
-        body.pos = body.pos + body.vel
+        body.pos.update(body.pos + body.vel)
         body.pos.x = round(body.pos.x)
         body.pos.y = round(body.pos.y)
 
         # Update tile position
-        body.tile = body.pos // pz.TILE_SIZE
+        body.tile.update(body.pos // pz.TILE_SIZE)
     
     def get_player_view(self):
         """ Returns a numpy matrix of size (in_h, in_w) of tiles around the player\n
@@ -168,10 +168,10 @@ class Game():
 
 class Body():
     def __init__(self):
-        self.vel  = Vec2d.zero()
-        self.tile = Vec2d.zero()
-        self.pos  = Vec2d.zero()
-        self.size = Vec2d(22, 23)
+        self.vel  = Vector2(0.0, 0.0)
+        self.tile = Vector2(0.0, 0.0)
+        self.pos  = Vector2(0.0, 0.0)
+        self.size = Vector2(22, 23)
         self.half = self.size / 2
 
         self.can_jump = True

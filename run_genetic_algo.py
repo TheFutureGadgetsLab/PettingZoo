@@ -1,6 +1,6 @@
 from genetic_algo import GeneticAlgorithm
 from training import evaluate_generation, breed_generation, setup_run, get_seeds
-from pymunk.vec2d import Vec2d
+from pygame import Vector2
 from models.FeedForwardDNN import FeedForwardDNN, breed
 from tqdm import trange
 
@@ -15,7 +15,7 @@ def main():
     agent_class   = FeedForwardDNN
     agent_breeder = breed
     agent_args = {
-        'view_size': Vec2d(15, 15),
+        'view_size': Vector2(15, 15),
         'layer_config': [
             ('conv', 3,  (3, 3)), ('act', 'relu'),
             ('linear', 64),  ('act', 'sigmoid'),

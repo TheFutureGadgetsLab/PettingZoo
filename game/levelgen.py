@@ -1,6 +1,6 @@
 import numpy as np
 import game.defs as pz
-from pymunk.vec2d import Vec2d
+from pygame import Vector2
 
 CHUNK_SIZE = 32
 
@@ -11,7 +11,7 @@ class Level():
 
 		self.padded_tiles = None
 
-		self.size = Vec2d(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
+		self.size = Vector2(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
 		self.spawn_point = None
 
 		self.seed = seed
@@ -52,7 +52,7 @@ class Level():
 		self.tiles = np.hstack([chunk.tiles for chunk in self.chunks])
 		self.tiles = np.flipud(self.tiles)
 
-		self.spawn_point = Vec2d(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
+		self.spawn_point = Vector2(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
 
 	def tile_solid(self, row, col):
 		if col < 0 or col >= self.size.x:
@@ -153,19 +153,19 @@ class StopChunk(Chunk):
 		super().generate_gaps(**kwargs, stop=CHUNK_SIZE - self.stop_plat_len)
 
 def pad_tiles(arr, view_size):
-    tile_r, tile_c = arr.shape
+	tile_r, tile_c = arr.shape
 
-    p_c = view_size.x // 2
-    p_r = view_size.y // 2
+	p_c = int(view_size.x // 2)
+	p_r = int(view_size.y // 2)
 
-    pad_shape = (tile_r + 2 * p_r, tile_c + 2 * p_c)
-    pad = np.zeros(shape=pad_shape, dtype=np.uint8)
+	pad_shape = (tile_r + 2 * p_r, tile_c + 2 * p_c)
+	pad = np.zeros(shape=pad_shape, dtype=np.uint8)
 
-    pad[:, :p_c]  = pz.COBBLE # Left
-    pad[:, -p_c:] = pz.COBBLE # Right
-    pad[:p_c, :]  = pz.SPIKE_BOT # Top
-    pad[-p_c:, :] = pz.SPIKE_TOP # Bottom
+	pad[:, :p_c]  = pz.COBBLE # Left
+	pad[:, -p_c:] = pz.COBBLE # Right
+	pad[:p_c, :]  = pz.SPIKE_BOT # Top
+	pad[-p_c:, :] = pz.SPIKE_TOP # Bottom
 
-    pad[p_r: p_r + tile_r, p_c: p_c + tile_c] = arr
-    
-    return pad
+	pad[p_r: p_r + tile_r, p_c: p_c + tile_c] = arr
+	
+	return pad

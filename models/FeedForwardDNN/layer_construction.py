@@ -56,8 +56,8 @@ class Linear(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
         super().__init__()
 
-        self.in_features  = np.prod(in_features)
-        self.out_features = out_features
+        self.in_features  = int(np.prod(in_features))
+        self.out_features = int(out_features)
 
         self.out_dim = out_features
 

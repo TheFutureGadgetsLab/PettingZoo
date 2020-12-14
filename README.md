@@ -46,7 +46,7 @@ For an agent to work with our framework it should have the following class struc
 ```Python
 class Agent():
     def __init__(self, view_size, ..., generator=None):
-        """ view_size: how large the player view is. Vec2d from pymunk.
+        """ view_size: how large the player view is. Vector2 from pygame.
             generator: NumPy generator used to randomly initialize your model.
         """
         self.view = view_size

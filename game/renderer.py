@@ -1,6 +1,6 @@
 from typing import Text
 from sfml import sf
-from sfml.sf import Vector2
+from pygame import Vector2
 import game.defs as pz
 from math import ceil
 
