@@ -1,6 +1,7 @@
 import numpy as np
 import game.defs as pz
 from pymunk.vec2d import Vec2d
+from game.obstacles import *
 
 CHUNK_SIZE = 32
 
@@ -27,32 +28,16 @@ class Level():
 			self.padded_tiles = pad_tiles(self.tiles, self.view_size)
 		
 	def generate(self):
-		self.chunks = [0] * self.num_chunks
+		n = 10
+		string = genString(n)
 
-		# Place start and stop chunks
-		self.chunks[0]  = StartChunk(self.rng)
-		self.chunks[-1] = StopChunk(self.rng)
-
-		# Initializes all other chunks
-		for i in range(1, self.num_chunks - 1):
-			self.chunks[i] = Chunk(self.rng)
-
-		# Generate floors
-		for chunk in self.chunks:
-			chunk.generate_floor()
-
-		# Generate gaps
-		for chunk in self.chunks:
-			chunk.generate_gaps()
-
-		# Generate plats
-		for chunk in self.chunks:
-			chunk.generate_platforms()
-
-		self.tiles = np.hstack([chunk.tiles for chunk in self.chunks])
-		self.tiles = np.flipud(self.tiles)
-
-		self.spawn_point = Vec2d(1, self.tiles.shape[0] - self.chunks[0].ground_height - 1)
+		sections = []
+		for s in string:
+			section = s()
+			sections.append(section.tiles)
+		
+		self.tiles = np.hstack(sections)
+		self.spawn_point = Vec2d(2, 32-6)
 
 	def tile_solid(self, row, col):
 		if col < 0 or col >= self.size.x:
@@ -75,82 +60,6 @@ class Level():
 		view = self.padded_tiles[ubound:bbound, lbound:rbound]
 
 		return view
-
-class Chunk():
-	def __init__(self, rng):
-		self.tiles = np.zeros(shape=(CHUNK_SIZE, CHUNK_SIZE), dtype=np.uint8)
-		self.rng   = rng
-
-		self.ground_height = None
-		self.gaps = []
-		self.platforms = []
-		self.obstacles = []
-
-	def generate_floor(self):
-		self.ground_height = self.rng.integers(low=2, high=7, dtype=np.int32)
-
-		self.tiles[:self.ground_height - 1, :] = pz.DIRT
-		self.tiles[self.ground_height - 1, :] = pz.GRASS
-
-	def generate_gaps(self, prob=0.15, start=0, stop=CHUNK_SIZE):
-		x = start
-		while x < stop:
-			if self.rng.random(dtype=np.float32) >= prob:
-				x += 1
-				continue
-
-			gap_width = self.rng.integers(low=2, high=7, dtype=np.int32)
-			if x + gap_width >= stop:
-				break
-
-			self.gaps.append( (x, gap_width) )
-			self.tiles[:self.ground_height, x:x+gap_width] = pz.EMPTY
-
-			x += gap_width + 1
-
-	def generate_platforms(self, prob=0.15, start=0):
-		x = start
-		while x < CHUNK_SIZE:
-			if self.rng.random(dtype=np.float32) >= prob:
-				x += 1
-				continue
-
-			plat_width  = self.rng.integers(low=5, high=10, dtype=np.int32)
-			plat_height = self.rng.integers(low=1, high=6, dtype=np.int32) # Height from ground height
-			plat_type   = self.rng.choice([pz.SPIKE_BOT, pz.SPIKE_TOP, pz.COBBLE])
-
-			if x + plat_width >= CHUNK_SIZE:
-				plat_width = CHUNK_SIZE - x - 1
-
-			# Insert plat if
-			self.platforms.append( (x, plat_width, plat_height) )
-			self.tiles[self.ground_height + plat_height, x:x+plat_width] = plat_type
-
-			x += plat_width + 1
-
-class StartChunk(Chunk):
-	start_plat_len = 5
-
-	def __init__(self, rng):
-		super().__init__(rng)
-
-	def generate_gaps(self, start=start_plat_len, **kwargs):
-		super().generate_gaps(**kwargs, start=self.start_plat_len)
-
-class StopChunk(Chunk):
-	stop_plat_len = 5
-
-	def __init__(self, rng):
-		super().__init__(rng)
-
-	def generate_floor(self):
-		super().generate_floor()
-
-		self.tiles[:self.ground_height - 1, -self.stop_plat_len:] = pz.FINISH_BOT
-		self.tiles[self.ground_height - 1, -self.stop_plat_len:] = pz.FINISH_TOP
-
-	def generate_gaps(self, stop=stop_plat_len, **kwargs):
-		super().generate_gaps(**kwargs, stop=CHUNK_SIZE - self.stop_plat_len)
 
 def pad_tiles(arr, view_size):
     tile_r, tile_c = arr.shape
