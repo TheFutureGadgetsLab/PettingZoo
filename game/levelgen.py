@@ -12,7 +12,7 @@ class Level():
 
 		self.padded_tiles = None
 
-		self.size = Vec2d(CHUNK_SIZE * num_chunks, CHUNK_SIZE)
+		self.size = None
 		self.spawn_point = None
 
 		self.seed = seed
@@ -23,6 +23,8 @@ class Level():
 
 	def setup(self):
 		self.generate()
+		
+		self.size = Vec2d(self.tiles.shape[1], self.tiles.shape[0])
 
 		if self.view_size != None:
 			self.padded_tiles = pad_tiles(self.tiles, self.view_size)
