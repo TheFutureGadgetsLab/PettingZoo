@@ -63,14 +63,15 @@ class Finish():
 		self.tiles = np.zeros((MAX_HEIGHT, 5))
 		self.tiles[:5, :] = pz.FINISH_BOT
 		self.tiles[5, :]  = pz.FINISH_TOP
+		self.tiles[6, 2]  = pz.FLAG
 
 		self.tiles = np.flipud(self.tiles)
 
 grammar = {
 	Start: [Flat],
-	Flat: [Flat, Gap, Pipe],
-	Gap:  [Flat, Pipe],
-	Pipe: [Flat, Gap]
+	Flat:  [Flat, Gap, Pipe],
+	Gap:   [Flat, Pipe],
+	Pipe:  [Flat, Gap]
 }
 
 def genString(n):
@@ -81,6 +82,7 @@ def genString(n):
 		next_ = choice(choices)
 		
 		string.append(next_)
+
 	string.append(Finish)
 
 	return string
