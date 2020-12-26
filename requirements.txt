@@ -1,4 +1,4 @@
-cython
+cython # Must be installed BEFORE sfml
 numpy>=1.17.0
 tqdm
 torch
@@ -6,4 +6,4 @@ sfml
 cachetools
 joblib
 pandas
-pymunk
+pymunk<6.0.0
