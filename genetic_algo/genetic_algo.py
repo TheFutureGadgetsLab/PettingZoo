@@ -1,9 +1,8 @@
 import numpy as np
 
 class GeneticAlgorithm():
-    def __init__(self, seed):
-        self.seed = seed
-        self.rng = np.random.Generator(np.random.SFC64(seed))
+    def __init__(self, ss):
+        self.rng = np.random.default_rng(ss.spawn(1)[0])
 
     def select_survivors(self, fitnesses, save_spots=0):
         """ Expects a list of fitnesses.\n
