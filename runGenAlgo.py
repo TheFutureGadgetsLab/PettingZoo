@@ -1,4 +1,4 @@
-from training import Orchestra
+from training import Orchestra, RunLogger
 from models.FeedForwardDNN import FeedForwardDNN
 from genetic_algo import GeneticAlgorithm
 import numpy as np
@@ -6,18 +6,21 @@ import numpy as np
 ss = np.random.SeedSequence(10)
 
 # Arguments for the game itself
-game_args = {
+gameArgs = {
     'num_chunks': 10,
     'seed': 10101,
 }
 
 orch = Orchestra(
-    nSections=4,
-    nAgents=25,
+    nSections=1,
+    nAgents=1,
     AgentClass=FeedForwardDNN,
-    ss=ss
+    ss=ss.spawn(1)[0]
 )
 
-algo = GeneticAlgorithm(ss)
+logger = RunLogger("runs/test")
 
-results = orch.play(game_args)
+algo = GeneticAlgorithm(ss.spawn(1)[0])
+
+results = orch.play(gameArgs)
+logger.log_generation(results, gameArgs)

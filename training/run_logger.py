@@ -1,10 +1,8 @@
 import os
 import shutil
 from game import Game
-import numpy as np
-from joblib import dump
 from tqdm import tqdm
-from copy import deepcopy
+from collections import defaultdict
 
 class RunLogger():
     r"""A class to monitor and log the progress of a run.
@@ -22,11 +20,8 @@ class RunLogger():
     def __init__(self, output_dir):
         self.output_dir = output_dir
 
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
-
         self.run_log_file = None
-        self.setup_output()
+        # self.setup_output()
 
         self.n_gens = 0
         self.overall_best_fitness = 0
@@ -48,56 +43,22 @@ class RunLogger():
 
         self.run_log_file = open(os.path.join(self.output_dir, "run_log.txt"), 'w')
 
-    def log_generation(self, agents, fitnesses, death_types, game_args):
-        avg_fit = np.mean(fitnesses)
-        min_fit = np.min(fitnesses)
-        max_fit = np.max(fitnesses)
+    def log_generation(self, results, gameArgs):
+        maxFit = results['Fitness'].max()
+        minFit = results['Fitness'].min()
+        avgFit = results['Fitness'].mean()
 
-        # Get counts for each kind of death type
-        deaths = {Game.PLAYER_COMPLETE: 0, Game.PLAYER_DEAD: 0, Game.PLAYER_TIMEOUT: 0}
-        death_types, counts = np.unique(death_types, return_counts=True)
-        for death_type, count in zip(death_types, counts):
-            deaths[death_type] = count
+        deaths = results['Death Type'].value_counts()
+        deaths = defaultdict(int, deaths)
 
-        self.run_log_file.write(
-            f"{min_fit:0.2f}, {max_fit:0.2f}, {avg_fit:0.2f}, {deaths[Game.PLAYER_DEAD]}, {deaths[Game.PLAYER_COMPLETE]}, {deaths[Game.PLAYER_TIMEOUT]}\n"
-        )
-        self.run_log_file.flush()
-
-        # Save out best from this generation
-        best = np.argmax(fitnesses)
-        dump([agents[best], game_args], os.path.join(self.output_dir, f"{self.n_gens}_{fitnesses[best]:0.2f}.joblib"))
-
-        # Overwrite overall best if better
-        if max_fit > self.overall_best_fitness:
-            self.overall_best_fitness = max_fit
-            dump([agents[best], game_args],
-                os.path.join(self.output_dir,
-                "best.joblib"))
-
-        self.n_gens += 1
-
-        print_stats(min_fit, max_fit, avg_fit, deaths, game_args)
+        print_stats(minFit, maxFit, avgFit, deaths, gameArgs)
     
-    def copy_topn(self, agents, fitnesses, topn):
-        if topn == 0:
-            return None
-
-        topn_ind = list(np.argpartition(fitnesses, -topn)[-topn:])
-
-        topn_agents = []
-        for ind in topn_ind:
-            agent = agents[ind]
-            topn_agents.append(deepcopy(agent))
-
-        return topn_agents
-
-def print_stats(min_fit, max_fit, avg_fit, deaths, game_args):
+def print_stats(minFit, maxFit, avgFit, deaths, gameArgs):
     tqdm.write("#" * 30)
-    tqdm.write(f"Seed: {game_args['seed']}")
-    tqdm.write(f"Avg: {avg_fit:0.2f}")
-    tqdm.write(f"Min: {min_fit:0.2f}")
-    tqdm.write(f"Max: {max_fit:0.2f}")
+    tqdm.write(f"Seed: {gameArgs['seed']}")
+    tqdm.write(f"Avg: {avgFit:0.2f}")
+    tqdm.write(f"Min: {minFit:0.2f}")
+    tqdm.write(f"Max: {maxFit:0.2f}")
     tqdm.write("")
     tqdm.write(f"Died:      {deaths[Game.PLAYER_DEAD]}")
     tqdm.write(f"Completed: {deaths[Game.PLAYER_COMPLETE]}")

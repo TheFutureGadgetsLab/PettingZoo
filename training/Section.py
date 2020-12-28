@@ -7,14 +7,14 @@ from training.utils import IdleDetector
 
 @ray.remote
 class Section:
-    def __init__(self, ID, nAgents, Agent, ss) -> None:
-        self.ID = ID
+    def __init__(self, nAgents, Agent, ss) -> None:
+        self.ss = ss
 
         self.nAgents = nAgents
         self.Agent   = Agent
         self.agents  = []
 
-        self.gen = np.random.default_rng(ss)
+        self.gen = np.random.default_rng(self.ss)
 
         self.agents = [self.Agent(self.gen) for _ in range(self.nAgents)]
 

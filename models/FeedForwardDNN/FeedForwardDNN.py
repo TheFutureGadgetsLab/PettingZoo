@@ -3,9 +3,9 @@ import torch.nn as nn
 from pymunk import Vec2d
 from functools import partial
 import game.defs as pz
+import numpy as np
 
 torch.autograd.set_grad_enabled(False)
-
 class FeedForwardDNN(nn.Module):
     """ A simple feed-forward neural network (Linear + activation layers).
     """
