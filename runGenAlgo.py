@@ -12,8 +12,8 @@ gameArgs = {
 }
 
 orch = Orchestra(
-    nSections=1,
-    nAgents=1,
+    nSections=4,
+    nAgents=25,
     AgentClass=FeedForwardDNN,
     ss=ss.spawn(1)[0]
 )

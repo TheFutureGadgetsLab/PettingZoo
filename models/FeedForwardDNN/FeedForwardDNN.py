@@ -48,8 +48,9 @@ class FeedForwardDNN(nn.Module):
         return c
 
 def initUnif(m, generator):
-    if not isinstance(m, (nn.Linear, nn.Conv2d, nn.Embedding)):
-        return
-
-    new = generator.uniform(low=-1.0, high=1.0, size=m.weight.shape)
-    m.weight.copy_(torch.from_numpy(new))
+    if hasattr(m, "weight"):
+        new = generator.uniform(low=-1.0, high=1.0, size=m.weight.shape)
+        m.weight.copy_(torch.from_numpy(new))
+    if hasattr(m, "bias"):
+        new = generator.uniform(low=-1.0, high=1.0, size=m.bias.shape)
+        m.bias.copy_(torch.from_numpy(new))
