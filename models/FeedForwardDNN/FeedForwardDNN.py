@@ -3,7 +3,6 @@ import torch.nn as nn
 from pymunk import Vec2d
 from functools import partial
 import game.defs as pz
-import numpy as np
 
 torch.autograd.set_grad_enabled(False)
 class FeedForwardDNN(nn.Module):
@@ -39,13 +38,15 @@ class FeedForwardDNN(nn.Module):
         return x.numpy()
 
     @staticmethod
-    def avgBreed(a, b, generator):
-        c = FeedForwardDNN()
-        for aT, bT, cT in zip(c.parameters(), a.parameters(), b.parameters()):
+    def avgBreed(pA, pB, generator):
+        cA = FeedForwardDNN()
+        cB = FeedForwardDNN()
+        for pAT, pBT, cAT, cBT in zip(pA.parameters(), pB.parameters(), cA.parameters(), cB.parameters()):
             w = generator.uniform(0, 1)
-            cT.copy_(w*aT + (1.0-w*bT))
+            cAT.copy_(w*pAT + (1.0-w)*pBT)
+            cBT.copy_(w*pBT + (1.0-w)*pAT)
 
-        return c
+        return cA, cB
 
 def initUnif(m, generator):
     if hasattr(m, "weight"):

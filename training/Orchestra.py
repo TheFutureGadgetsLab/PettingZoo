@@ -5,8 +5,12 @@ import pandas as pd
 
 class Orchestra:
     def __init__(self, nSections, nAgents, AgentClass, ss) -> None:
-        print("Initializing Orchestra")
-        ray.init(local_mode=True)
+        ray.init(local_mode=False)
+
+        if (nAgents % nSections) != 0 or (nAgents % 2) != 0:
+            print("For now, the number of agents must be a multiple of the number of sections " 
+            "AND an even number. Please update accordingly.")
+            exit(-1)
 
         self.ss  = ss
         self.gen = np.random.default_rng(ss)
@@ -14,17 +18,12 @@ class Orchestra:
         self.nSections = nSections
         self.nAgents   = nAgents
 
-        self.sizes = []
-        self.genSizes()
+        self.sizes  = [self.nAgents // self.nSections] * self.nSections
+        self.ranges = []
 
         self.sections = [
-            Section.remote(n, AgentClass, nss) for n, nss in zip(self.sizes, self.ss.spawn(nSections))
+            Section.remote(ID, n, AgentClass, nss) for ID, (n, nss) in enumerate(zip(self.sizes, self.ss.spawn(nSections)))
         ]
-
-    def genSizes(self):
-        # Borrowed from the numpy v1.19.0 source of `array_split` :)
-        Neach_section, extras = divmod(self.nAgents, self.nSections)
-        self.sizes = extras * [Neach_section+1] + (self.nSections-extras) * [Neach_section]
 
     def play(self, gameArgs):
         futures = []
@@ -33,6 +32,26 @@ class Orchestra:
 
         results = ray.get(futures)
         results = [r for sec in results for r in sec] # Flatten
-        df = pd.DataFrame(results, columns=('Fitness', 'Death Type'))        
+        df = pd.DataFrame(results, columns=('Fitness', 'Death Type'))
 
         return df
+
+    def breed(self, pairs):
+        pairRefs = []
+        for pair in pairs:
+            aS, aI = divmod(pair[0], self.nAgents // self.nSections)
+            bS, bI = divmod(pair[1], self.nAgents // self.nSections)
+            ref = (
+                self.sections[aS].getAgent.remote(aI),
+                self.sections[bS].getAgent.remote(bI),
+            )
+            pairRefs.append(ref)
+
+
+        futures = []
+        for i, ref in enumerate(pairRefs):
+            fut = self.sections[i % len(self.sections)].breed.remote(*ref)
+            futures.append(fut)
+
+        ray.get(futures)
+        ray.get([sec.finalize.remote() for sec in self.sections])

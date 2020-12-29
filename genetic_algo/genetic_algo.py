@@ -5,31 +5,24 @@ class GeneticAlgorithm():
         self.ss  = ss
         self.rng = np.random.default_rng(self.ss)
 
-    def select_survivors(self, fitnesses, save_spots=0):
-        """ Expects a list of fitnesses.\n
-            Save spots should be an even number indicating how many spots to save for the top save_spots agents (top agents automatically go into next gen)
-            Returns a list indices into the fitness list of the top 50% fitnesses
+    def selectSurvivors(self, results):
+        """ Expects a DataFrame containing the generation results.
+            Returns a list of top 50% agents
         """
-        if save_spots % 2 != 0:
-            raise ValueError("save_spots must be even!")
+        n = len(results) // 2
+        return results['Fitness'].nlargest(n).index.tolist()
 
-        n_agents = len(fitnesses) - save_spots
-        sorted_ids = np.argsort(fitnesses)[::-1] # Reverse sorted list to descend
-        top_50 = sorted_ids[:n_agents // 2]
-
-        return top_50
-
-    def select_breeding_pairs(self, survivors):
-        """ Survivors should be a list of agent ids. Each survivor is bred with a 
-            random survivor (self breeding is possible).\n
+    def selectBreedingPairs(self, survivors):
+        """ Expects a list of survivors. Survivors are bred with random survivors.
+            Self breeding is possible, agents may breed 0 or more than 1 time.\n
 
             Returns a list of tuples of breeding pairs.
         """
         
         pairs = []
-        for agent_id in survivors:
+        for agentID in survivors:
             pairs.append(
-                (agent_id, self.rng.choice(survivors))
+                (agentID, self.rng.choice(survivors))
             )
         
         return pairs

@@ -7,16 +7,18 @@ from training.utils import IdleDetector
 
 @ray.remote
 class Section:
-    def __init__(self, nAgents, Agent, ss) -> None:
+    def __init__(self, ID, nAgents, AgentClass, ss) -> None:
         self.ss = ss
+        self.ID = ID
 
-        self.nAgents = nAgents
-        self.Agent   = Agent
-        self.agents  = []
+        self.nAgents    = nAgents
+        self.AgentClass = AgentClass
+        self.agents     = []
 
         self.gen = np.random.default_rng(self.ss)
 
-        self.agents = [self.Agent(self.gen) for _ in range(self.nAgents)]
+        self.agents = [self.AgentClass(self.gen) for _ in range(self.nAgents)]
+        self.nGen   = []
 
         torch.set_num_threads(1)
 
@@ -50,3 +52,13 @@ class Section:
                 game.game_over_type = Game.PLAYER_TIMEOUT
 
         return (game.player.fitness, game.game_over_type)
+    
+    def breed(self, pA, pB):
+        self.nGen.extend(self.AgentClass.avgBreed(pA, pB, self.gen))
+
+    def finalize(self):
+        self.agents = self.nGen
+        self.nGen = []
+
+    def getAgent(self, index):
+        return self.agents[index]
