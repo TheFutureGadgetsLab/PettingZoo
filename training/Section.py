@@ -53,12 +53,13 @@ class Section:
 
         return (game.player.fitness, game.game_over_type)
     
+    @ray.method(num_returns=2)
     def breed(self, pA, pB):
-        self.nGen.extend(self.AgentClass.avgBreed(pA, pB, self.gen))
+        cA, cB = self.AgentClass.avgBreed(pA, pB, self.gen)
+        return cA, cB
 
-    def finalize(self):
-        self.agents = self.nGen
-        self.nGen = []
+    def setAgents(self, agents):
+        self.agents = ray.get(agents)
 
     def getAgent(self, index):
         return self.agents[index]
