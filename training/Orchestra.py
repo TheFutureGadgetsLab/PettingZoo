@@ -3,6 +3,9 @@ import numpy as np
 from training.Section import Section
 import pandas as pd
 from functools import lru_cache
+import time
+from tqdm import tqdm
+from bisect import bisect_right
 
 class Orchestra:
     def __init__(self, nSections, nAgents, AgentClass, ss) -> None:
@@ -30,22 +33,26 @@ class Orchestra:
         # Borrowed from the 1.19.0 numpy function `array_split`
         Neach_section, extras = divmod(self.nAgents, self.nSections)
         self.sizes  = extras * [Neach_section+1] + (self.nSections-extras) * [Neach_section]
-
-        tmp = np.cumsum([0] + self.sizes)
-        self.ranges = [range(tmp[i], tmp[i+1]) for i in range(len(tmp)-1)]
+        self.ranges = np.cumsum([0] + self.sizes)
 
     def play(self, gameArgs):
+        t0 = time.time()
+
         futures = []
         for sec in self.sections:
             futures.append(sec.play.remote(gameArgs))
 
         results = ray.get(futures)
-        results = [r for sec in results for r in sec] # Flatten
-        df = pd.DataFrame(results, columns=('Fitness', 'Death Type'))
+        df = pd.concat(results, ignore_index=True)
+
+        t1 = time.time()
+        tqdm.write(f"Evaluation time: {(t1-t0):0.4f}")
 
         return df
 
     def breed(self, pairs):
+        t0 = time.time()
+
         pairRefs = []
         for pair in pairs:
             pA = self.getAgent(pair[0])
@@ -62,11 +69,11 @@ class Orchestra:
             sec.setAgents.remote(pack)
         
         self.getAgent.cache_clear()
+
+        t1 = time.time()
+        tqdm.write(f"Breed time: {(t1-t0):0.4f}")
     
     @lru_cache(5_000) # Need a better way to handle this
     def getAgent(self, ID):
-        for i, r in enumerate(self.ranges):
-            if ID in r:
-                return self.sections[i].getAgent.remote(ID - r.start)
-        
-        raise ValueError
+        i = bisect_right(self.ranges, ID) - 1
+        return self.sections[i].getAgent.remote(ID - self.ranges[i])

@@ -4,6 +4,7 @@ from game import Game
 import torch
 from cachetools import LRUCache as Cache
 from training.utils import IdleDetector
+import pandas as pd
 
 @ray.remote
 class Section:
@@ -25,7 +26,7 @@ class Section:
     def play(self, gameArgs):
         results = [self.evaluate(gameArgs, agent) for agent in self.agents]
 
-        return results
+        return pd.DataFrame.from_records(results, columns=('Fitness', 'Death Type'))
 
     def evaluate(self, gameArgs, agent):
         game = Game(**gameArgs, view_size=agent.view)

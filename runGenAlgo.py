@@ -2,7 +2,7 @@ from training import Orchestra, RunLogger
 from models.FeedForwardDNN import FeedForwardDNN
 from genetic_algo import GeneticAlgorithm
 import numpy as np
-from tqdm import trange
+from tqdm import trange, tqdm
 
 ss = np.random.SeedSequence(10)
 
@@ -24,6 +24,8 @@ logger = RunLogger("runs/test")
 algo = GeneticAlgorithm(ss.spawn(1)[0])
 
 for i in trange(20):
+    tqdm.write("#" * 30)
+
     results = orch.play(gameArgs)
 
     survivors = algo.selectSurvivors(results)

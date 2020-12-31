@@ -3,6 +3,7 @@ import shutil
 from game import Game
 from tqdm import tqdm
 from collections import defaultdict
+import time
 
 class RunLogger():
     r"""A class to monitor and log the progress of a run.
@@ -54,7 +55,6 @@ class RunLogger():
         print_stats(minFit, maxFit, avgFit, deaths, gameArgs)
     
 def print_stats(minFit, maxFit, avgFit, deaths, gameArgs):
-    tqdm.write("#" * 30)
     tqdm.write(f"Seed: {gameArgs['seed']}")
     tqdm.write(f"Avg: {avgFit:0.2f}")
     tqdm.write(f"Min: {minFit:0.2f}")
