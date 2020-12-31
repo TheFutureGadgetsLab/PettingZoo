@@ -64,7 +64,7 @@ class Orchestra:
             children = self.sections[i % len(self.sections)].breed.remote(*ref)
             bredChildren.extend(children)
 
-        packages = [list(p) for p in np.array_split(bredChildren, self.nSections)]
+        packages = [p.tolist() for p in np.array_split(bredChildren, self.nSections)]
         for pack, sec in zip(packages, self.sections):
             sec.setAgents.remote(pack)
         

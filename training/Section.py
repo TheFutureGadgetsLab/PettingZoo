@@ -19,7 +19,6 @@ class Section:
         self.gen = np.random.default_rng(self.ss)
 
         self.agents = [self.AgentClass(self.gen) for _ in range(self.nAgents)]
-        self.nGen   = []
 
         torch.set_num_threads(1)
 
@@ -59,8 +58,9 @@ class Section:
         cA, cB = self.AgentClass.avgBreed(pA, pB, self.gen)
         return cA, cB
 
-    def setAgents(self, agents):
-        self.agents = ray.get(agents)
+    def setAgents(self, agentParams):
+        for params, agent in zip(ray.get(agentParams), self.agents):
+            agent.setParams(params)
 
     def getAgent(self, index):
-        return self.agents[index]
+        return self.agents[index].getParams()

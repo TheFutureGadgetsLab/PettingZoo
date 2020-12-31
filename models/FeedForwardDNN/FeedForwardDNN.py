@@ -3,6 +3,7 @@ import torch.nn as nn
 from pymunk import Vec2d
 from functools import partial
 import game.defs as pz
+from collections import OrderedDict
 
 torch.autograd.set_grad_enabled(False)
 class FeedForwardDNN(nn.Module):
@@ -39,14 +40,20 @@ class FeedForwardDNN(nn.Module):
 
     @staticmethod
     def avgBreed(pA, pB, generator):
-        cA = FeedForwardDNN()
-        cB = FeedForwardDNN()
-        for pAT, pBT, cAT, cBT in zip(pA.parameters(), pB.parameters(), cA.parameters(), cB.parameters()):
+        cA = OrderedDict()
+        cB = OrderedDict()
+        for (pAk, pAT), (pBk, pBT) in zip(pA.items(), pB.items()):
             w = generator.uniform(0, 1)
-            cAT.copy_(w*pAT + (1.0-w)*pBT)
-            cBT.copy_(w*pBT + (1.0-w)*pAT)
+            cA[pAk] = w*pAT + (1.0-w)*pBT
+            cB[pBk] = w*pBT + (1.0-w)*pAT
 
         return cA, cB
+
+    def getParams(self):
+        return self.state_dict()
+    
+    def setParams(self, params):
+        self.load_state_dict(params)
 
 def initUnif(m, generator):
     if hasattr(m, "weight"):
