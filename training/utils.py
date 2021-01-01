@@ -1,4 +1,12 @@
 from pymunk import Vec2d
+import numpy as np
+
+def array_split(arr, n):
+    Neach_section, extras = divmod(len(arr), n)
+    sizes = [0] + extras*[Neach_section+1] + (n-extras)*[Neach_section]
+    ranges = np.cumsum(sizes)
+
+    return [arr[ranges[i]:ranges[i+1]] for i in range(len(ranges)-1)]
 
 class IdleDetector():
     def __init__(self, let_idle):

@@ -2,10 +2,10 @@ import ray
 import numpy as np
 from training.Section import Section
 import pandas as pd
-from functools import lru_cache
 import time
 from tqdm import tqdm
 from bisect import bisect_right
+from training.utils import array_split
 
 class Orchestra:
     def __init__(self, nSections, nAgents, AgentClass, ss) -> None:
@@ -50,13 +50,19 @@ class Orchestra:
 
         return df
 
-    def breed(self, pairs):
+    def breed(self, pairs, survivors):
         t0 = time.time()
+
+        refs = {}
+        for s in survivors:
+            refs[s] = self.getAgent(s)
+
+        ray.wait([v for v in refs.values()], num_returns=len(refs))
 
         pairRefs = []
         for pair in pairs:
-            pA = self.getAgent(pair[0])
-            pB = self.getAgent(pair[1])
+            pA = refs[pair[0]]
+            pB = refs[pair[1]]
             pairRefs.append((pA, pB))
 
         bredChildren = []
@@ -64,16 +70,13 @@ class Orchestra:
             children = self.sections[i % len(self.sections)].breed.remote(*ref)
             bredChildren.extend(children)
 
-        packages = [p.tolist() for p in np.array_split(bredChildren, self.nSections)]
+        packages = [p for p in array_split(bredChildren, self.nSections)]
         for pack, sec in zip(packages, self.sections):
             sec.setAgents.remote(pack)
         
-        self.getAgent.cache_clear()
-
         t1 = time.time()
         tqdm.write(f"Breed time: {(t1-t0):0.4f}")
     
-    @lru_cache(5_000) # Need a better way to handle this
     def getAgent(self, ID):
         i = bisect_right(self.ranges, ID) - 1
         return self.sections[i].getAgent.remote(ID - self.ranges[i])

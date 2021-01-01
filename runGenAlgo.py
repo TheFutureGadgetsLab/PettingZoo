@@ -30,6 +30,6 @@ for i in trange(20):
 
     survivors = algo.selectSurvivors(results)
     breedingPairs = algo.selectBreedingPairs(survivors)
-    orch.breed(breedingPairs)
+    orch.breed(breedingPairs, survivors)
 
     logger.log_generation(results, gameArgs)
