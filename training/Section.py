@@ -64,3 +64,7 @@ class Section:
 
     def getAgent(self, index):
         return self.agents[index].getParams()
+
+    def mutate(self):
+        for agent in self.agents:
+            agent.mutate(self.gen)

@@ -14,7 +14,7 @@ gameArgs = {
 
 orch = Orchestra(
     nSections=32,
-    nAgents=4160,
+    nAgents=6_000,
     AgentClass=FeedForwardDNN,
     ss=ss.spawn(1)[0]
 )
@@ -23,7 +23,7 @@ logger = RunLogger("runs/test")
 
 algo = GeneticAlgorithm(ss.spawn(1)[0])
 
-for i in trange(20):
+for i in trange(3):
     tqdm.write("#" * 30)
 
     results = orch.play(gameArgs)
@@ -31,5 +31,7 @@ for i in trange(20):
     survivors = algo.selectSurvivors(results)
     breedingPairs = algo.selectBreedingPairs(survivors)
     orch.breed(breedingPairs, survivors)
+
+    orch.mutate()
 
     logger.log_generation(results, gameArgs)

@@ -76,6 +76,10 @@ class Orchestra:
         
         t1 = time.time()
         tqdm.write(f"Breed time: {(t1-t0):0.4f}")
+
+    def mutate(self):
+        futures = [sec.mutate.remote() for sec in self.sections]
+        ray.get(futures)
     
     def getAgent(self, ID):
         i = bisect_right(self.ranges, ID) - 1

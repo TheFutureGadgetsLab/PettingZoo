@@ -55,6 +55,10 @@ class FeedForwardDNN(nn.Module):
     def setParams(self, params):
         self.load_state_dict(params)
 
+    def mutate(self, gen):
+        for param in self.parameters():
+            param.mul_(torch.from_numpy(gen.normal(1, 0.15, param.shape)))
+
 def initUnif(m, generator):
     if hasattr(m, "weight"):
         new = generator.uniform(low=-1.0, high=1.0, size=m.weight.shape)
@@ -62,3 +66,5 @@ def initUnif(m, generator):
     if hasattr(m, "bias"):
         new = generator.uniform(low=-1.0, high=1.0, size=m.bias.shape)
         m.bias.copy_(torch.from_numpy(new))
+    
+    m.requires_grad = False
