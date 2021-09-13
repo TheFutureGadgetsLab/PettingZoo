@@ -2,7 +2,7 @@
 
 # Petting Zoo 
 
-Petting Zoo is environment for machine learning models to frolic and learn in, and a framework to help them do it in parallel. Currently there are tools to train models with a genetic algorithm, and reinforcement learning tools are coming soon!
+Petting Zoo is environment for machine learning models to frolic and learn in, and a framework to help them do it in parallel. Currently there are tools to train models with a genetic algorithm!
 
 ## The Environment
 
@@ -35,7 +35,7 @@ Once survivors and breeding pairs have been chosen, they are combined together w
 
 Well, supervised learning cannot be easily applied to games as you would need to be able to correctly identify which buttons to press at each frame and that is not an easy task. A genetic algorithm assumes nothing about the problem at hand--there is no surface to descent or conditional probabilities to calculate--the random combination and recombination of agents is all you need.
 
-Maybe a better question is why are you using a genetic algorithm instead of reinforcement learning? Great question, we thought it would be fun and informative and soon we will be moving to reinforcement learning.
+Maybe a better question is why are you using a genetic algorithm instead of reinforcement learning? Great question, we thought it would be fun and informative, and I'm quite interested in biologically inspired algorithms and ideas.
 
 ## The Models
 
